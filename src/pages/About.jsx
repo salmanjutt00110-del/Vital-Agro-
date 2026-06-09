@@ -1,0 +1,172 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Target, Eye, Award, Microscope, HeartHandshake, Globe } from 'lucide-react';
+
+// Import Assets
+import vitalBg from '@/assets/vital bg.mp4';
+import vitalAgroLogo from '@/assets/vital agro logo.png';
+import tagLogo from '@/assets/tag logo.png';
+
+export default function About() {
+  return (
+    <div className="min-h-screen pt-24">
+      {/* Header */}
+      <section className="bg-[#0A2E1F] py-20 relative overflow-hidden">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-20"
+        >
+          <source src={vitalBg} type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-[#0A2E1F]/90" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <span className="text-sm font-bold tracking-widest uppercase text-[#76C945]">About Us</span>
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-white mt-4 mb-4">Our Story</h1>
+            <p className="text-white/60 text-lg max-w-2xl mx-auto">
+              {"Pioneering agricultural excellence through premium formulations and unwavering commitment to farmer prosperity."}
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Company Intro */}
+      <section className="py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Video side */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+            >
+              <div className="rounded-3xl overflow-hidden aspect-[4/3] shadow-lg border border-border">
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover"
+                  style={{ objectFit: 'cover' }}
+                >
+                  <source src={vitalBg} type="video/mp4" />
+                </video>
+              </div>
+            </motion.div>
+
+            {/* Text side */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+            >
+              {/* Logo Banner */}
+              <div className="flex items-center gap-4 mb-6">
+                <img
+                  src={vitalAgroLogo}
+                  alt="Vital Agro Logo"
+                  className="h-9 w-auto object-contain"
+                />
+                <span className="h-5 w-px bg-border" />
+                <img
+                  src={tagLogo}
+                  alt="Tag Logo"
+                  className="h-7 w-auto object-contain"
+                />
+              </div>
+
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-6">
+                {"Vital Agro Chemical Industries (Pvt.) Ltd."}
+              </h2>
+              <p className="text-muted-foreground text-lg leading-relaxed mb-6">
+                {"Vital Agro Chemical Industries is a leading Pakistani agrochemical company dedicated to providing premium crop protection and plant nutrition solutions. With over 15 years of industry experience, we have established ourselves as a trusted name among farmers and dealers nationwide."}
+              </p>
+              <p className="text-muted-foreground text-lg leading-relaxed">
+                {"Our portfolio includes a comprehensive range of insecticides, herbicides, fungicides, micronutrients, growth promoters, and specialty products — all formulated with imported raw materials to deliver maximum efficacy and reliability."}
+              </p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Mission & Vision */}
+      <section className="py-24 bg-muted/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-8">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-card rounded-3xl p-10 border border-border"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-[#76C945]/10 flex items-center justify-center mb-6">
+                <Target className="w-8 h-8 text-[#76C945]" />
+              </div>
+              <h3 className="text-2xl font-extrabold text-foreground mb-4">Our Mission</h3>
+              <p className="text-muted-foreground text-lg leading-relaxed">
+                {"To provide farmers with the highest quality agricultural inputs that maximize crop yield and profitability while maintaining environmental sustainability. We strive to be the most trusted partner for progressive farmers across Pakistan."}
+              </p>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.15 }}
+              className="bg-card rounded-3xl p-10 border border-border"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-[#C5A059]/10 flex items-center justify-center mb-6">
+                <Eye className="w-8 h-8 text-[#C5A059]" />
+              </div>
+              <h3 className="text-2xl font-extrabold text-foreground mb-4">Our Vision</h3>
+              <p className="text-muted-foreground text-lg leading-relaxed">
+                {"To become Pakistan's leading agrochemical company recognized internationally for innovation, quality, and farmer-centric solutions. We envision a future where every farmer has access to world-class agricultural technology."}
+              </p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Values */}
+      <section className="py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <span className="text-sm font-bold tracking-widest uppercase text-[#76C945]">Core Values</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground mt-4">What Drives Us</h2>
+          </motion.div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { icon: Award, title: 'Excellence', desc: 'We pursue the highest standards in everything we do.' },
+              { icon: Microscope, title: 'Innovation', desc: 'Continuous research and development drive our solutions.' },
+              { icon: HeartHandshake, title: 'Integrity', desc: 'Honest dealings with farmers, dealers, and partners.' },
+              { icon: Globe, title: 'Sustainability', desc: 'Environmentally responsible agricultural practices.' },
+            ].map((value, i) => (
+              <motion.div
+                key={value.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="text-center p-8 rounded-2xl bg-card border border-border hover:shadow-xl transition-all"
+              >
+                <div className="w-16 h-16 rounded-2xl bg-[#76C945]/10 flex items-center justify-center mx-auto mb-6">
+                  <value.icon className="w-7 h-7 text-[#76C945]" />
+                </div>
+                <h3 className="font-bold text-foreground text-lg mb-2">{value.title}</h3>
+                <p className="text-sm text-muted-foreground">{value.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}

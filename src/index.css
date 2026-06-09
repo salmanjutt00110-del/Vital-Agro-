@@ -1,0 +1,111 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Noto+Nastaliq+Urdu:wght@400..700&family=Noto+Sans+Arabic:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 120 20% 98%;
+    --foreground: 153 50% 9%;
+    --card: 0 0% 100%;
+    --card-foreground: 153 50% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 153 50% 9%;
+    --primary: 153 50% 12%;
+    --primary-foreground: 120 20% 98%;
+    --secondary: 100 40% 94%;
+    --secondary-foreground: 153 50% 12%;
+    --muted: 100 20% 95%;
+    --muted-foreground: 153 15% 40%;
+    --accent: 40 45% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 120 15% 88%;
+    --input: 120 15% 88%;
+    --ring: 100 50% 45%;
+    --chart-1: 100 50% 45%;
+    --chart-2: 153 50% 12%;
+    --chart-3: 40 45% 55%;
+    --chart-4: 120 30% 70%;
+    --chart-5: 80 40% 50%;
+    --radius: 0.75rem;
+    --font-heading: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-body: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --sidebar-background: 153 50% 9%;
+    --sidebar-foreground: 120 20% 98%;
+    --sidebar-primary: 100 50% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 153 40% 15%;
+    --sidebar-accent-foreground: 120 20% 98%;
+    --sidebar-border: 153 30% 18%;
+    --sidebar-ring: 100 50% 45%;
+  }
+
+  .dark {
+    --background: 153 50% 4%;
+    --foreground: 120 20% 98%;
+    --card: 153 50% 7%;
+    --card-foreground: 120 20% 98%;
+    --popover: 153 50% 7%;
+    --popover-foreground: 120 20% 98%;
+    --primary: 100 50% 45%;
+    --primary-foreground: 153 50% 9%;
+    --secondary: 153 40% 12%;
+    --secondary-foreground: 120 20% 98%;
+    --muted: 153 30% 12%;
+    --muted-foreground: 120 10% 60%;
+    --accent: 40 45% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 153 30% 14%;
+    --input: 153 30% 14%;
+    --ring: 100 50% 45%;
+    --chart-1: 100 50% 45%;
+    --chart-2: 40 45% 55%;
+    --chart-3: 153 50% 12%;
+    --chart-4: 120 30% 70%;
+    --chart-5: 80 40% 50%;
+    --sidebar-background: 153 50% 4%;
+    --sidebar-foreground: 120 20% 98%;
+    --sidebar-primary: 100 50% 45%;
+    --sidebar-primary-foreground: 153 50% 9%;
+    --sidebar-accent: 153 40% 10%;
+    --sidebar-accent-foreground: 120 20% 98%;
+    --sidebar-border: 153 30% 12%;
+    --sidebar-ring: 100 50% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.5);
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
