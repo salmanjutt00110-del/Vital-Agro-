@@ -161,14 +161,21 @@ export default function Footer() {
               <h4 className="text-sm font-black tracking-widest uppercase text-[#76C945] mb-6">{t.footer.contact}</h4>
               <ul className="space-y-5">
                 {[
-                  { icon: MapPin, value: 'Plot No. 50 & 56, Vital Office, Haroonabad, Distt. Bahawalnagar, Pakistan' },
-                  { icon: Phone, value: '063-2253137' },
+                  { icon: MapPin, value: 'Plot No. 50 & 56, Vital Office, Haroonabad, Distt. Bahawalnagar, Pakistan', link: 'https://www.google.com/maps/dir/?api=1&destination=Plot+No.+50+%26+56%2C+Vital+Office%2C+Haroonabad%2C+Distt.+Bahawalnagar%2C+Pakistan' },
+                  { icon: Phone, value: '063-2253137', link: 'tel:+920632253137' },
                 ].map((item, i) => (
                   <li key={i} className="flex gap-3 text-sm group">
                     <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-white/10 transition-colors">
                       <item.icon className="w-4 h-4 text-white/50 group-hover:text-[#76C945] transition-colors" />
                     </div>
-                    <span className="text-white/70 leading-relaxed">{item.value}</span>
+                    <a
+                      href={item.link}
+                      target={item.link.startsWith('http') ? '_blank' : undefined}
+                      rel={item.link.startsWith('http') ? 'noopener noreferrer' : undefined}
+                      className="text-white/70 hover:text-white leading-relaxed hover:underline transition-colors"
+                    >
+                      {item.value}
+                    </a>
                   </li>
                 ))}
               </ul>
