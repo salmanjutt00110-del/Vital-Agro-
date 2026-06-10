@@ -1,12 +1,18 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Phone, Leaf } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
+import useVideoAutoplay from '@/hooks/useVideoAutoplay';
 import vitalBg from '@/assets/vital bg.mp4';
 
 export default function CTASection() {
   const { t } = useLanguage();
+  const videoRef = useRef(null);
+  useVideoAutoplay(videoRef);
+
+  const whatsappText = encodeURIComponent("Hello Vital Agro,\n\nI am interested in your agricultural products and solutions. Please provide more details.\n\nThank you.");
+  const whatsappUrl = `https://wa.me/923011837160?text=${whatsappText}`;
 
   return (
     <section className="py-24">
@@ -20,10 +26,12 @@ export default function CTASection() {
         >
           {/* Video background instead of broken remote image */}
           <video
+            ref={videoRef}
             autoPlay
             loop
             muted
             playsInline
+            preload="metadata"
             className="absolute inset-0 w-full h-full object-cover"
           >
             <source src={vitalBg} type="video/mp4" />
@@ -88,13 +96,15 @@ export default function CTASection() {
               className="flex flex-wrap justify-center gap-4"
             >
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
-                <Link
-                  to="/contact"
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="group inline-flex items-center gap-2 px-8 py-4 bg-[#76C945] text-[#0A2E1F] font-bold rounded-full hover:bg-[#8AD65A] transition-all text-sm shadow-xl shadow-[#76C945]/25"
                 >
                   {t.cta.btnGetInTouch}
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
+                </a>
               </motion.div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
                 <a

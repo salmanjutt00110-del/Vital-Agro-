@@ -111,6 +111,13 @@ export const translations = {
       growth_promoter: 'Growth Promoter',
       special_product: 'Special Product',
     },
+    pricing: {
+      packSize: 'Pack Size',
+      cartonPacking: 'Carton Packing',
+      netRate: 'Net Rate',
+      genericName: 'Generic Name',
+      retailPrice: 'Retail Price (PKR)',
+    },
   },
   ur: {
     dir: 'rtl',
@@ -220,11 +227,18 @@ export const translations = {
       growth_promoter: 'نمو بڑھانے والا',
       special_product: 'خاص مصنوع',
     },
+    pricing: {
+      packSize: 'پیکنگ سائز',
+      cartonPacking: 'کارٹن پیکنگ',
+      netRate: 'نیٹ ریٹ',
+      genericName: 'جنرک نام',
+      retailPrice: 'ریٹیل پرائس (روپے)',
+    },
   },
 };
 
 export function LanguageProvider({ children }) {
-  const [lang, setLang] = useState('en');
+  const [lang, setLang] = useState('ur');
   const t = translations[lang];
   return (
     <LanguageContext.Provider value={{ lang, setLang, t }}>

@@ -105,7 +105,22 @@
   background: hsl(var(--primary) / 0.5);
 }
 
-/* Smooth scroll */
+/* Smooth scroll & anchor target offsets */
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 5.5rem; /* Offset to prevent header overlap */
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Mobile video sizing */
+@media (max-width: 640px) {
+  .mobile-video-section video {
+    height: 200px;
+    object-fit: cover;
+  }
 }

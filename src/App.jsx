@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -19,6 +20,8 @@ import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
+import Loader from '@/components/layout/Loader';
+import { AnimatePresence } from 'framer-motion';
 
 const AuthenticatedApp = () => {
   // Bypassed base44 authentication checks to keep the website public and browseable without login
@@ -42,12 +45,20 @@ const AuthenticatedApp = () => {
 };
 
 function App() {
+  const [isAppLoading, setIsAppLoading] = useState(true);
+
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
+        <AnimatePresence mode="wait">
+          {isAppLoading && (
+            <Loader onFinish={() => setIsAppLoading(false)} />
+          )}
+        </AnimatePresence>
+
         <Router>
           <LanguageProvider>
-            <AuthenticatedApp />
+            {!isAppLoading && <AuthenticatedApp />}
           </LanguageProvider>
         </Router>
         <Toaster />

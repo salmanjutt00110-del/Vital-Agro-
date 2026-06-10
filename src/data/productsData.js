@@ -1,19 +1,26 @@
 // Import product images properly via React ES6 imports
-import fattyImg from '@/assets/fatty.png';
-import conferenceImg from '@/assets/conference.png';
-import easyGrowImg from '@/assets/easy-grow.png';
-import purifizinImg from '@/assets/Purifizin.png';
-import aaqaabImg from '@/assets/Aaqaab.png';
-import drPpImg from '@/assets/dr-pp.png';
-import vacZincImg from '@/assets/vac-zinc.png';
-import sectorImg from '@/assets/sector.png';
-import outputImg from '@/assets/output.png';
-import super4gImg from '@/assets/super-4g.png';
-import farbasinImg from '@/assets/FARBASIN.png';
+import fattyImg from '@/assets/fatty.webp';
+import conferenceImg from '@/assets/conference.webp';
+import easyGrowImg from '@/assets/easy-grow.webp';
+import purifizinImg from '@/assets/Purifizin.webp';
+import aaqaabImg from '@/assets/Aaqaab.webp';
+import drPpImg from '@/assets/dr-pp.webp';
+import vacZincImg from '@/assets/vac-zinc.webp';
+import sectorImg from '@/assets/sector.webp';
+import outputImg from '@/assets/output.webp';
+import super4gImg from '@/assets/super-4g.webp';
+import farbasinImg from '@/assets/FARBASIN.webp';
 
 export const PRODUCTS_DATA = {
   "fatty": {
     id: "fatty",
+    genericName: {
+      en: "Bio-Stimulant",
+      ur: "بایوسٹیمولینٹ"
+    },
+    pricing: [
+      { size: "500ml", rate: "750", carton: "24" }
+    ],
     slug: "fatty",
     name: {
       en: "Fatty",
@@ -161,6 +168,14 @@ export const PRODUCTS_DATA = {
   },
   "conference-gold": {
     id: "conference-gold",
+    genericName: {
+      en: "Metalaxyl + Fludioxonil + Thiamethoxam",
+      ur: "میٹالیکسائل + فلوڈیوکسونل + تھایامیتھوکسام"
+    },
+    pricing: [
+      { size: "50ml", rate: "399", carton: "40" },
+      { size: "100ml", rate: "740", carton: "40" }
+    ],
     slug: "conference-gold",
     name: {
       en: "Conference Gold",
@@ -300,6 +315,15 @@ export const PRODUCTS_DATA = {
   },
   "easy-grow": {
     id: "easy-grow",
+    genericName: {
+      en: "Clothianidin",
+      ur: "کلوتھیانیڈن"
+    },
+    pricing: [
+      { size: "100ml", rate: "245", carton: "40" },
+      { size: "120g", rate: "365", carton: "40" },
+      { size: "200ml", rate: "370", carton: "40" }
+    ],
     slug: "easy-grow",
     name: {
       en: "Easy Grow",
@@ -437,6 +461,13 @@ export const PRODUCTS_DATA = {
   },
   "purifizin-extra": {
     id: "purifizin-extra",
+    genericName: {
+      en: "Buprofezin",
+      ur: "بیوپروفیزن"
+    },
+    pricing: [
+      { size: "900g", rate: "1199", carton: "10" }
+    ],
     slug: "purifizin-extra",
     name: {
       en: "Purifizin Extra",
@@ -575,6 +606,13 @@ export const PRODUCTS_DATA = {
   },
   "aaqaab": {
     id: "aaqaab",
+    genericName: {
+      en: "Abamectin",
+      ur: "ابامیکٹن"
+    },
+    pricing: [
+      { size: "400ml", rate: "599", carton: "20" }
+    ],
     slug: "aaqaab",
     name: {
       en: "AAQAAB",
@@ -711,6 +749,15 @@ export const PRODUCTS_DATA = {
   },
   "dr-pp": {
     id: "dr-pp",
+    genericName: {
+      en: "Emamectin + Lufenuron",
+      ur: "ایمامیکٹن + لو فینوران"
+    },
+    pricing: [
+      { size: "200ml", rate: "310", carton: "40" },
+      { size: "400ml", rate: "499", carton: "20" },
+      { size: "1 Liter", rate: "1099", carton: "12" }
+    ],
     slug: "dr-pp",
     name: {
       en: "Dr. PP",
@@ -848,6 +895,14 @@ export const PRODUCTS_DATA = {
   },
   "vac-zinc": {
     id: "vac-zinc",
+    genericName: {
+      en: "Zinc",
+      ur: "زنک"
+    },
+    pricing: [
+      { size: "10 Liter", rate: "6650", carton: "1" },
+      { size: "20 Liter", rate: "12999", carton: "1" }
+    ],
     slug: "vac-zinc",
     name: {
       en: "VAC Zinc",
@@ -985,6 +1040,13 @@ export const PRODUCTS_DATA = {
   },
   "sector": {
     id: "sector",
+    genericName: {
+      en: "Crop Supplement",
+      ur: "فصل کا ضامن سپلیمنٹ"
+    },
+    pricing: [
+      { size: "4 KG", rate: "1050", carton: "1" }
+    ],
     slug: "sector",
     name: {
       en: "Sector",
@@ -1112,6 +1174,14 @@ export const PRODUCTS_DATA = {
   },
   "output": {
     id: "output",
+    genericName: {
+      en: "Potassium Humate / Humic Acid",
+      ur: "پوٹاشیم ہیومیٹ / ہیومک ایسڈ"
+    },
+    pricing: [
+      { size: "1 KG", rate: "699", carton: "1" },
+      { size: "25 KG", rate: "15230", carton: "1" }
+    ],
     slug: "output",
     name: {
       en: "Output",
@@ -1249,6 +1319,13 @@ export const PRODUCTS_DATA = {
   },
   "super-4g": {
     id: "super-4g",
+    genericName: {
+      en: "Chlorantraniliprole + Thiamethoxam",
+      ur: "کلورینٹرانیلی پرول + تھایامیتھوکسام"
+    },
+    pricing: [
+      { size: "8 KG", rate: "1250", carton: "4" }
+    ],
     slug: "super-4g",
     name: {
       en: "Super 4G",
@@ -1383,6 +1460,14 @@ export const PRODUCTS_DATA = {
   },
   "farbasin": {
     id: "farbasin",
+    genericName: {
+      en: "Dimethmorph + Mancozeb",
+      ur: "ڈائی میتھومورف + مینکوزیب"
+    },
+    pricing: [
+      { size: "250g", rate: "850", carton: "40" },
+      { size: "25 KG", rate: "71000", carton: "1" }
+    ],
     slug: "farbasin",
     name: {
       en: "Farbasin",

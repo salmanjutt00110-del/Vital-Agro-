@@ -1,22 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Phone, ArrowLeft, Download, Send, MessageCircle, Mail,
+  Phone, ArrowLeft, Download, Send, MessageCircle,
   CheckCircle2, AlertTriangle, HelpCircle, Shield, Award, Cpu,
   Flame, HardHat, FileText, Info, Leaf, Check, Sparkles, Zap, Clock, ShieldCheck, Gauge, Layers, Activity, Maximize,
-  ArrowRight, FileBadge
+  ArrowRight, FileBadge, Users
 } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { getProductBySlug, PRODUCTS_DATA } from '@/data/productsData';
 import { useToast } from '@/components/ui/use-toast';
 import { useQuery } from '@tanstack/react-query';
+import useVideoAutoplay from '@/hooks/useVideoAutoplay';
 
 // Import local assets via standard React pipeline
 import vitalBg from '@/assets/vital bg.mp4';
-import vitalAgroLogo from '@/assets/vital agro logo.png';
-import tagLogo from '@/assets/tag logo.png';
-import vitalGroup from '@/assets/vital group.png';
+import vitalAgroLogo from '@/assets/vital agro logo.webp';
+import tagLogo from '@/assets/tag logo.webp';
+import vitalGroup from '@/assets/vital group.webp';
 
 const PAGE_TRANS = {
   en: {
@@ -32,7 +33,6 @@ const PAGE_TRANS = {
     whatsappInquiry: "WhatsApp Inquiry",
     requestQuote: "Request Quote",
     callNow: "Call Now",
-    emailInquiry: "Email Inquiry",
     description: "Product Description",
     keyFeatures: "Key Features",
     benefits: "Key Benefits",
@@ -86,7 +86,6 @@ const PAGE_TRANS = {
     whatsappInquiry: "واٹس ایپ انکوائری",
     requestQuote: "انکوائری فارم",
     callNow: "ابھی کال کریں",
-    emailInquiry: "ای میل انکوائری",
     description: "مصنوعات کی تفصیل",
     keyFeatures: "اہم خصوصیات",
     benefits: "اہم فوائد",
@@ -178,6 +177,57 @@ export default function ProductDetail() {
   const [openFaq, setOpenFaq] = useState(null); // Accordion state
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [formData, setFormData] = useState({ name: '', phone: '', city: '', crop: '', message: '' });
+  const [selectedSizeIdx, setSelectedSizeIdx] = useState(0);
+
+  const videoRef = useRef(null);
+  useVideoAutoplay(videoRef);
+
+  const getWhatsAppLinkForProduct = (p, l, sizeIdx = 0) => {
+    const phone = "923011837160";
+    const productName = p.name[l] || p.name.en || p.name;
+    const catNames = {
+      insecticide: { en: 'Insecticide', ur: 'کیڑے مار دوا' },
+      herbicide: { en: 'Herbicide', ur: 'جڑی بوٹی مار دوا' },
+      fungicide: { en: 'Fungicide', ur: 'فنگس مار دوا' },
+      plant_nutrition: { en: 'Plant Nutrition', ur: 'پودوں کی غذائیت' },
+      growth_promoter: { en: 'Growth Promoter', ur: 'نمو بڑھانے والا' },
+      special_product: { en: 'Special Product', ur: 'خاص مصنوع' }
+    };
+    const categoryName = catNames[p.category]?.[l] || catNames[p.category]?.en || p.category;
+    
+    const pricingOption = p.pricing?.[sizeIdx] || { size: p.packaging, rate: "Negotiable", carton: "N/A" };
+    const size = pricingOption.size;
+    const rate = pricingOption.rate;
+
+    const message = `Assalam-o-Alaikum Vital Agro Team,
+
+I want to purchase this product.
+
+Product Name:
+${productName}
+
+Category:
+${categoryName}
+
+Pack Size:
+${size}
+
+Price:
+Rs. ${rate}
+
+Quantity:
+1
+
+Please guide me regarding availability and delivery.
+
+Thank You.`;
+
+    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  };
+
+  const getWhatsAppQuoteLink = (p, l, sizeIdx = 0) => {
+    return getWhatsAppLinkForProduct(p, l, sizeIdx);
+  };
 
   const isRTL = lang === 'ur';
   const tPage = PAGE_TRANS[lang] || PAGE_TRANS.en;
@@ -300,7 +350,37 @@ export default function ProductDetail() {
       });
       return;
     }
-    // Simulate API call
+    
+    // Redirect to WhatsApp with contact details
+    const phone = "923011837160";
+    const productName = product.name[lang] || product.name.en;
+    const message = `Hello Vital Agro,
+
+I would like to submit a dealer/product inquiry.
+
+Inquirer Name:
+${formData.name}
+
+Phone Number:
+${formData.phone}
+
+City:
+${formData.city || "Not provided"}
+
+Target Crop:
+${formData.crop || "Not provided"}
+
+Interested Product:
+${productName}
+
+Inquiry Message:
+${formData.message || "No message provided"}
+
+Thank you.`;
+
+    const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, '_blank');
+
     setFormSubmitted(true);
   };
 
@@ -323,11 +403,14 @@ export default function ProductDetail() {
       <section className="relative min-h-[90vh] flex items-center overflow-hidden py-12 px-4 sm:px-6 lg:px-8 bg-[#0A2E1F]">
         {/* Looping Background Video */}
         <video
+          ref={videoRef}
           autoPlay
           loop
           muted
           playsInline
+          preload="metadata"
           className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay"
+          style={{ transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
         >
           <source src={vitalBg} type="video/mp4" />
         </video>
@@ -344,7 +427,7 @@ export default function ProductDetail() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8 }}
-              className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 sm:p-12 w-full max-w-[420px] aspect-square flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] group cursor-zoom-in"
+              className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-4 sm:p-8 w-full max-w-[420px] aspect-square flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] group cursor-zoom-in"
               onClick={() => setIsZoomed(true)}
             >
               {/* Product Image Zoom / Showcase */}
@@ -358,7 +441,7 @@ export default function ProductDetail() {
                   className="w-full h-full flex items-center justify-center"
                 >
                   {galleryImages[activeTab].isLogo ? (
-                    <div className="p-8 bg-white/10 rounded-2xl border border-white/20 backdrop-blur-md flex flex-col items-center justify-center gap-4 text-center">
+                    <div className="p-8 bg-white/10 rounded-2xl border border-white/20 backdrop-blur-md flex flex-col items-center justify-center gap-4 text-center w-full h-full">
                       <img
                         src={galleryImages[activeTab].url}
                         alt="Logo View"
@@ -441,7 +524,7 @@ export default function ProductDetail() {
             </p>
 
             {/* 2. Product Information Grid */}
-            <div className="grid grid-cols-2 gap-4 bg-white/5 backdrop-blur-md p-6 rounded-2xl border border-white/10 mb-8">
+            <div className="grid grid-cols-2 gap-4 bg-white/5 backdrop-blur-md p-6 rounded-2xl border border-white/10 mb-6">
               <div>
                 <span className="text-xs text-white/50 block uppercase font-bold tracking-wider">{tPage.productCode}</span>
                 <span className="text-base font-black tracking-widest text-[#76C945]">{product.productCode}</span>
@@ -463,6 +546,30 @@ export default function ProductDetail() {
               </div>
             </div>
 
+            {/* Premium Size Selector */}
+            {product.pricing && product.pricing.length > 0 && (
+              <div className="mb-8 p-5 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10">
+                <span className="text-xs text-white/60 block uppercase font-black tracking-widest mb-3">
+                  {lang === 'en' ? 'Select Packing Size' : 'پیکنگ سائز منتخب کریں'}
+                </span>
+                <div className="flex flex-wrap gap-2.5">
+                  {product.pricing.map((priceOption, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedSizeIdx(idx)}
+                      className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all duration-300 border ${
+                        selectedSizeIdx === idx
+                          ? 'bg-[#76C945] text-[#0A2E1F] border-[#76C945] shadow-lg shadow-[#76C945]/20 scale-105'
+                          : 'bg-white/5 text-white/80 border-white/10 hover:bg-white/15 hover:text-white'
+                      }`}
+                    >
+                      {priceOption.size} {priceOption.rate !== "Negotiable" ? `- Rs. ${priceOption.rate}` : ''}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Scroll down link to dosage */}
             <a
               href="#dosage-table"
@@ -482,43 +589,77 @@ export default function ProductDetail() {
             {tPage.quickActions}:
           </span>
           <div className="flex flex-wrap gap-2.5 w-full sm:w-auto">
-            <button
-              onClick={() => handleDownload('Label')}
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-border rounded-full hover:bg-muted text-sm font-bold transition-all text-muted-foreground hover:text-foreground"
-            >
-              <Download className="w-4 h-4" />
-              <span>{tPage.downloadLabel}</span>
-            </button>
-            <button
-              onClick={() => handleDownload('PDF')}
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-border rounded-full hover:bg-muted text-sm font-bold transition-all text-muted-foreground hover:text-foreground"
-            >
-              <FileText className="w-4 h-4" />
-              <span>{tPage.downloadPDF}</span>
-            </button>
-            <a
-              href={`https://wa.me/923001234567?text=Assalam-o-Alaikum,%20I%20am%20interested%20in%20Vital%20Agro%20product:%20${encodeURIComponent(product.name.en)}`}
+            {/* 1. Buy on WhatsApp */}
+            <motion.a
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              href={getWhatsAppLinkForProduct(product, lang, selectedSizeIdx)}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-full text-sm font-extrabold transition-all"
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 bg-green-500 hover:bg-green-600 text-white rounded-full text-sm font-extrabold transition-all shadow-md shadow-green-500/10 min-h-[48px]"
             >
               <MessageCircle className="w-4 h-4" />
-              <span>{tPage.whatsappInquiry}</span>
-            </a>
-            <a
-              href="#dealer-inquiry"
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0A2E1F] hover:bg-[#0E3E2A] text-white rounded-full text-sm font-extrabold transition-all"
+              <span>{lang === 'en' ? 'Buy on WhatsApp' : 'واٹس ایپ پر خریدیں'}</span>
+            </motion.a>
+
+            {/* 2. Request Quote (WhatsApp) */}
+            <motion.a
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              href={getWhatsAppQuoteLink(product, lang, selectedSizeIdx)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 bg-amber-500 hover:bg-[#D49022] text-white rounded-full text-sm font-extrabold transition-all shadow-md min-h-[48px]"
             >
-              <Mail className="w-4 h-4" />
+              <FileText className="w-4 h-4" />
               <span>{tPage.requestQuote}</span>
-            </a>
-            <a
-              href="tel:+920632253137"
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-primary/20 hover:bg-primary/5 text-primary rounded-full text-sm font-bold transition-all"
+            </motion.a>
+
+            {/* 3. Call Now */}
+            <motion.a
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              href="tel:+923011837160"
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#0A2E1F] text-white hover:bg-[#0E3E2A] rounded-full text-sm font-extrabold transition-all min-h-[48px]"
             >
               <Phone className="w-4 h-4" />
               <span>{tPage.callNow}</span>
-            </a>
+            </motion.a>
+
+
+
+            {/* 5. Download Label */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleDownload('Label')}
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 border border-border rounded-full hover:bg-muted text-sm font-bold transition-all text-muted-foreground hover:text-foreground min-h-[48px]"
+            >
+              <Download className="w-4 h-4" />
+              <span>{tPage.downloadLabel}</span>
+            </motion.button>
+
+            {/* 6. Download Brochure */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleDownload('Brochure')}
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 border border-border rounded-full hover:bg-muted text-sm font-bold transition-all text-muted-foreground hover:text-foreground min-h-[48px]"
+            >
+              <Download className="w-4 h-4" />
+              <span>{lang === 'en' ? 'Download Brochure' : 'بروشر ڈاؤن لوڈ کریں'}</span>
+            </motion.button>
+
+            {/* 7. Dealer Inquiry */}
+            <motion.a
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              href="#dealer-inquiry"
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 border border-primary/20 hover:bg-primary/5 text-primary rounded-full text-sm font-bold transition-all min-h-[48px]"
+            >
+              <Users className="w-4 h-4" />
+              <span>{lang === 'en' ? 'Dealer Inquiry' : 'ڈیلر انکوائری'}</span>
+            </motion.a>
           </div>
         </div>
       </section>
@@ -667,6 +808,60 @@ export default function ProductDetail() {
               </table>
             </div>
           </section>
+
+          {/* Pricing & Carton Packing Matrix */}
+          {product.pricing && product.pricing.length > 0 && (
+            <section className="bg-white p-8 sm:p-10 rounded-3xl border border-border shadow-sm overflow-hidden">
+              <h2 className="text-2xl font-black text-[#0A2E1F] mb-8 pb-2 border-b border-border flex items-center gap-2">
+                <Layers className="w-6 h-6 text-[#76C945]" />
+                {lang === 'en' ? "Pricing & Carton Packing Matrix" : "قیمت اور کارٹن پیکنگ کی تفصیلات"}
+              </h2>
+              <div className="overflow-x-auto rounded-xl border border-border">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#0A2E1F] text-white">
+                      <th className="p-4 text-sm font-bold text-center">{lang === 'en' ? "Pack Size" : "پیکنگ سائز"}</th>
+                      <th className="p-4 text-sm font-bold text-center">{lang === 'en' ? "Carton Packing" : "کارٹن پیکنگ"}</th>
+                      <th className="p-4 text-sm font-bold text-center">{lang === 'en' ? "Net Rate" : "نیٹ ریٹ"}</th>
+                      <th className="p-4 text-sm font-bold text-center">{lang === 'en' ? "Order Urgent" : "فوری آرڈر"}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {product.pricing.map((row, i) => (
+                      <tr key={i} className="hover:bg-muted/40 transition-colors">
+                        <td className="p-4 text-sm font-black text-center text-foreground">{row.size}</td>
+                        <td className="p-4 text-sm font-bold text-center text-[#C5A059]">
+                          {row.carton} {lang === 'en' ? 'Units / Carton' : 'بوتلیں فی کارٹن'}
+                        </td>
+                        <td className="p-4 text-sm font-black text-center text-[#0A2E1F]">
+                          {row.rate !== "Negotiable" ? `Rs. ${row.rate}` : (lang === 'en' ? 'Negotiable' : 'قابلِ تبادلہ')}
+                        </td>
+                        <td className="p-4 text-sm font-bold text-center">
+                          <a
+                            href={getWhatsAppLinkForProduct(product, lang, i)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-black transition-all shadow-sm cursor-pointer"
+                          >
+                            <MessageCircle className="w-3.5 h-3.5" />
+                            <span>{lang === 'en' ? 'Buy Now' : 'خریدیں'}</span>
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-100 flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-800 leading-relaxed font-medium">
+                  {lang === 'en'
+                    ? "Note: Rates listed are net distributor trade rates. Carton packaging configuration must be followed for bulk orders. Contact head office for volume discounts."
+                    : "نوٹ: درج کردہ ریٹس ڈسٹریبیوٹر ٹریڈ ریٹس ہیں۔ بلک آرڈرز کے لیے کارٹن پیکنگ کی ترتیب پر عمل کرنا لازمی ہے۔ والیم ڈسکاؤنٹ کے لیے ہیڈ آفس سے رابطہ کریں۔"}
+                </p>
+              </div>
+            </section>
+          )}
 
           {/* 10. Technical Specifications */}
           <section className="bg-white p-8 sm:p-10 rounded-3xl border border-border shadow-sm">

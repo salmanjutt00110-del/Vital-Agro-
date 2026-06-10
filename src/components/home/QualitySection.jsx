@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, FlaskConical, Microscope, ShieldCheck, Atom } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
-import researchLab from '@/assets/research_lab.png';
+import researchLab from '@/assets/research_lab.webp';
 
 export default function QualitySection() {
   const { t } = useLanguage();

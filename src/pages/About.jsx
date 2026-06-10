@@ -1,23 +1,32 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Target, Eye, Award, Microscope, HeartHandshake, Globe } from 'lucide-react';
+import useVideoAutoplay from '@/hooks/useVideoAutoplay';
 
 // Import Assets
 import vitalBg from '@/assets/vital bg.mp4';
-import vitalAgroLogo from '@/assets/vital agro logo.png';
-import tagLogo from '@/assets/tag logo.png';
+import vitalAgroLogo from '@/assets/vital agro logo.webp';
+import tagLogo from '@/assets/tag logo.webp';
 
 export default function About() {
+  const videoRef1 = useRef(null);
+  const videoRef2 = useRef(null);
+  useVideoAutoplay(videoRef1);
+  useVideoAutoplay(videoRef2);
+
   return (
     <div className="min-h-screen pt-24">
       {/* Header */}
       <section className="bg-[#0A2E1F] py-20 relative overflow-hidden">
         <video
+          ref={videoRef1}
           autoPlay
           loop
           muted
           playsInline
+          preload="metadata"
           className="absolute inset-0 w-full h-full object-cover opacity-20"
+          style={{ transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
         >
           <source src={vitalBg} type="video/mp4" />
         </video>
@@ -32,7 +41,7 @@ export default function About() {
           </motion.div>
         </div>
       </section>
-
+ 
       {/* Company Intro */}
       <section className="py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -45,12 +54,14 @@ export default function About() {
             >
               <div className="rounded-3xl overflow-hidden aspect-[4/3] shadow-lg border border-border">
                 <video
+                  ref={videoRef2}
                   autoPlay
                   loop
                   muted
                   playsInline
+                  preload="metadata"
                   className="w-full h-full object-cover"
-                  style={{ objectFit: 'cover' }}
+                  style={{ objectFit: 'cover', transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
                 >
                   <source src={vitalBg} type="video/mp4" />
                 </video>

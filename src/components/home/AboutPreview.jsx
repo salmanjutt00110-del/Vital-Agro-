@@ -1,16 +1,19 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Shield, Microscope, HeartHandshake } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
+import useVideoAutoplay from '@/hooks/useVideoAutoplay';
 
 // Import Assets
 import vitalBg from '@/assets/vital bg.mp4';
-import vitalAgroLogo from '@/assets/vital agro logo.png';
-import tagLogo from '@/assets/tag logo.png';
+import vitalAgroLogo from '@/assets/vital agro logo.webp';
+import tagLogo from '@/assets/tag logo.webp';
 
 export default function AboutPreview() {
   const { t } = useLanguage();
+  const videoRef = useRef(null);
+  useVideoAutoplay(videoRef);
 
   return (
     <section className="py-24 relative overflow-hidden">
@@ -25,10 +28,12 @@ export default function AboutPreview() {
           >
             <div className="relative rounded-3xl overflow-hidden aspect-[4/3] shadow-xl border border-border">
               <video
+                ref={videoRef}
                 autoPlay
                 loop
                 muted
                 playsInline
+                preload="metadata"
                 className="w-full h-full object-cover"
                 style={{ objectFit: 'cover' }}
               >

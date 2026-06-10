@@ -1,15 +1,16 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Leaf } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
+import useVideoAutoplay from '@/hooks/useVideoAutoplay';
 
 // Import Assets properly via React
 import vitalBg from '@/assets/vital bg.mp4';
-import vitalAgroLogo from '@/assets/vital agro logo.png';
-import fatty from '@/assets/fatty.png';
-import super4g from '@/assets/super-4g.png';
-import aaqaab from '@/assets/Aaqaab.png';
+import vitalAgroLogo from '@/assets/vital agro logo.webp';
+import fatty from '@/assets/fatty.webp';
+import super4g from '@/assets/super-4g.webp';
+import aaqaab from '@/assets/Aaqaab.webp';
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 40 },
@@ -28,17 +29,22 @@ const wordVariant = {
 
 export default function HeroSection() {
   const { t } = useLanguage();
+  const videoRef = useRef(null);
+  useVideoAutoplay(videoRef);
+
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       {/* Background looping video */}
       <div className="absolute inset-0 z-0">
         <video
+          ref={videoRef}
           autoPlay
           loop
           muted
           playsInline
+          preload="auto"
           className="w-full h-full object-cover opacity-70"
-          style={{ objectFit: 'cover' }}
+          style={{ objectFit: 'cover', transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
         >
           <source src={vitalBg} type="video/mp4" />
         </video>
@@ -166,7 +172,7 @@ export default function HeroSection() {
               </motion.div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
                 <a
-                  href="https://wa.me/923001234567"
+                  href="https://wa.me/923011837160"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-6 py-4 bg-green-500/20 text-green-300 font-bold rounded-full backdrop-blur-md border border-green-500/30 hover:bg-green-500/30 transition-all text-sm"

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Eye } from 'lucide-react';
@@ -7,9 +7,10 @@ import { Input } from '@/components/ui/input';
 import CropFilter from '@/components/products/CropFilter';
 import { useLanguage } from '@/lib/LanguageContext';
 import { PRODUCTS_DATA } from '@/data/productsData';
+import useVideoAutoplay from '@/hooks/useVideoAutoplay';
 
 // Import Assets
-import vitalAgroLogo from '@/assets/vital agro logo.png';
+import vitalAgroLogo from '@/assets/vital agro logo.webp';
 import vitalBg from '@/assets/vital bg.mp4';
 
 // Global database access fallback
@@ -20,6 +21,48 @@ export default function Products() {
   const [category, setCategory] = useState('all');
   const [search, setSearch] = useState('');
   const [activeCrop, setActiveCrop] = useState(null);
+
+  const videoRef1 = useRef(null);
+  const videoRef2 = useRef(null);
+  useVideoAutoplay(videoRef1);
+  useVideoAutoplay(videoRef2);
+
+  const getWhatsAppLinkForProduct = (product, lang) => {
+    const phone = "923011837160";
+    const productName = product.name[lang] || product.name.en || product.name;
+    const catNames = {
+      insecticide: { en: 'Insecticide', ur: 'کیڑے مار دوا' },
+      herbicide: { en: 'Herbicide', ur: 'جڑی بوٹی مار دوا' },
+      fungicide: { en: 'Fungicide', ur: 'فنگس مار دوا' },
+      plant_nutrition: { en: 'Plant Nutrition', ur: 'پودوں کی غذائیت' },
+      growth_promoter: { en: 'Growth Promoter', ur: 'نمو بڑھانے والا' },
+      special_product: { en: 'Special Product', ur: 'خاص مصنوع' }
+    };
+    const categoryName = catNames[product.category]?.[lang] || catNames[product.category]?.en || product.category;
+    const packing = product.packaging || (product.specs?.packing?.[lang] || "");
+    const message = `Hello Vital Agro,
+
+I am interested in purchasing the following product.
+
+Product Name:
+${productName}
+
+Category:
+${categoryName}
+
+Packing:
+${packing}
+
+Please provide:
+
+• Price
+• Availability
+• Dealer Information
+• Delivery Details
+
+Thank you.`;
+    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  };
 
   const isRTL = lang === 'ur';
 
@@ -112,11 +155,14 @@ export default function Products() {
       {/* Header Banner */}
       <section className="bg-[#0A2E1F] py-20 relative overflow-hidden">
         <video
+          ref={videoRef1}
           autoPlay
           loop
           muted
           playsInline
+          preload="metadata"
           className="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay"
+          style={{ transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
         >
           <source src={vitalBg} type="video/mp4" />
         </video>
@@ -137,6 +183,8 @@ export default function Products() {
             <h1 className="text-4xl sm:text-5xl font-black text-white mt-2 mb-4">
               {lang === 'en' ? 'Products & Solutions' : 'زرعی مصنوعات اور حل'}
             </h1>
+            <p className="text-white/30 text-xs">{t.footer.tagline}</p>
+            <p className="text-center text-white/70 mt-2">Raman Urdu</p>
             <p className="text-white/60 text-lg max-w-2xl mx-auto">
               {lang === 'en' 
                 ? 'Explore our premium crop protection, plant nutrition, and growth promoter formulas.'
@@ -145,6 +193,21 @@ export default function Products() {
           </motion.div>
         </div>
       </section>
+{/* Mobile Video Section */}
+<section className="block md:hidden py-8 mobile-video-section">
+  <video
+    ref={videoRef2}
+    autoPlay
+    loop
+    muted
+    playsInline
+    preload="metadata"
+    className="w-full h-auto object-cover"
+    style={{ transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
+  >
+    <source src={vitalBg} type="video/mp4" />
+  </video>
+</section>
 
       {/* Filters & Sticky bar */}
       <section className="py-8 border-b border-border sticky top-20 z-30 bg-background/95 backdrop-blur-xl">
@@ -211,10 +274,11 @@ export default function Products() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.04 }}
+                      className="group bg-card rounded-3xl border border-border overflow-hidden hover:border-[#76C945]/30 hover:shadow-2xl transition-all duration-500 relative flex flex-col justify-between h-full"
                     >
                       <Link
                         to={`/products/${product.slug}`}
-                        className="group block bg-card rounded-3xl border border-border overflow-hidden hover:border-[#76C945]/30 hover:shadow-2xl transition-all duration-500 relative"
+                        className="flex-grow flex flex-col justify-between"
                       >
                         {/* Packaging Container */}
                         <div className="relative aspect-square p-6 flex items-center justify-center bg-gradient-to-b from-muted/50 to-transparent">
@@ -246,7 +310,7 @@ export default function Products() {
                         </div>
 
                         {/* Description Section */}
-                        <div className="p-5">
+                        <div className="p-5 pb-0 flex-grow">
                           <h3 className="font-black text-foreground text-lg group-hover:text-[#76C945] transition-colors">
                             {product.name[lang]}
                           </h3>
@@ -265,6 +329,21 @@ export default function Products() {
                           </div>
                         </div>
                       </Link>
+
+                      {/* WhatsApp Purchase CTA */}
+                      <div className="p-5 pt-3">
+                        <a
+                          href={getWhatsAppLinkForProduct(product, lang)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full inline-flex items-center justify-center gap-2 py-3 bg-green-500 hover:bg-green-600 text-white rounded-2xl text-xs font-black shadow-lg shadow-green-500/10 hover:shadow-green-500/25 transition-all text-center uppercase tracking-wider hover:scale-[1.02] active:scale-95 touch-manipulation min-h-[48px]"
+                        >
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                          </svg>
+                          <span>{lang === 'en' ? 'Buy on WhatsApp' : 'واٹس ایپ پر خریدیں'}</span>
+                        </a>
+                      </div>
                     </motion.div>
                   );
                 })}
