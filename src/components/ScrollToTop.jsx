@@ -21,7 +21,12 @@ export default function ScrollToTop() {
     if (hash) {
       const id = getHashId(hash);
       const timer = window.setTimeout(() => {
-        document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+        const element = document.getElementById(id);
+        if (element) {
+          const yOffset = -96; // fixed navbar offset
+          const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+          window.scrollTo({ top: y, behavior: "smooth" });
+        }
       }, 50);
       return () => window.clearTimeout(timer);
     }

@@ -111,7 +111,7 @@ export default function ProductsShowcase() {
             >
               <Link
                 to={`/products/${product.slug}`}
-                className="group block bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden hover:bg-white/10 hover:border-[#76C945]/30 transition-all duration-500 hover:shadow-2xl hover:shadow-[#76C945]/10"
+                className="group block bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden hover:bg-white/10 hover:border-[#76C945]/30 transition-all duration-500 hover:shadow-2xl hover:shadow-[#76C945]/10 premium-card-3d premium-card-3d-reflection"
               >
                 <div className="relative aspect-square p-8 flex items-center justify-center bg-gradient-to-b from-white/5 to-transparent">
                   <img
@@ -152,7 +152,7 @@ export default function ProductsShowcase() {
         >
           <Link
             to="/products"
-            className="group inline-flex items-center gap-2 px-8 py-4 bg-[#76C945] text-[#0A2E1F] font-bold rounded-full hover:bg-[#8AD65A] transition-all text-sm"
+            className="group inline-flex items-center gap-2 px-8 py-4 btn-premium-primary rounded-full text-sm font-extrabold shadow-xl"
           >
             {t.showcase.viewAll}
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

@@ -95,21 +95,21 @@ export default function CTASection() {
               transition={{ delay: 0.4 }}
               className="flex flex-wrap justify-center gap-4"
             >
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+              <motion.div whileTap={{ scale: 0.97 }}>
                 <a
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group inline-flex items-center gap-2 px-8 py-4 bg-[#76C945] text-[#0A2E1F] font-bold rounded-full hover:bg-[#8AD65A] transition-all text-sm shadow-xl shadow-[#76C945]/25"
+                  className="group inline-flex items-center gap-2 px-8 py-4 btn-premium-primary rounded-full text-sm font-extrabold shadow-xl"
                 >
                   {t.cta.btnGetInTouch}
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </a>
               </motion.div>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+              <motion.div whileTap={{ scale: 0.97 }}>
                 <a
                   href="tel:+920632253137"
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-white/10 text-white font-bold rounded-full border border-white/20 hover:bg-white/20 transition-all text-sm backdrop-blur-sm"
+                  className="inline-flex items-center gap-2 px-8 py-4 btn-premium-secondary rounded-full text-sm font-extrabold"
                 >
                   <Phone className="w-4 h-4" />
                   {t.cta.btnCallNow}

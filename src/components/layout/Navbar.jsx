@@ -162,7 +162,7 @@ Thank you.`;
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-5 py-2.5 bg-gradient-to-r from-[#76C945] to-[#5BAD35] text-[#0A2E1F] text-sm font-bold rounded-full hover:shadow-lg hover:shadow-[#76C945]/25 transition-all duration-300 hover:scale-105"
+              className="px-5 py-2.5 btn-premium-primary text-sm font-extrabold rounded-full shadow-md"
             >
               {t.nav.getQuote}
             </a>
@@ -267,7 +267,7 @@ Thank you.`;
 
                   {/* Google Maps directions */}
                   <a
-                    href="https://www.google.com/maps/search/?api=1&query=Plot+No.+50+%26+56%2C+Vital+Office%2C+Haroonabad%2C+Distt.+Bahawalnagar%2C+Pakistan"
+                    href="https://www.google.com/maps/dir/?api=1&destination=Plot+No.+50+%26+56%2C+Vital+Office%2C+Haroonabad%2C+Distt.+Bahawalnagar%2C+Pakistan"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-center group"

@@ -178,11 +178,21 @@ export default function ProductDetail() {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [formData, setFormData] = useState({ name: '', phone: '', city: '', crop: '', message: '' });
   const [selectedSizeIdx, setSelectedSizeIdx] = useState(0);
+  const [quantity, setQuantity] = useState(1);
+  const [showStickyBar, setShowStickyBar] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowStickyBar(window.scrollY > 550);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const videoRef = useRef(null);
   useVideoAutoplay(videoRef);
 
-  const getWhatsAppLinkForProduct = (p, l, sizeIdx = 0) => {
+  const getWhatsAppLinkForProduct = (p, l, sizeIdx = 0, qty = 1) => {
     const phone = "923011837160";
     const productName = p.name[l] || p.name.en || p.name;
     const catNames = {
@@ -199,6 +209,9 @@ export default function ProductDetail() {
     const size = pricingOption.size;
     const rate = pricingOption.rate;
 
+    const priceText = rate !== "Negotiable" ? `Rs. ${rate}` : "Negotiable";
+    const totalRate = rate !== "Negotiable" && !isNaN(rate) ? `Rs. ${Number(rate) * qty}` : "Negotiable";
+
     const message = `Assalam-o-Alaikum Vital Agro Team,
 
 I want to purchase this product.
@@ -213,10 +226,13 @@ Pack Size:
 ${size}
 
 Price:
-Rs. ${rate}
+${priceText}
 
 Quantity:
-1
+${qty}
+
+Total Price:
+${totalRate}
 
 Please guide me regarding availability and delivery.
 
@@ -225,8 +241,8 @@ Thank You.`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   };
 
-  const getWhatsAppQuoteLink = (p, l, sizeIdx = 0) => {
-    return getWhatsAppLinkForProduct(p, l, sizeIdx);
+  const getWhatsAppQuoteLink = (p, l, sizeIdx = 0, qty = 1) => {
+    return getWhatsAppLinkForProduct(p, l, sizeIdx, qty);
   };
 
   const isRTL = lang === 'ur';
@@ -548,7 +564,7 @@ Thank you.`;
 
             {/* Premium Size Selector */}
             {product.pricing && product.pricing.length > 0 && (
-              <div className="mb-8 p-5 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10">
+              <div className="mb-6 p-5 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10">
                 <span className="text-xs text-white/60 block uppercase font-black tracking-widest mb-3">
                   {lang === 'en' ? 'Select Packing Size' : 'پیکنگ سائز منتخب کریں'}
                 </span>
@@ -569,6 +585,37 @@ Thank you.`;
                 </div>
               </div>
             )}
+
+            {/* Premium Quantity Selector */}
+            <div className="mb-8 p-5 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 flex items-center justify-between">
+              <div>
+                <span className="text-xs text-white/60 block uppercase font-black tracking-widest mb-1">
+                  {lang === 'en' ? 'Order Quantity' : 'آرڈر کی مقدار'}
+                </span>
+                <span className="text-[10px] text-[#76C945] font-bold block">
+                  {lang === 'en' ? 'Select units to order' : 'فصل کے لیے مطلوبہ تعداد'}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
+                  className="w-10 h-10 rounded-xl bg-white/10 text-white border border-white/10 hover:bg-white/20 hover:scale-105 active:scale-95 flex items-center justify-center font-black transition-all text-lg"
+                >
+                  -
+                </button>
+                <span className="w-10 text-center text-lg font-black text-white font-mono">
+                  {quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(prev => prev + 1)}
+                  className="w-10 h-10 rounded-xl bg-white/10 text-white border border-white/10 hover:bg-white/20 hover:scale-105 active:scale-95 flex items-center justify-center font-black transition-all text-lg"
+                >
+                  +
+                </button>
+              </div>
+            </div>
 
             {/* Scroll down link to dosage */}
             <a
@@ -591,12 +638,11 @@ Thank you.`;
           <div className="flex flex-wrap gap-2.5 w-full sm:w-auto">
             {/* 1. Buy on WhatsApp */}
             <motion.a
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              href={getWhatsAppLinkForProduct(product, lang, selectedSizeIdx)}
+              whileTap={{ scale: 0.96 }}
+              href={getWhatsAppLinkForProduct(product, lang, selectedSizeIdx, quantity)}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 bg-green-500 hover:bg-green-600 text-white rounded-full text-sm font-extrabold transition-all shadow-md shadow-green-500/10 min-h-[48px]"
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 btn-premium-whatsapp rounded-full text-sm font-extrabold min-h-[48px] shadow-sm"
             >
               <MessageCircle className="w-4 h-4" />
               <span>{lang === 'en' ? 'Buy on WhatsApp' : 'واٹس ایپ پر خریدیں'}</span>
@@ -604,12 +650,11 @@ Thank you.`;
 
             {/* 2. Request Quote (WhatsApp) */}
             <motion.a
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              href={getWhatsAppQuoteLink(product, lang, selectedSizeIdx)}
+              whileTap={{ scale: 0.96 }}
+              href={getWhatsAppQuoteLink(product, lang, selectedSizeIdx, quantity)}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 bg-amber-500 hover:bg-[#D49022] text-white rounded-full text-sm font-extrabold transition-all shadow-md min-h-[48px]"
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 btn-premium-amber rounded-full text-sm font-extrabold min-h-[48px] shadow-sm"
             >
               <FileText className="w-4 h-4" />
               <span>{tPage.requestQuote}</span>
@@ -617,10 +662,9 @@ Thank you.`;
 
             {/* 3. Call Now */}
             <motion.a
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileTap={{ scale: 0.96 }}
               href="tel:+923011837160"
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#0A2E1F] text-white hover:bg-[#0E3E2A] rounded-full text-sm font-extrabold transition-all min-h-[48px]"
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 btn-premium-primary rounded-full text-sm font-extrabold min-h-[48px] shadow-sm"
             >
               <Phone className="w-4 h-4" />
               <span>{tPage.callNow}</span>
@@ -630,10 +674,9 @@ Thank you.`;
 
             {/* 5. Download Label */}
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileTap={{ scale: 0.96 }}
               onClick={() => handleDownload('Label')}
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 border border-border rounded-full hover:bg-muted text-sm font-bold transition-all text-muted-foreground hover:text-foreground min-h-[48px]"
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 btn-premium-secondary rounded-full text-sm font-extrabold min-h-[48px]"
             >
               <Download className="w-4 h-4" />
               <span>{tPage.downloadLabel}</span>
@@ -641,10 +684,9 @@ Thank you.`;
 
             {/* 6. Download Brochure */}
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileTap={{ scale: 0.96 }}
               onClick={() => handleDownload('Brochure')}
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 border border-border rounded-full hover:bg-muted text-sm font-bold transition-all text-muted-foreground hover:text-foreground min-h-[48px]"
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 btn-premium-secondary rounded-full text-sm font-extrabold min-h-[48px]"
             >
               <Download className="w-4 h-4" />
               <span>{lang === 'en' ? 'Download Brochure' : 'بروشر ڈاؤن لوڈ کریں'}</span>
@@ -1180,6 +1222,39 @@ Thank you.`;
                 ×
               </button>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Sticky Mobile Buy CTA Bar */}
+      <AnimatePresence>
+        {showStickyBar && (
+          <motion.div
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            className="fixed bottom-0 left-0 right-0 z-45 bg-[#02170f]/90 backdrop-blur-xl border-t border-white/10 py-3.5 px-4 sm:hidden flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.5)]"
+          >
+            <div className="flex flex-col text-white">
+              <span className="text-[10px] text-white/50 block font-black uppercase tracking-wider">
+                {product.name[lang]}
+              </span>
+              <span className="text-sm font-black text-[#76C945]">
+                {product.pricing?.[selectedSizeIdx] 
+                  ? `Rs. ${product.pricing[selectedSizeIdx].rate} x ${quantity}` 
+                  : product.packaging}
+              </span>
+            </div>
+            <a
+              href={getWhatsAppLinkForProduct(product, lang, selectedSizeIdx, quantity)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-1.5 px-5 py-3 btn-premium-whatsapp rounded-full text-xs font-black min-h-[44px]"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>{lang === 'en' ? 'Buy Now' : 'ابھی خریدیں'}</span>
+            </a>
           </motion.div>
         )}
       </AnimatePresence>

@@ -311,7 +311,7 @@ export default function Contact() {
                   <Button
                     type="submit"
                     disabled={sending}
-                    className="w-full bg-[#0A2E1F] hover:bg-[#0E3E2A] text-white py-6 rounded-xl text-base font-extrabold transition-all shadow-md"
+                    className="w-full btn-premium-primary py-6 rounded-xl text-base font-extrabold shadow-md"
                   >
                     {sending ? cTrans.sending : (
                       <>
@@ -346,37 +346,40 @@ export default function Contact() {
               
               {/* Sleek action grid of glass buttons */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 w-full lg:w-auto shrink-0">
-                <button
-                  type="button"
-                  onClick={() => openMapNavigation('directions')}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-[#0A2E1F] text-white hover:bg-[#0E3E2A] rounded-xl text-xs font-black transition-all shadow-sm group border border-white/5"
+                <a
+                  href="https://www.google.com/maps/dir/?api=1&destination=Plot%20No.%2050%20%26%2056,%20Vital%20Office,%20Haroonabad,%20Distt.%20Bahawalnagar,%20Pakistan"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 px-4 py-3 btn-premium-primary text-white rounded-xl text-xs font-black transition-all shadow-sm group"
                 >
-                  <MapPin className="w-4 h-4 text-[#76C945] group-hover:scale-110 transition-transform" />
+                  <MapPin className="w-4 h-4 text-[#0A2E1F] group-hover:scale-110 transition-transform" />
                   <span>{lang === 'en' ? 'Get Directions' : 'راستہ تلاش کریں'}</span>
-                </button>
+                </a>
 
-                <button
-                  type="button"
-                  onClick={() => openMapNavigation('google')}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-border hover:border-[#76C945]/40 hover:bg-[#76C945]/5 transition-all text-xs font-black text-[#0A2E1F] rounded-xl shadow-sm group"
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query=Plot%20No.%2050%20%26%2056,%20Vital%20Office,%20Haroonabad,%20Distt.%20Bahawalnagar,%20Pakistan"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 px-4 py-3 btn-premium-secondary text-white rounded-xl text-xs font-black transition-all shadow-sm group"
                 >
                   <MapPin className="w-4 h-4 text-red-500 group-hover:scale-110 transition-transform" />
                   <span>{lang === 'en' ? 'Open Google Maps' : 'گوگل میپ'}</span>
-                </button>
+                </a>
 
-                <button
-                  type="button"
-                  onClick={() => openMapNavigation('navigate')}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-[#76C945] text-[#0A2E1F] hover:bg-[#8AD65A] transition-all text-xs font-black rounded-xl shadow-sm group"
+                <a
+                  href="https://www.google.com/maps/dir/?api=1&destination=Plot%20No.%2050%20%26%2056,%20Vital%20Office,%20Haroonabad,%20Distt.%20Bahawalnagar,%20Pakistan"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 px-4 py-3 btn-premium-primary text-[#0A2E1F] transition-all text-xs font-black rounded-xl shadow-sm group"
                 >
                   <MessageCircle className="w-4 h-4 text-[#0A2E1F] group-hover:scale-110 transition-transform" />
                   <span>{lang === 'en' ? 'Navigate' : 'نیویگیشن'}</span>
-                </button>
+                </a>
 
                 <button
                   type="button"
                   onClick={handleCopyAddress}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-border hover:border-[#76C945]/40 hover:bg-[#76C945]/5 transition-all text-xs font-black text-[#0A2E1F] rounded-xl shadow-sm group"
+                  className="flex items-center justify-center gap-2 px-4 py-3 btn-premium-secondary text-white rounded-xl text-xs font-black transition-all shadow-sm group"
                 >
                   <Copy className="w-4 h-4 text-[#C5A059] group-hover:scale-110 transition-transform" />
                   <span>{cTrans.copyAddress}</span>
@@ -384,9 +387,9 @@ export default function Contact() {
 
                 <a
                   href="tel:+920632253137"
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-border hover:border-[#76C945]/40 hover:bg-[#76C945]/5 transition-all text-xs font-black text-[#0A2E1F] rounded-xl shadow-sm group"
+                  className="flex items-center justify-center gap-2 px-4 py-3 btn-premium-secondary text-white rounded-xl text-xs font-black transition-all shadow-sm group"
                 >
-                  <Phone className="w-4 h-4 text-blue-500 group-hover:scale-110 transition-transform" />
+                  <Phone className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
                   <span>{lang === 'en' ? 'Call Office' : 'دفتر کال کریں'}</span>
                 </a>
 
@@ -394,9 +397,9 @@ export default function Contact() {
                   href="https://wa.me/923011837160"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-border hover:border-[#76C945]/40 hover:bg-[#76C945]/5 transition-all text-xs font-black text-[#0A2E1F] rounded-xl shadow-sm group"
+                  className="flex items-center justify-center gap-2 px-4 py-3 btn-premium-whatsapp text-white rounded-xl text-xs font-black transition-all shadow-sm group"
                 >
-                  <MessageCircle className="w-4 h-4 text-green-500 group-hover:scale-110 transition-transform" />
+                  <MessageCircle className="w-4 h-4 text-green-300 group-hover:scale-110 transition-transform" />
                   <span>{lang === 'en' ? 'WhatsApp Office' : 'واٹس ایپ دفتر'}</span>
                 </a>
               </div>

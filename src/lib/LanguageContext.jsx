@@ -238,7 +238,16 @@ export const translations = {
 };
 
 export function LanguageProvider({ children }) {
-  const [lang, setLang] = useState('ur');
+  const [lang, setLangState] = useState(() => {
+    const saved = localStorage.getItem('vital_agro_lang');
+    return saved === 'ur' ? 'ur' : 'en';
+  });
+
+  const setLang = (newLang) => {
+    setLangState(newLang);
+    localStorage.setItem('vital_agro_lang', newLang);
+  };
+
   const t = translations[lang];
   return (
     <LanguageContext.Provider value={{ lang, setLang, t }}>

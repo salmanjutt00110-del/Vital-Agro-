@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Leaf } from 'lucide-react';
 import vitalAgroLogo from '@/assets/vital agro logo.webp';
 
@@ -7,8 +7,8 @@ export default function Loader({ onFinish }) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Simulate loading progress
-    const duration = 2000; // 2 seconds loader
+    // 2-second preloader duration + 300ms pause for smooth layout transitions
+    const duration = 2000; 
     const interval = 20;
     const step = 100 / (duration / interval);
 
@@ -19,7 +19,7 @@ export default function Loader({ onFinish }) {
           clearInterval(timer);
           setTimeout(() => {
             if (onFinish) onFinish();
-          }, 400); // Small pause at 100%
+          }, 300);
           return 100;
         }
         return next;
@@ -30,81 +30,153 @@ export default function Loader({ onFinish }) {
   }, [onFinish]);
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-[#0A2E1F] flex flex-col items-center justify-center overflow-hidden">
-      {/* Soft central ambient glow */}
-      <div className="absolute w-[500px] h-[500px] rounded-full bg-[#76C945]/10 blur-[120px] pointer-events-none" />
+    <div className="fixed inset-0 z-[9999] bg-[#02170f] flex flex-col items-center justify-center overflow-hidden">
+      
+      {/* 1. Aurora Gradient Backdrop */}
+      <div className="absolute inset-0 z-0">
+        <motion.div 
+          className="absolute -top-[20%] -left-[20%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-[#76C945]/15 to-transparent blur-[140px]"
+          animate={{
+            scale: [1, 1.15, 1],
+            opacity: [0.4, 0.7, 0.4],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div 
+          className="absolute -bottom-[20%] -right-[20%] w-[60%] h-[60%] rounded-full bg-gradient-to-bl from-[#C5A059]/10 to-transparent blur-[140px]"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.6, 0.3],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full bg-[#76C945]/8 blur-[100px] pointer-events-none" />
+      </div>
 
-      {/* Floating Animated Leaves */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(6)].map((_, i) => (
+      {/* 2. Floating Particles */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-5">
+        {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute text-[#76C945]/20"
+            className="absolute rounded-full bg-[#76C945]/30"
             style={{
-              left: `${15 + i * 14}%`,
-              top: `${20 + (i % 3) * 25}%`,
+              left: `${10 + (i * 4.5)}%`,
+              bottom: `-20px`,
+              width: `${(i % 3 === 0) ? 4 : (i % 3 === 1) ? 2 : 3}px`,
+              height: `${(i % 3 === 0) ? 4 : (i % 3 === 1) ? 2 : 3}px`,
+            }}
+            animate={{
+              y: ['0vh', '-120vh'],
+              opacity: [0, 0.9, 0],
+              x: [0, Math.sin(i) * 40, 0],
+            }}
+            transition={{
+              duration: 4 + (i % 3) * 2,
+              repeat: Infinity,
+              ease: "linear",
+              delay: (i * 0.15),
+            }}
+          />
+        ))}
+      </div>
+
+      {/* 3. Floating Animated Leaves */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-5">
+        {[...Array(8)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute text-[#76C945]/15"
+            style={{
+              left: `${10 + i * 11}%`,
+              top: `${15 + (i % 4) * 20}%`,
             }}
             animate={{
               y: [-15, 15, -15],
+              x: [-10, 10, -10],
               rotate: [0, 360],
-              scale: [0.8, 1.2, 0.8],
-              opacity: [0.15, 0.35, 0.15]
+              scale: [0.75, 1.1, 0.75],
+              opacity: [0.1, 0.25, 0.1]
             }}
             transition={{
-              duration: 6 + i * 2,
+              duration: 5 + i * 1.5,
               repeat: Infinity,
               ease: "easeInOut",
-              delay: i * 0.5
+              delay: i * 0.3
             }}
           >
-            <Leaf className="w-10 h-10 transform -rotate-45" />
+            <Leaf className="w-8 h-8 transform -rotate-45" />
           </motion.div>
         ))}
       </div>
 
-      {/* Center Logo Cluster */}
-      <div className="relative z-10 flex flex-col items-center max-w-xs px-6">
+      {/* 4. Glassmorphic Preloader Core */}
+      <div className="relative z-10 flex flex-col items-center max-w-sm px-6">
+        
+        {/* Logo Frosted Glass Card Container */}
         <motion.div
-          initial={{ scale: 0.85, opacity: 0 }}
+          initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.6 }}
-          className="relative bg-white/10 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-2xl flex items-center justify-center mb-8 group"
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="relative bg-white/[0.02] backdrop-blur-2xl border border-white/[0.08] p-8 rounded-[2rem] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] flex items-center justify-center mb-8 group overflow-hidden"
         >
-          <div className="absolute inset-0 bg-gradient-to-tr from-[#76C945]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl" />
-          <img
-            src={vitalAgroLogo}
-            alt="Vital Agro Logo"
-            className="h-20 sm:h-24 w-auto object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.45)]"
-          />
+          {/* Edge gloss sheen effect */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-white/[0.03] to-transparent pointer-events-none" />
+          
+          <motion.div
+            animate={{
+              scale: [1, 1.04, 1],
+              opacity: [0.95, 1, 0.95],
+            }}
+            transition={{
+              duration: 2.5,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="relative z-10"
+          >
+            <img
+              src={vitalAgroLogo}
+              alt="Vital Agro Logo"
+              className="h-20 sm:h-24 w-auto object-contain drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]"
+            />
+          </motion.div>
         </motion.div>
 
         {/* Brand Text */}
         <motion.h2
-          initial={{ y: 10, opacity: 0 }}
-          animate={{ y: 0, opacity: 0.9 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="text-white text-xs font-black tracking-widest uppercase text-center mb-6"
+          initial={{ y: 12, opacity: 0 }}
+          animate={{ y: 0, opacity: 0.8 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+          className="text-white text-xs font-black tracking-[0.25em] uppercase text-center mb-8 font-heading"
         >
           Vital Agro Chemical Industries
         </motion.h2>
 
-        {/* Counter Percentage */}
-        <motion.span
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-2xl font-black text-[#76C945] mb-2 font-mono tracking-wider"
-        >
-          {Math.floor(progress)}%
-        </motion.span>
+        {/* Loading Progress Group */}
+        <div className="flex flex-col items-center">
+          
+          {/* Animated Counter Percentage */}
+          <motion.span
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-2xl font-black text-[#76C945] mb-3 font-mono tracking-wider"
+          >
+            {Math.floor(progress)}%
+          </motion.span>
 
-        {/* Progress Bar Container */}
-        <div className="w-48 h-1.5 bg-white/10 border border-white/5 rounded-full overflow-hidden relative">
-          <motion.div
-            className="h-full bg-gradient-to-r from-[#76C945] to-[#8AD65A] rounded-full"
-            style={{ width: `${progress}%` }}
-            transition={{ ease: "easeOut" }}
-          />
+          {/* Luxury Progress Bar */}
+          <div className="w-56 h-[3px] bg-white/[0.08] border border-white/[0.03] rounded-full overflow-hidden relative">
+            <motion.div
+              className="h-full bg-gradient-to-r from-[#76C945] via-[#8AD65A] to-[#76C945] rounded-full relative"
+              style={{ width: `${progress}%` }}
+              transition={{ ease: "easeOut" }}
+            >
+              {/* Inner glowing pulse */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
+            </motion.div>
+          </div>
         </div>
+
       </div>
     </div>
   );
