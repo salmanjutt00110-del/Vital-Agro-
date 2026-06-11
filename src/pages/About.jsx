@@ -9,6 +9,7 @@ import vitalBgWebm from '@/assets/vital_bg.webm';
 import vitalBgPoster from '@/assets/vital_bg_poster.webp';
 import vitalAgroLogo from '@/assets/vital agro logo.webp';
 import tagLogo from '@/assets/tag logo.webp';
+import vitalCImg from '@/assets/Vital-C.png';
 
 export default function About() {
   const videoRef1 = useRef(null);
@@ -51,28 +52,19 @@ export default function About() {
       <section className="py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Video side */}
+            {/* Vital-C Image Showcase */}
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
+              className="relative rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl border border-white/10 bg-white/[0.02] flex items-center justify-center p-8 group"
             >
-              <div className="rounded-3xl overflow-hidden aspect-[4/3] shadow-lg border border-border">
-                <video
-                  ref={videoRef2}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  preload="metadata"
-                  poster={vitalBgPoster}
-                  className="w-full h-full object-cover"
-                  style={{ objectFit: 'cover', transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
-                >
-                  <source src={vitalBgWebm} type="video/webm" />
-                  <source src={vitalBg} type="video/mp4" />
-                </video>
-              </div>
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(118,201,69,0.15)_0%,transparent_60%)]" />
+              <img
+                src={vitalCImg}
+                alt="Vital-C Product Bottle Showcase"
+                className="max-h-full w-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)] group-hover:scale-105 transition-transform duration-700"
+              />
             </motion.div>
 
             {/* Text side */}

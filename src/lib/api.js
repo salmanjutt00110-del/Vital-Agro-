@@ -8,7 +8,10 @@ let serverOnline = false;
 // Check server status
 async function checkServerHealth() {
   try {
-    const res = await fetch(`${API_BASE_URL}/products`, { signal: AbortSignal.timeout(1000) });
+    const controller = new AbortController();
+    const tId = setTimeout(() => controller.abort(), 1000);
+    const res = await fetch(`${API_BASE_URL}/products`, { signal: controller.signal });
+    clearTimeout(tId);
     serverOnline = res.ok;
   } catch (e) {
     serverOnline = false;

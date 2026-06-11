@@ -5,6 +5,7 @@ import { useLanguage } from '@/lib/LanguageContext';
 import useVideoAutoplay from '@/hooks/useVideoAutoplay';
 import PremiumButton from '@/components/ui/PremiumButton';
 import AnimatedText from '@/components/ui/AnimatedText';
+import vitalCImg from '@/assets/Vital-C.png';
 
 // Import Assets
 import vitalBg from '@/assets/vital bg.mp4';
@@ -68,46 +69,73 @@ export default function CTASection() {
             ))}
           </div>
 
-          {/* Centered content box */}
-          <div className="relative px-8 sm:px-16 py-16 sm:py-24 text-center z-10">
-            <motion.span
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="inline-block text-xs font-black tracking-widest uppercase text-[#76C945] mb-4"
-            >
-              Partner With Us
-            </motion.span>
+          {/* Grid Content layout with visual showcase */}
+          <div className="relative px-8 sm:px-12 md:px-16 py-16 md:py-20 text-left z-10 grid lg:grid-cols-12 gap-8 items-center">
             
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-6 leading-tight">
-              <AnimatedText text={t.cta.title} />
-            </h2>
-            
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2, duration: 0.7 }}
-              className="text-white/70 text-lg max-w-2xl mx-auto mb-10"
-            >
-              {t.cta.desc}
-            </motion.p>
-            
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3 }}
-              className="flex flex-wrap justify-center gap-4 items-center"
-            >
-              <PremiumButton variant="primary" href={whatsappUrl} target="_blank" rel="noopener noreferrer" isMagnetic={true}>
-                {t.cta.btnGetInTouch}
-              </PremiumButton>
-              <PremiumButton variant="secondary" href="tel:+920632253137" isMagnetic={true} showArrow={false}>
-                <Phone className="w-4 h-4 mr-1.5 inline-block" />
-                {t.cta.btnCallNow}
-              </PremiumButton>
-            </motion.div>
+            {/* Left text column */}
+            <div className="lg:col-span-7 space-y-6">
+              <motion.span
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="inline-block text-xs font-black tracking-widest uppercase text-[#76C945]"
+              >
+                Partner With Us
+              </motion.span>
+              
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight">
+                <AnimatedText text={t.cta.title} />
+              </h2>
+              
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2, duration: 0.7 }}
+                className="text-white/70 text-base sm:text-lg max-w-xl"
+              >
+                {t.cta.desc}
+              </motion.p>
+              
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+                className="flex flex-wrap gap-4 items-center pt-2"
+              >
+                <PremiumButton variant="primary" href={whatsappUrl} target="_blank" rel="noopener noreferrer" isMagnetic={true}>
+                  {t.cta.btnGetInTouch}
+                </PremiumButton>
+                <PremiumButton variant="secondary" href="tel:+920632253137" isMagnetic={true} showArrow={false}>
+                  <Phone className="w-4 h-4 mr-1.5 inline-block" />
+                  {t.cta.btnCallNow}
+                </PremiumButton>
+              </motion.div>
+            </div>
+
+            {/* Right visual column (Vital-C Integration) */}
+            <div className="lg:col-span-5 flex justify-center items-center relative py-6">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, rotate: -5 }}
+                whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+                className="relative aspect-square w-full max-w-[280px] flex items-center justify-center"
+              >
+                {/* Back glowing aura */}
+                <div className="absolute w-44 h-44 bg-[#76C945]/20 rounded-full blur-[45px] pointer-events-none" />
+                <div className="absolute bottom-0 w-[70%] h-4 bg-black/45 rounded-full blur-[8px]" />
+                <motion.img
+                  src={vitalCImg}
+                  alt="Vital-C Premium Bottle"
+                  className="max-h-[240px] w-auto object-contain z-10 drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
+                  animate={{ y: [0, -12, 0] }}
+                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                />
+              </motion.div>
+            </div>
+
           </div>
         </motion.div>
       </div>

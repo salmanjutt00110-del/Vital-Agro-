@@ -119,9 +119,9 @@ export default function Preloader({ onFinish }) {
       }
       if (isMounted) setTargetProgress(90);
 
-      // Minimum visual time of 1.5s to let animations breath
+      // Minimum visual time of 3.0s to let animations breath (strictly 2-5s range)
       const elapsed = Date.now() - startTime;
-      const delay = Math.max(200, 1500 - elapsed);
+      const delay = Math.max(200, 3000 - elapsed);
       setTimeout(() => {
         if (isMounted) setTargetProgress(100);
       }, delay);
@@ -129,10 +129,10 @@ export default function Preloader({ onFinish }) {
 
     preloadResources();
 
-    // Safety fallback
+    // Safety fallback of 5 seconds
     const safetyTimeout = setTimeout(() => {
       if (isMounted) setTargetProgress(100);
-    }, 4500);
+    }, 5000);
 
     return () => {
       isMounted = false;

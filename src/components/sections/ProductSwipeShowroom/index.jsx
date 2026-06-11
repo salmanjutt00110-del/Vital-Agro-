@@ -34,9 +34,9 @@ const AMBIENT_THEMES = {
     particleColor: "#C5A059"
   },
   "easy-grow": {
-    bg: "radial-gradient(circle at center, #0a242d 0%, #030c0e 100%)",
-    glow: "rgba(56, 189, 248, 0.4)",
-    particleColor: "#38bdf8"
+    bg: "radial-gradient(circle at center, #2d0a1e 0%, #0e030a 100%)",
+    glow: "rgba(236, 72, 153, 0.45)",
+    particleColor: "#ec4899"
   },
   "output": {
     bg: "radial-gradient(circle at center, #240a2d 0%, #0c030e 100%)",
@@ -44,14 +44,14 @@ const AMBIENT_THEMES = {
     particleColor: "#c084fc"
   },
   "aaqaab": {
-    bg: "radial-gradient(circle at center, #2d0a0a 0%, #0e0303 100%)",
-    glow: "rgba(248, 113, 113, 0.4)",
-    particleColor: "#f87171"
+    bg: "radial-gradient(circle at center, #0a1e2d 0%, #03090e 100%)",
+    glow: "rgba(59, 130, 246, 0.45)",
+    particleColor: "#3b82f6"
   },
   "vac-zinc": {
-    bg: "radial-gradient(circle at center, #0e1e2d 0%, #04090e 100%)",
-    glow: "rgba(96, 165, 250, 0.4)",
-    particleColor: "#60a5fa"
+    bg: "radial-gradient(circle at center, #0a2d16 0%, #030e07 100%)",
+    glow: "rgba(74, 222, 128, 0.45)",
+    particleColor: "#4ade80"
   },
   "sector": {
     bg: "radial-gradient(circle at center, #222d0a 0%, #0b0e03 100%)",
@@ -59,14 +59,14 @@ const AMBIENT_THEMES = {
     particleColor: "#a3e635"
   },
   "purifizin": {
-    bg: "radial-gradient(circle at center, #0a2d24 0%, #030e0b 100%)",
-    glow: "rgba(45, 212, 191, 0.4)",
-    particleColor: "#2dd4bf"
+    bg: "radial-gradient(circle at center, #2d160a 0%, #0e0703 100%)",
+    glow: "rgba(249, 115, 22, 0.45)",
+    particleColor: "#f97316"
   },
   "dr-pp": {
-    bg: "radial-gradient(circle at center, #2d1d0a 0%, #0e0a03 100%)",
-    glow: "rgba(251, 146, 60, 0.4)",
-    particleColor: "#fb923c"
+    bg: "radial-gradient(circle at center, #2d240a 0%, #0e0b03 100%)",
+    glow: "rgba(234, 179, 8, 0.45)",
+    particleColor: "#eab308"
   },
   "farbasin": {
     bg: "radial-gradient(circle at center, #1b0a2d 0%, #08030e 100%)",
@@ -183,8 +183,7 @@ export default function ProductSwipeShowroom() {
 
   // Handle immediate purchase checkout setup
   const handleQuickBuy = () => {
-    const sizeName = typeof currentSize === 'object' ? currentSize.size : 'Standard';
-    addToCart(activeProduct, 1, sizeName, price);
+    addToCart(activeProduct, currentSize, 1);
     setIsCartOpen(true);
   };
 

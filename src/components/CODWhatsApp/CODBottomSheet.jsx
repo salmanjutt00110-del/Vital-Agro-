@@ -7,30 +7,143 @@ import OrderConfirmButton from './OrderConfirmButton';
 import { verifyReceipt } from '@/lib/ai/receiptVerifier';
 import { verifyReceiptUnique } from '@/lib/api';
 
-const InputField = ({ label, error, ...props }) => (
-  <div className="w-full">
-    <label className="block text-white/50 text-[11px] font-black uppercase tracking-wider mb-2">
-      {label}
-    </label>
-    <input
-      {...props}
-      className={`
-        w-full px-4 py-3.5 rounded-2xl text-sm text-white
-        bg-white/[0.03] border outline-none
-        placeholder:text-white/20
-        focus:border-[#5cb85c]/60 focus:bg-white/[0.06]
-        transition-all duration-300
-        ${error
-          ? 'border-red-500/50 bg-red-500/5'
-          : 'border-white/10'
-        }
-      `}
-    />
-    {error && (
-      <p className="text-red-400 text-[10px] mt-1.5 ml-1 font-semibold">{error}</p>
-    )}
-  </div>
-);
+const InputField = ({ label, error, value, ...props }) => {
+  const [focused, setFocused] = useState(false);
+  const isFilled = value && String(value).length > 0;
+
+  return (
+    <div className="w-full relative">
+      <div className="relative">
+        <input
+          value={value}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          {...props}
+          className={`
+            w-full px-4 pt-6 pb-2 rounded-2xl text-sm text-white
+            bg-white/[0.03] border outline-none
+            placeholder-transparent
+            focus:bg-white/[0.05]
+            transition-all duration-300
+            ${error
+              ? 'border-red-500/50 bg-red-500/5'
+              : focused
+              ? 'border-[#76C945]'
+              : 'border-white/10'
+            }
+          `}
+        />
+        <label 
+          className={`
+            absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-white/40 uppercase tracking-wider transition-all duration-200 pointer-events-none
+            ${(focused || isFilled) ? 'top-3 text-[9px] text-[#8AD65A] font-black' : ''}
+          `}
+        >
+          {label}
+        </label>
+      </div>
+      {error && (
+        <p className="text-red-400 text-[10px] mt-1.5 ml-1 font-semibold">{error}</p>
+      )}
+    </div>
+  );
+};
+
+const GlassCreditCard = ({ paymentMethod, customerName, phone, amount }) => {
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setMousePos({ x, y });
+  };
+
+  const handleMouseLeave = () => {
+    setMousePos({ x: 0, y: 0 });
+  };
+
+  const getCardTheme = () => {
+    switch (paymentMethod) {
+      case 'Stripe':
+        return {
+          bg: 'linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(168, 85, 247, 0.25) 100%)',
+          border: 'border-indigo-500/30',
+          logo: 'STRIPE SECURE CARD',
+          glow: 'rgba(129, 140, 248, 0.35)',
+          glowClass: 'bg-indigo-500/20'
+        };
+      case 'JazzCash':
+        return {
+          bg: 'linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(245, 158, 11, 0.25) 100%)',
+          border: 'border-red-500/30',
+          logo: 'JAZZCASH MOBILE WALLET',
+          glow: 'rgba(239, 68, 68, 0.35)',
+          glowClass: 'bg-red-500/20'
+        };
+      case 'Easypaisa':
+        return {
+          bg: 'linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(59, 130, 246, 0.25) 100%)',
+          border: 'border-emerald-500/30',
+          logo: 'EASYPAISA MOBILE WALLET',
+          glow: 'rgba(16, 185, 129, 0.35)',
+          glowClass: 'bg-emerald-500/20'
+        };
+      default:
+        return null;
+    }
+  };
+
+  const theme = getCardTheme();
+  if (!theme) return null;
+
+  return (
+    <div
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className={`relative w-full h-44 rounded-3xl p-5 border ${theme.border} backdrop-blur-2xl shadow-[0_20px_40px_rgba(0,0,0,0.5)] overflow-hidden cursor-pointer select-none transition-all duration-300`}
+      style={{
+        background: theme.bg,
+        transformStyle: 'preserve-3d',
+        transform: `perspective(1000px) rotateX(${mousePos.y * -15}deg) rotateY(${mousePos.x * 15}deg)`,
+        boxShadow: `0 15px 30px rgba(0,0,0,0.5), 0 0 25px ${theme.glow}`
+      }}
+    >
+      <div className={`absolute -right-10 -top-10 w-28 h-28 rounded-full blur-[40px] pointer-events-none ${theme.glowClass}`} />
+      
+      <div className="h-full flex flex-col justify-between relative z-10 font-mono">
+        <div className="flex justify-between items-start">
+          <div>
+            <span className="text-[8px] text-white/40 block">VITAL AGRO HYBRID GATEWAY</span>
+            <span className="text-[11px] font-black tracking-wider text-white">{theme.logo}</span>
+          </div>
+          <div className="w-8 h-6 rounded-md bg-white/10 flex items-center justify-center font-bold text-white/50 text-[9px]">
+            NFC
+          </div>
+        </div>
+
+        <div className="text-base font-black tracking-widest text-white/90 my-1">
+          {paymentMethod === 'Stripe' ? '••••  ••••  ••••  4242' : `ID: ${phone || '••••  ••••  ••'}`}
+        </div>
+
+        <div className="flex justify-between items-end">
+          <div>
+            <span className="text-[8px] text-white/30 block">CLIENT REF</span>
+            <span className="text-xs font-bold uppercase truncate max-w-[150px] block text-white/80">
+              {customerName || 'Muhammad Ali'}
+            </span>
+          </div>
+          <div className="text-right">
+            <span className="text-[8px] text-white/30 block">PAY VALUE</span>
+            <span className="text-xs font-black text-[#8AD65A]">
+              PKR {amount.toLocaleString()}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function CODBottomSheet({
   product, isOpen, setIsOpen,
@@ -326,7 +439,7 @@ export default function CODBottomSheet({
                     onChange={(e) => updateForm('address', e.target.value)}
                     className={`
                       w-full px-4 py-3.5 rounded-2xl text-sm text-white bg-white/[0.03] border outline-none resize-none
-                      placeholder:text-white/20 focus:border-[#5cb85c]/60 focus:bg-white/[0.06] transition-all duration-300
+                      placeholder:text-white/20 focus:border-[#76C945] focus:bg-white/[0.06] transition-all duration-300
                       ${errors.address ? 'border-red-500/50 bg-red-500/5' : 'border-white/10'}
                     `}
                   />
@@ -344,13 +457,13 @@ export default function CODBottomSheet({
                     placeholder={lang === 'en' ? "Deliver after 4 PM, call before arrival, etc." : "شام 4 بجے کے بعد ڈیلیور کریں، آمد سے پہلے کال کریں، وغیرہ..."}
                     value={form.specialInstructions || ''}
                     onChange={(e) => updateForm('specialInstructions', e.target.value)}
-                    className="w-full px-4 py-3.5 rounded-2xl text-sm text-white bg-white/[0.03] border border-white/10 outline-none resize-none placeholder:text-white/20 focus:border-[#5cb85c]/60 focus:bg-white/[0.06] transition-all duration-300"
+                    className="w-full px-4 py-3.5 rounded-2xl text-sm text-white bg-white/[0.03] border border-white/10 outline-none resize-none placeholder:text-white/20 focus:border-[#76C945] focus:bg-white/[0.06] transition-all duration-300"
                   />
                 </div>
               </div>
 
               {/* Right Column: Checkout Summary, Payments & Confirmation */}
-              <div className="lg:col-span-5 space-y-6">
+              <div className="lg:col-span-5 lg:sticky lg:top-28 space-y-6">
                 
                 {/* 1. Selected Product Card */}
                 <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-5 space-y-4">
@@ -480,6 +593,16 @@ export default function CODBottomSheet({
                     })}
                   </div>
                 </div>
+
+                {/* 3.5 Glassmorphic Interactive 3D Payment Card */}
+                {(form.paymentMethod === 'Stripe' || form.paymentMethod === 'JazzCash' || form.paymentMethod === 'Easypaisa') && (
+                  <GlassCreditCard
+                    paymentMethod={form.paymentMethod}
+                    customerName={form.customerName}
+                    phone={form.phone}
+                    amount={grandTotal}
+                  />
+                )}
 
                 {/* 4. Payment Workflows (Countdown, QR codes, copy buttons, OCR visualizer) */}
                 {(form.paymentMethod === 'JazzCash' || form.paymentMethod === 'Easypaisa') && (

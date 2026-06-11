@@ -4,7 +4,7 @@ import { motion, AnimatePresence, useSpring } from 'framer-motion';
 export default function PreloaderProgress({ value, statusMsg, isExiting }) {
   const [displayPercent, setDisplayPercent] = useState(0);
 
-  const springValue = useSpring(0, { stiffness: 45, damping: 14 });
+  const springValue = useSpring(0, { stiffness: 45, damping: 15 });
 
   useEffect(() => {
     springValue.set(value);
@@ -23,36 +23,66 @@ export default function PreloaderProgress({ value, statusMsg, isExiting }) {
     <motion.div
       animate={isExiting ? {
         opacity: 0,
-        y: 15,
+        y: 20,
         transition: { duration: 0.5, ease: 'easeIn' }
       } : {}}
       className="flex flex-col items-center w-full max-w-[280px] sm:max-w-[360px] select-none"
     >
-      {/* Percentage Counter */}
+      {/* Liquid Gooey SVG Filters */}
+      <svg className="absolute w-0 h-0" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="liquidGoo">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+            <feColorMatrix 
+              in="blur" 
+              mode="matrix" 
+              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" 
+              result="goo" 
+            />
+            <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+          </filter>
+        </defs>
+      </svg>
+
+      {/* Percentage Counter with Spring Motion */}
       <motion.span
         animate={isComplete ? {
-          scale: [1, 1.1, 1],
+          scale: [1, 1.12, 1],
           color: '#8AD65A',
-          textShadow: '0 0 30px rgba(118, 201, 69, 0.8)',
-          transition: { duration: 0.35, ease: 'easeOut' }
+          textShadow: '0 0 35px rgba(138, 214, 90, 0.85)',
+          transition: { duration: 0.4, ease: 'easeOut' }
         } : {
           color: '#ffffff',
-          textShadow: '0 0 20px rgba(118, 201, 69, 0.3)',
+          textShadow: '0 0 25px rgba(138, 214, 90, 0.35)',
         }}
-        className="font-black font-mono tracking-tight text-[3rem] sm:text-[4rem] tabular-nums leading-none select-none"
-        style={{ fontVariantNumeric: 'tabular-nums', fontFeatureSettings: '"tnum"', letterSpacing: '-0.02em' }}
+        className="font-black font-mono tracking-tight text-[3rem] sm:text-[4.5rem] tabular-nums leading-none select-none drop-shadow"
+        style={{ fontVariantNumeric: 'tabular-nums', fontFeatureSettings: '"tnum"', letterSpacing: '-0.03em' }}
       >
         {displayPercent}%
       </motion.span>
 
-      {/* Progress track */}
-      <div className="w-full h-[3px] bg-white/10 rounded-full overflow-hidden relative mt-4 mb-6 shadow-inner">
+      {/* Liquid Progress Track */}
+      <div 
+        className="w-full h-4 bg-white/5 border border-white/5 rounded-full relative mt-6 mb-6 overflow-hidden flex items-center p-0.5"
+        style={{ filter: 'url(#liquidGoo)' }}
+      >
+        {/* Animated fluid bar */}
         <motion.div
-          className="h-full bg-gradient-to-r from-[#2d6a2d] via-[#5cb85c] to-[#2d6a2d] rounded-full relative"
-          style={{ width: `${displayPercent}%` }}
+          className="h-full bg-gradient-to-r from-[#2d6a2d] via-[#76C945] to-[#2d6a2d] rounded-full relative flex items-center justify-end"
+          style={{ width: `${Math.max(5, displayPercent)}%` }}
+          transition={{ type: 'spring', stiffness: 80, damping: 15 }}
         >
-          {/* Shimmer sweep line */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/45 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+          {/* Liquid droplet bubble indicator at end */}
+          {displayPercent > 5 && displayPercent < 100 && (
+            <motion.div 
+              className="w-3.5 h-3.5 rounded-full bg-[#8AD65A] absolute right-0 shadow-[0_0_10px_#76C945]"
+              animate={{ scale: [1, 1.25, 1] }}
+              transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          )}
+          
+          {/* Internal Shimmer Sweep */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/35 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
         </motion.div>
       </div>
 

@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-const ProductSwipe3D = React.lazy(() => import('../sections/ProductSwipe3D'));
+const ProductSwipeShowroom = React.lazy(() => import('../sections/ProductSwipeShowroom'));
 import { PRODUCTS_DATA } from '@/data/productsData';
 
 export default function ProductsShowcase() {
@@ -11,7 +11,7 @@ export default function ProductsShowcase() {
         Loading Collection Stage...
       </div>
     }>
-      <ProductSwipe3D products={products} />
+      <ProductSwipeShowroom products={products} />
     </Suspense>
   );
 }
