@@ -106,7 +106,7 @@ export default function AIDiseaseScanner() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6 sm:p-8 md:p-10 bg-black/40 border border-white/10 backdrop-blur-3xl rounded-[32px] shadow-[0_30px_70px_rgba(0,0,0,0.8)] text-white relative overflow-hidden transition-all duration-300">
+    <div className="w-full max-w-4xl mx-auto p-6 sm:p-8 md:p-10 bg-black/75 border border-white/20 backdrop-blur-3xl rounded-[32px] shadow-[0_30px_70px_rgba(0,0,0,0.95)] text-white relative overflow-hidden transition-all duration-300">
       
       {/* Background Tech Mesh */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(118,201,69,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(118,201,69,0.02)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-40 z-0" />
@@ -120,7 +120,7 @@ export default function AIDiseaseScanner() {
         <h2 className="text-3xl sm:text-4xl font-black tracking-tight mb-3 text-white">
           {lang === 'en' ? 'Scan Crop Health Instantly' : 'اپنی فصل کی صحت فوری سکین کریں'}
         </h2>
-        <p className="text-white/50 text-sm max-w-xl mx-auto leading-relaxed">
+        <p className="text-white/80 text-sm max-w-xl mx-auto leading-relaxed">
           {lang === 'en'
             ? 'Snap a photo of leaf or stem symptoms to receive instant diagnosis, pathogen analysis, and targeted recovery plans.'
             : 'پتے یا تنے کی بیماری کی تصویر اپ لوڈ کریں اور فوری تشخیص اور کیمیکل علاج کی تفصیلات حاصل کریں۔'}
@@ -130,7 +130,7 @@ export default function AIDiseaseScanner() {
       <div className="grid md:grid-cols-2 gap-8 lg:gap-10 items-start relative z-10">
         {/* Upload & Controls */}
         <div className="space-y-6">
-          <div className="relative aspect-square w-full rounded-3xl border-2 border-dashed border-white/10 hover:border-[#76C945]/50 overflow-hidden flex flex-col items-center justify-center bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 group shadow-inner">
+          <div className="relative aspect-square md:aspect-auto md:h-[400px] w-full rounded-3xl border-2 border-dashed border-white/15 hover:border-[#76C945]/50 overflow-hidden flex flex-col items-center justify-center bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 group shadow-inner">
             
             {imagePreview ? (
               <>
@@ -199,7 +199,7 @@ export default function AIDiseaseScanner() {
         </div>
 
         {/* Results Panel */}
-        <div className="h-[400px] rounded-3xl border border-white/10 bg-white/[0.02] p-6 relative overflow-hidden flex flex-col shadow-inner">
+        <div className="h-[400px] rounded-3xl border border-white/15 bg-white/[0.02] p-6 relative overflow-hidden flex flex-col shadow-inner">
           <AnimatePresence mode="wait">
             
             {/* Timeline Progress Tracking when loading */}
@@ -225,7 +225,7 @@ export default function AIDiseaseScanner() {
                 </div>
 
                 {/* Progress Steps Timeline */}
-                <div className="space-y-2 mt-4 text-left max-w-sm mx-auto w-full">
+                <div className="space-y-2.5 mt-4 text-left max-w-sm mx-auto w-full">
                   {SCANNER_TIMELINE_STEPS.map((step, idx) => {
                     const isDone = idx < currentStepIdx;
                     const isActive = idx === currentStepIdx;
@@ -235,12 +235,12 @@ export default function AIDiseaseScanner() {
                           isDone 
                             ? 'bg-[#76C945] border-[#76C945] text-black' 
                             : isActive 
-                            ? 'border-[#8AD65A] text-[#8AD65A] animate-pulse' 
-                            : 'border-white/10 text-white/30'
+                            ? 'border-[#8AD65A] text-[#8AD65A] animate-pulse shadow-[0_0_8px_#76C945]' 
+                            : 'border-white/20 text-white/50'
                         }`}>
                           {isDone ? "✓" : idx + 1}
                         </div>
-                        <span className={isDone ? 'text-white/80 line-through' : isActive ? 'text-[#8AD65A] font-bold' : 'text-white/30'}>
+                        <span className={isActive ? 'text-[#8AD65A] drop-shadow-[0_0_8px_#76C945] font-black' : isDone ? 'text-white/80 line-through' : 'text-white/40'}>
                           {step.label[lang] || step.label.en}
                         </span>
                       </div>

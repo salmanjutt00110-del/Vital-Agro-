@@ -50,6 +50,7 @@ export default function HeroContent() {
           variants={containerReveal}
           initial="hidden"
           animate="visible"
+          className="flex flex-col items-center lg:items-start text-center lg:text-left"
         >
           {/* Tagline Badge */}
           <motion.div
@@ -93,13 +94,13 @@ export default function HeroContent() {
           {/* Subheading */}
           <motion.p
             variants={itemReveal}
-            className="text-base sm:text-lg lg:text-xl text-white/70 max-w-lg mb-6 lg:mb-10 leading-relaxed"
+            className="text-base sm:text-lg lg:text-xl text-white/70 max-w-lg mb-6 lg:mb-10 leading-relaxed mx-auto lg:mx-0"
           >
             {t.hero.sub}
           </motion.p>
  
           {/* Buttons CTA Group */}
-          <motion.div variants={itemReveal} className="flex flex-wrap gap-4 items-center">
+          <motion.div variants={itemReveal} className="flex flex-wrap gap-4 items-center justify-center lg:justify-start">
             <PremiumButton variant="primary" href="/products" isMagnetic={true}>
               {t.hero.explore}
             </PremiumButton>
@@ -117,7 +118,7 @@ export default function HeroContent() {
           {/* Staggered Stats Counters */}
           <motion.div
             variants={itemReveal}
-            className="flex gap-6 mt-8 pt-6 lg:mt-12 lg:pt-8 border-t border-white/10"
+            className="flex gap-6 mt-8 pt-6 lg:mt-12 lg:pt-8 border-t border-white/10 w-full justify-center lg:justify-start"
           >
             {[
               { to: 15, suffix: '+', label: t.hero.years },
@@ -139,7 +140,7 @@ export default function HeroContent() {
           initial={{ opacity: 0, x: 60 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 1.1, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="hidden lg:flex justify-center items-center relative"
+          className="flex justify-center items-center relative mt-12 lg:mt-0"
         >
           <div className="relative">
             {/* Soft Radial Ambient Glow */}
@@ -151,7 +152,7 @@ export default function HeroContent() {
             {/* Central Product card */}
             <motion.div style={{ x: parallaxCentral.x, y: parallaxCentral.y }} className="relative z-10">
               <motion.div
-                className="bg-white/95 backdrop-blur-md rounded-3xl p-5 border border-white/20 shadow-2xl flex flex-col items-center w-[210px] h-[310px] justify-between cursor-pointer hover:shadow-[#76C945]/15 hover:border-[#76C945]/30 transition-all duration-300"
+                className="bg-white/95 backdrop-blur-md rounded-3xl p-5 border border-white/20 shadow-2xl flex flex-col items-center w-[180px] h-[270px] sm:w-[210px] sm:h-[310px] justify-between cursor-pointer hover:shadow-[#76C945]/15 hover:border-[#76C945]/30 transition-all duration-300"
                 animate={{ y: [-6, 6, -6] }}
                 transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
                 whileHover={{ scale: 1.03 }}
@@ -164,7 +165,7 @@ export default function HeroContent() {
                       width="150"
                       height="208"
                       loading="eager"
-                      className="h-52 w-auto object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.08)]"
+                      className="h-40 sm:h-52 w-auto object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.08)]"
                     />
                   </div>
                   <span className="text-[#0A2E1F] font-bold text-xs bg-[#76C945]/20 px-3 py-1 rounded-full border border-[#76C945]/30 mt-2">
@@ -177,7 +178,7 @@ export default function HeroContent() {
             {/* Floating Secondary Card (Right) */}
             <motion.div
               style={{ x: parallaxRight.x, y: parallaxRight.y }}
-              className="absolute -right-10 -top-4 z-0"
+              className="absolute -right-10 -top-4 z-0 hidden lg:block"
             >
               <motion.div
                 className="bg-white/90 backdrop-blur-sm rounded-2xl p-3 border border-white/10 shadow-xl flex flex-col items-center w-[120px] h-[170px] justify-between cursor-pointer hover:shadow-[#76C945]/10 hover:border-[#76C945]/30 transition-all duration-300"
@@ -205,7 +206,7 @@ export default function HeroContent() {
             {/* Floating Tertiary Card (Left) */}
             <motion.div
               style={{ x: parallaxLeft.x, y: parallaxLeft.y }}
-              className="absolute -left-10 bottom-4 z-20"
+              className="absolute -left-10 bottom-4 z-20 hidden lg:block"
             >
               <motion.div
                 className="bg-white/90 backdrop-blur-sm rounded-2xl p-3 border border-white/10 shadow-xl flex flex-col items-center w-[120px] h-[170px] justify-between cursor-pointer hover:shadow-[#76C945]/10 hover:border-[#76C945]/30 transition-all duration-300"

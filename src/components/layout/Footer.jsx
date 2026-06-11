@@ -94,9 +94,10 @@ export default function Footer() {
       id="premium-footer"
       role="contentinfo" 
       aria-label="Vital Agro Enterprise Footer"
-      className="relative text-white overflow-hidden pt-36 pb-12 transition-colors duration-500 z-10"
+      className="relative text-white overflow-hidden pt-36 transition-colors duration-500 z-10"
       style={{
-        background: `radial-gradient(circle at 50% 120%, rgba(118, 201, 69, 0.12) 0%, #030805 100%)`
+        background: `radial-gradient(circle at 50% 120%, rgba(118, 201, 69, 0.12) 0%, #030805 100%)`,
+        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 3rem)'
       }}
     >
       {/* Curved top divider transition */}

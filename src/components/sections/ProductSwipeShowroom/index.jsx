@@ -198,7 +198,7 @@ export default function ProductSwipeShowroom() {
     >
       {/* Background Floating Particles */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        {[...Array(25)].map((_, i) => (
+        {[...Array(typeof window !== 'undefined' && window.innerWidth < 768 ? 10 : 25)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute rounded-full opacity-25"

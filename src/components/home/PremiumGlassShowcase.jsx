@@ -53,6 +53,9 @@ export default function PremiumGlassShowcase() {
   // Track selected pack size index per product slug (key = slug, value = sizeIndex)
   const [selectedSizes, setSelectedSizes] = useState({});
 
+  // Autoplay control state
+  const [isPlaying, setIsPlaying] = useState(true);
+
   // Refs for animations
   const leftPanelRef = useRef(null);
   const cardsContainerRef = useRef(null);
@@ -176,6 +179,15 @@ export default function PremiumGlassShowcase() {
     setCurrentIndex((prev) => (prev - 1 + featuredProducts.length) % featuredProducts.length);
   };
 
+  // Autoplay Timer (7 seconds)
+  useEffect(() => {
+    if (!isPlaying) return;
+    const interval = setInterval(() => {
+      handleNext();
+    }, 7000);
+    return () => clearInterval(interval);
+  }, [isPlaying, currentIndex, featuredProducts]);
+
   // Interactive Sizing select
   const selectSize = (idx) => {
     setSelectedSizes(prev => ({
@@ -225,7 +237,7 @@ export default function PremiumGlassShowcase() {
     resize();
 
     const particles = [];
-    const count = 30;
+    const count = typeof window !== 'undefined' && window.innerWidth < 768 ? 12 : 30;
 
     for (let i = 0; i < count; i++) {
       particles.push({
@@ -374,9 +386,17 @@ Thank You.`;
   return (
     <section 
       className="relative py-24 bg-[#031109] overflow-hidden select-none border-b border-white/5"
-      onTouchStart={handleTouchStart}
+      onTouchStart={(e) => {
+        setIsPlaying(false);
+        handleTouchStart(e);
+      }}
       onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+      onTouchEnd={(e) => {
+        setIsPlaying(true);
+        handleTouchEnd(e);
+      }}
+      onMouseEnter={() => setIsPlaying(false)}
+      onMouseLeave={() => setIsPlaying(true)}
     >
       {/* Dynamic Mesh Aurora Glow blobs changing based on Category */}
       <div className="absolute inset-0 pointer-events-none z-0">
@@ -601,7 +621,7 @@ Thank You.`;
               {leftCardProduct && (
                 <div 
                   onClick={handlePrev}
-                  className="absolute left-[-15%] sm:left-[-10%] z-10 w-[160px] sm:w-[200px] h-[260px] sm:h-[320px] rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-md p-4 flex flex-col justify-between items-center opacity-30 filter blur-[3px] scale-80 cursor-pointer hover:opacity-50 transition-all duration-500"
+                  className="absolute left-[-15%] sm:left-[-10%] z-10 w-[160px] sm:w-[200px] h-[260px] sm:h-[320px] rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-md p-4 flex flex-col justify-between items-center opacity-30 filter blur-[3px] scale-80 cursor-pointer hover:opacity-50 transition-all duration-500 hidden sm:flex"
                 >
                   <img 
                     src={leftCardProduct.pngUrl} 
@@ -628,9 +648,11 @@ Thank You.`;
                   style={{
                     transformStyle: 'preserve-3d',
                     transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-                    transition: 'transform 0.15s ease-out'
+                    transition: 'transform 0.15s ease-out',
+                    backdropFilter: typeof window !== 'undefined' && window.innerWidth < 768 ? 'blur(10px) saturate(140%)' : 'blur(40px) saturate(180%)',
+                    WebkitBackdropFilter: typeof window !== 'undefined' && window.innerWidth < 768 ? 'blur(10px) saturate(140%)' : 'blur(40px) saturate(180%)'
                   }}
-                  className="absolute inset-0 bg-white/[0.03] border border-white/10 backdrop-blur-2xl rounded-3xl p-6 flex flex-col justify-between items-center shadow-[0_35px_80px_rgba(0,0,0,0.8),inset_0_2px_4px_rgba(255,255,255,0.05)] overflow-hidden"
+                  className="absolute inset-0 bg-white/[0.03] border border-white/10 rounded-3xl p-6 flex flex-col justify-between items-center shadow-[0_35px_80px_rgba(0,0,0,0.8),inset_0_2px_4px_rgba(255,255,255,0.05)] overflow-hidden"
                 >
                   {/* Sheen sheen reflection */}
                   <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.03] to-transparent pointer-events-none skew-y-12 translate-y-[-50%]" />
@@ -680,7 +702,7 @@ Thank You.`;
               {rightCardProduct && (
                 <div 
                   onClick={handleNext}
-                  className="absolute right-[-15%] sm:right-[-10%] z-10 w-[160px] sm:w-[200px] h-[260px] sm:h-[320px] rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-md p-4 flex flex-col justify-between items-center opacity-30 filter blur-[3px] scale-80 cursor-pointer hover:opacity-50 transition-all duration-500"
+                  className="absolute right-[-15%] sm:right-[-10%] z-10 w-[160px] sm:w-[200px] h-[260px] sm:h-[320px] rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-md p-4 flex flex-col justify-between items-center opacity-30 filter blur-[3px] scale-80 cursor-pointer hover:opacity-50 transition-all duration-500 hidden sm:flex"
                 >
                   <img 
                     src={rightCardProduct.pngUrl} 

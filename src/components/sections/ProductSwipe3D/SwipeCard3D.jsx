@@ -22,8 +22,8 @@ export default function SwipeCard3D({ product, isActive, isPeek, isDragging }) {
       `}
       style={{
         background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%)',
-        backdropFilter: 'blur(30px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(30px) saturate(180%)',
+        backdropFilter: typeof window !== 'undefined' && window.innerWidth < 768 ? 'blur(10px) saturate(140%)' : 'blur(30px) saturate(180%)',
+        WebkitBackdropFilter: typeof window !== 'undefined' && window.innerWidth < 768 ? 'blur(10px) saturate(140%)' : 'blur(30px) saturate(180%)',
         border: '1px solid rgba(255,255,255,0.08)',
         boxShadow: isActive
           ? isHovered

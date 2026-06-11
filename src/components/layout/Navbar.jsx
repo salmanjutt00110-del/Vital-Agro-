@@ -67,7 +67,7 @@ Thank you.`;
   const textColor = 'text-white/90';
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${navBg}`}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${navBg}`} style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`flex items-center justify-between transition-all duration-300 ${scrolled ? 'h-16' : 'h-20'}`}>
           {/* Logo cluster — Vital Agro + Vital Group + Tag */}
@@ -204,10 +204,11 @@ Thank you.`;
           <div className="lg:hidden flex items-center gap-2">
             <button
               onClick={() => setIsCartOpen(true)}
-              className={`relative p-2 rounded-full border transition-all
+              className={`relative w-12 h-12 flex items-center justify-center rounded-full border transition-all duration-200 active:scale-95
                 ${isLight ? 'border-[#0A2E1F]/20 text-[#0A2E1F] bg-[#0A2E1F]/5' : 'border-white/30 text-white bg-white/10'}`}
+              aria-label="Open cart"
             >
-              <ShoppingBag className="w-4 h-4" />
+              <ShoppingBag className="w-4.5 h-4.5" />
               {cartCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-[#76C945] text-[#0A2E1F] text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center">
                   {cartCount}
@@ -216,57 +217,79 @@ Thank you.`;
             </button>
             <motion.button
               onClick={() => setLang(lang === 'en' ? 'ur' : 'en')}
-              className={`px-2.5 py-1 rounded-full text-xs font-bold border transition-all
+              className={`w-12 h-12 flex items-center justify-center rounded-full text-xs font-bold border transition-all duration-200 active:scale-95
                 ${isLight ? 'border-[#0A2E1F]/20 text-[#0A2E1F] bg-[#0A2E1F]/5' : 'border-white/30 text-white bg-white/10'}`}
               whileTap={{ scale: 0.9 }}
+              aria-label="Toggle language"
             >
-              {lang === 'en' ? '🇵🇰 اردو' : '🇬🇧 EN'}
+              {lang === 'en' ? '🇵🇰' : '🇬🇧'}
             </motion.button>
             <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className={`p-2 rounded-lg ${textColor}`}
+              onClick={() => setMobileOpen(true)}
+              className={`w-12 h-12 flex items-center justify-center rounded-lg transition-all duration-200 active:scale-95 ${textColor}`}
+              aria-label="Open menu"
             >
-              {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              <Menu className="w-6 h-6" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu Backdrop (Click to close) */}
+      {/* Mobile Menu Drawer */}
       <AnimatePresence>
         {mobileOpen && (
-          <div 
-            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden" 
-            onClick={() => setMobileOpen(false)}
-          />
-        )}
-      </AnimatePresence>
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileOpen(false)}
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+            />
 
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="lg:hidden bg-[#0A2E1F]/95 backdrop-blur-2xl border-t border-white/10 overflow-hidden relative z-50 shadow-2xl text-white"
-          >
-            <div className="px-4 py-6 space-y-4">
-              <div className="space-y-1">
+            {/* Drawer Panel */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed top-0 right-0 h-full w-[300px] xs:w-[320px] bg-[#0A2E1F]/95 backdrop-blur-3xl border-l border-white/10 z-50 shadow-2xl flex flex-col pt-6 overflow-y-auto select-none text-white"
+              style={{ 
+                paddingTop: 'calc(env(safe-area-inset-top, 0px) + 24px)',
+                paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)'
+              }}
+            >
+              {/* Drawer Header */}
+              <div className="flex items-center justify-between px-6 pb-4 border-b border-white/10">
+                <span className="text-sm font-black tracking-widest text-[#76C945] uppercase">
+                  {lang === 'en' ? 'Vital Menu' : 'مینو'}
+                </span>
+                <button
+                  onClick={() => setMobileOpen(false)}
+                  className="w-12 h-12 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-all active:scale-95"
+                  aria-label="Close menu"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Navigation Links */}
+              <div className="flex-1 px-4 py-6 space-y-2">
                 {NAV_LINKS.map((link, i) => {
                   const LinkIcon = link.icon;
                   const isActive = location.pathname === link.path;
                   return (
                     <motion.div
                       key={link.path}
-                      initial={{ opacity: 0, x: -20 }}
+                      initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.05 }}
                     >
                       <Link
                         to={link.path}
-                        className={`flex items-center gap-3.5 px-4 py-3 rounded-xl text-base font-bold transition-all duration-300
+                        onClick={() => setMobileOpen(false)}
+                        className={`flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-base font-bold transition-all duration-300
                           ${isActive
                             ? 'bg-[#76C945]/20 text-[#8AD65A] border-l-4 border-[#76C945] pl-3.5'
                             : 'text-white/80 hover:bg-white/5 hover:text-white'
@@ -281,7 +304,7 @@ Thank you.`;
               </div>
 
               {/* Utility Quick Action Grid */}
-              <div className="pt-4 border-t border-white/10 space-y-3">
+              <div className="px-6 py-6 border-t border-white/10 space-y-4 bg-black/20 pb-12">
                 <span className="text-[10px] text-white/40 block font-black uppercase tracking-widest px-2">
                   {lang === 'en' ? 'Quick Operations' : 'فوری روابط'}
                 </span>
@@ -290,7 +313,7 @@ Thank you.`;
                   {/* Call Office */}
                   <a
                     href="tel:+920632253137"
-                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-center group"
+                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-center group min-h-[48px]"
                   >
                     <PhoneCall className="w-5 h-5 text-[#8AD65A] mb-1 group-hover:scale-110 transition-transform" />
                     <span className="text-xs font-black text-white/90">{lang === 'en' ? 'Call Office' : 'دفتر کال کریں'}</span>
@@ -302,7 +325,7 @@ Thank you.`;
                     href={`https://wa.me/923011837160?text=${encodeURIComponent(lang === 'ur' ? 'سلام وائٹل ایگرو، مجھے معلومات درکار ہیں۔' : 'Hello Vital Agro, I need some information.')}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-center group"
+                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-center group min-h-[48px]"
                   >
                     <MessageCircle className="w-5 h-5 text-green-400 mb-1 group-hover:scale-110 transition-transform" />
                     <span className="text-xs font-black text-white/90">{lang === 'en' ? 'WhatsApp Support' : 'واٹس ایپ رابطہ'}</span>
@@ -314,7 +337,7 @@ Thank you.`;
                     href="https://www.google.com/maps/dir/?api=1&destination=Plot+No.+50+%26+56%2C+Vital+Office%2C+Haroonabad%2C+Distt.+Bahawalnagar%2C+Pakistan"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-center group"
+                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-center group min-h-[48px]"
                   >
                     <MapPin className="w-5 h-5 text-[#C5A059] mb-1 group-hover:scale-110 transition-transform" />
                     <span className="text-xs font-black text-white/90">{lang === 'en' ? 'Get Directions' : 'لوکیشن نقشہ'}</span>
@@ -326,7 +349,7 @@ Thank you.`;
                     href={whatsappUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-[#76C945]/10 border border-[#76C945]/30 hover:bg-[#76C945]/20 transition-all text-center group"
+                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-[#76C945]/10 border border-[#76C945]/30 hover:bg-[#76C945]/20 transition-all text-center group min-h-[48px]"
                   >
                     <Award className="w-5 h-5 text-[#8AD65A] mb-1 group-hover:scale-110 transition-transform" />
                     <span className="text-xs font-black text-[#8AD65A]">{lang === 'en' ? 'Get Quote' : 'کوٹیشن حاصل کریں'}</span>
@@ -334,8 +357,8 @@ Thank you.`;
                   </a>
                 </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </nav>
