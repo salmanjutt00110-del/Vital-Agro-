@@ -1,9 +1,9 @@
 import {
+  db,
   collection, addDoc, doc, updateDoc,
   serverTimestamp, query, orderBy,
   onSnapshot, where, getCountFromServer,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+} from '@/lib/firebase';
 
 const ORDERS_COLLECTION = 'orders';
 

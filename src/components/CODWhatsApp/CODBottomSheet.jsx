@@ -5,8 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/lib/LanguageContext';
 import OrderConfirmButton from './OrderConfirmButton';
 import { verifyReceipt } from '@/lib/ai/receiptVerifier';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, collection, query, where, getDocs } from '@/lib/firebase';
 
 const InputField = ({ label, error, ...props }) => (
   <div className="w-full">

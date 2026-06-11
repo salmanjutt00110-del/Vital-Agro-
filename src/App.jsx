@@ -13,7 +13,7 @@ import CartDrawer from '@/components/cart/CartDrawer';
 import AppLayout from './components/layout/AppLayout';
 import Loader from '@/components/layout/Loader';
 import SmoothScroll from '@/components/layout/SmoothScroll';
-import { useAuthState } from 'react-firebase-hooks/auth';
+import { useAuthState } from '@/lib/firebase';
 import { auth } from '@/lib/firebase';
 import { HelmetProvider } from 'react-helmet-async';
 
