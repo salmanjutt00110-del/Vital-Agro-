@@ -51,8 +51,9 @@ const OrderConfirmButton = ({ onConfirm, onValidate, onComplete, disabled }) => 
     await sleep(duration);
 
     // Make sure database write completed
+    let orderId = null;
     try {
-      await orderPromise;
+      orderId = await orderPromise;
     } catch (err) {
       console.error("Order submission error:", err);
     }
@@ -72,7 +73,7 @@ const OrderConfirmButton = ({ onConfirm, onValidate, onComplete, disabled }) => 
 
     // Reset and complete checkout navigation
     if (onComplete) {
-      onComplete();
+      onComplete(orderId);
     }
     setState('idle');
     setProgress(0);

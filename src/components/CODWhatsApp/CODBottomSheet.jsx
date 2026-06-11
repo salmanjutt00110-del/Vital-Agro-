@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/lib/LanguageContext';
 import OrderConfirmButton from './OrderConfirmButton';
 import { verifyReceipt } from '@/lib/ai/receiptVerifier';
-import { db, collection, query, where, getDocs } from '@/lib/firebase';
+import { db, collection, query, where, getDocs } from '@/lib/supabase';
 
 const InputField = ({ label, error, ...props }) => (
   <div className="w-full">
@@ -705,16 +705,18 @@ export default function CODBottomSheet({
                         const newId = await submitOrder();
                         if (newId) {
                           setCreatedOrderId(newId);
+                          return newId;
                         }
                       } catch (e) {
                         console.error("Firebase submit error:", e);
                       }
+                      return null;
                     }}
-                    onComplete={() => {
-                      const targetId = createdOrderId;
+                    onComplete={(orderId) => {
                       resetForm();
                       setIsSubmitting(false);
                       setCreatedOrderId(null);
+                      const targetId = orderId || createdOrderId;
                       if (targetId) {
                         navigate(`/order-success/${targetId}`);
                       }

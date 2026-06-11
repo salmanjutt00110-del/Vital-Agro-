@@ -79,46 +79,46 @@ export default function AIDiseaseScanner() {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-6 bg-white/[0.03] backdrop-blur-xl rounded-[32px] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.3)] text-white">
-      {/* Title */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#76C945]/15 border border-[#76C945]/30 text-[#8AD65A] text-xs font-black uppercase tracking-wider mb-3">
-          <Sparkles className="w-3.5 h-3.5" />
+    <div className="w-full max-w-4xl mx-auto p-6 sm:p-8 md:p-10 bg-white/70 dark:bg-white/[0.03] backdrop-blur-2xl rounded-[32px] border border-black/5 dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_30px_70px_rgba(0,0,0,0.5)] text-gray-900 dark:text-white transition-all duration-300">
+      {/* Title Header */}
+      <div className="text-center mb-10">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#76C945]/10 dark:bg-[#76C945]/15 border border-[#76C945]/30 text-[#2d6a2d] dark:text-[#8AD65A] text-[11px] font-black uppercase tracking-widest mb-4">
+          <Sparkles className="w-3.5 h-3.5 animate-pulse" />
           <span>{lang === 'en' ? 'AI Disease Scanner' : 'اے آئی بیماری سکینر'}</span>
         </div>
-        <h2 className="text-3xl font-black tracking-tight mb-2">
+        <h2 className="text-3xl sm:text-4xl font-black tracking-tight mb-3 text-gray-900 dark:text-white">
           {lang === 'en' ? 'Scan Crop Health Instantly' : 'اپنی فصل کی صحت فوری سکین کریں'}
         </h2>
-        <p className="text-white/50 text-sm max-w-md mx-auto leading-relaxed">
+        <p className="text-gray-500 dark:text-white/50 text-sm max-w-xl mx-auto leading-relaxed">
           {lang === 'en'
             ? 'Snap a photo of leaf or stem symptoms to receive instant diagnosis and chemical treatments recommendations.'
             : 'پتے یا تنے کی بیماری کی تصویر اپ لوڈ کریں اور فوری تشخیص اور کیمیکل علاج کی تفصیلات حاصل کریں۔'}
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8 items-start">
-        {/* Upload Container */}
-        <div className="space-y-4">
-          <div className="relative aspect-square w-full rounded-2xl border-2 border-dashed border-white/10 hover:border-[#76C945]/40 overflow-hidden flex flex-col items-center justify-center bg-white/[0.01] hover:bg-white/[0.03] transition-all duration-300 group">
+      <div className="grid md:grid-cols-2 gap-8 lg:gap-10 items-start">
+        {/* Upload & Controls */}
+        <div className="space-y-6">
+          <div className="relative aspect-square w-full rounded-3xl border-2 border-dashed border-black/10 dark:border-white/10 hover:border-[#76C945] dark:hover:border-[#76C945]/50 overflow-hidden flex flex-col items-center justify-center bg-black/[0.01] dark:bg-white/[0.01] hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-all duration-300 group shadow-inner">
             {imagePreview ? (
               <>
                 <img src={imagePreview} alt="Crop Upload" className="w-full h-full object-cover" />
                 <button
                   onClick={handleReset}
-                  className="absolute top-3 right-3 p-2 bg-black/60 hover:bg-black/80 text-white rounded-full transition-colors border border-white/10"
+                  className="absolute top-4 right-4 p-2.5 bg-black/70 hover:bg-black/90 text-white rounded-full transition-all border border-white/10 hover:scale-105 active:scale-95 shadow-lg"
                 >
                   <RefreshCw size={16} />
                 </button>
               </>
             ) : (
-              <label className="cursor-pointer flex flex-col items-center justify-center p-6 text-center w-full h-full">
-                <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <Camera size={28} />
+              <label className="cursor-pointer flex flex-col items-center justify-center p-8 text-center w-full h-full">
+                <div className="w-16 h-16 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 flex items-center justify-center text-gray-500 dark:text-white/60 mb-5 group-hover:scale-110 group-hover:bg-[#76C945]/10 group-hover:text-[#2d6a2d] dark:group-hover:text-[#8AD65A] transition-all duration-300 shadow-sm">
+                  <Camera size={26} />
                 </div>
-                <span className="font-bold text-sm text-white/80 mb-1">
+                <span className="font-extrabold text-sm text-gray-800 dark:text-white/80 mb-2">
                   {lang === 'en' ? 'Take Photo or Upload Image' : 'تصویر کھینچیں یا اپ لوڈ کریں'}
                 </span>
-                <span className="text-xs text-white/40">
+                <span className="text-[11px] text-gray-400 dark:text-white/40">
                   PNG, JPG, JPEG up to 10MB
                 </span>
                 <input
@@ -135,7 +135,7 @@ export default function AIDiseaseScanner() {
             <button
               onClick={handleAnalyze}
               disabled={isAnalyzing}
-              className="w-full py-4 bg-[#76C945] hover:bg-[#8AD65A] disabled:bg-white/10 text-[#0A2E1F] disabled:text-white/30 rounded-2xl font-black text-sm transition-all shadow-lg shadow-[#76C945]/20 hover:scale-102 flex items-center justify-center gap-2"
+              className="w-full py-4.5 bg-gradient-to-r from-[#2d6a2d] to-[#3d8c3d] hover:shadow-[0_0_25px_rgba(92,184,92,0.3)] disabled:bg-black/5 dark:disabled:bg-white/5 text-white disabled:text-gray-400 dark:disabled:text-white/30 rounded-2xl font-black text-sm transition-all duration-300 hover:scale-102 flex items-center justify-center gap-2.5 shadow-lg"
             >
               {isAnalyzing ? (
                 <>
@@ -152,8 +152,8 @@ export default function AIDiseaseScanner() {
           )}
         </div>
 
-        {/* Diagnostic Results Panel */}
-        <div className="h-full min-h-[300px] rounded-2xl border border-white/10 bg-white/[0.01] p-6 relative overflow-hidden">
+        {/* Results Panel */}
+        <div className="h-full min-h-[340px] rounded-3xl border border-black/5 dark:border-white/10 bg-black/[0.01] dark:bg-white/[0.01] p-6 sm:p-8 relative overflow-hidden flex flex-col shadow-inner">
           <AnimatePresence mode="wait">
             {isAnalyzing && (
               <motion.div
@@ -161,16 +161,16 @@ export default function AIDiseaseScanner() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-black/40 backdrop-blur-md z-10"
+                className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-white/90 dark:bg-black/60 backdrop-blur-md z-10"
               >
-                <div className="relative w-16 h-16 flex items-center justify-center mb-4">
+                <div className="relative w-16 h-16 flex items-center justify-center mb-5">
                   <div className="absolute inset-0 rounded-full border-4 border-[#76C945]/20 border-t-[#76C945] animate-spin" />
-                  <Sparkles className="w-6 h-6 text-[#76C945]" />
+                  <Sparkles className="w-6 h-6 text-[#2d6a2d] dark:text-[#76C945]" />
                 </div>
-                <h4 className="font-bold text-base text-white mb-2 animate-pulse">
+                <h4 className="font-extrabold text-base text-gray-900 dark:text-white mb-2 animate-pulse">
                   {lang === 'en' ? 'Diagnosing Plant Pathology...' : 'پودے کی بیماری کا جائزہ...'}
                 </h4>
-                <p className="text-xs text-white/40 max-w-[200px]">
+                <p className="text-xs text-gray-500 dark:text-white/40 max-w-[220px] leading-relaxed">
                   {lang === 'en' ? 'Gemini AI is examining leaves and cellular nodes.' : 'جیمنی اے آئی پودے کے خلیات کا معائنہ کر رہا ہے۔'}
                 </p>
               </motion.div>
@@ -181,15 +181,15 @@ export default function AIDiseaseScanner() {
                 key="result"
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="space-y-4 text-left overflow-y-auto max-h-[340px] pr-2 scrollbar-hide whitespace-pre-line text-sm leading-relaxed"
+                className="space-y-5 text-left overflow-y-auto max-h-[360px] pr-2 scrollbar-hide text-sm leading-relaxed flex-1"
               >
-                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/8 text-[#8AD65A]">
-                  <CheckCircle2 size={18} />
-                  <span className="font-black text-xs uppercase tracking-widest">
+                <div className="flex items-center gap-2 mb-3 pb-3 border-b border-black/5 dark:border-white/8 text-[#2d6a2d] dark:text-[#8AD65A]">
+                  <CheckCircle2 size={18} className="shrink-0" />
+                  <span className="font-black text-[11px] uppercase tracking-widest">
                     {lang === 'en' ? 'DIAGNOSIS COMPLETE' : 'تشخیص مکمل ہو گئی'}
                   </span>
                 </div>
-                <div className="prose prose-invert prose-xs text-white/90">
+                <div className="prose prose-neutral dark:prose-invert prose-xs text-gray-800 dark:text-white/95 max-w-none">
                   {result}
                 </div>
               </motion.div>
@@ -200,10 +200,10 @@ export default function AIDiseaseScanner() {
                 key="error"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex flex-col items-center justify-center text-center p-6 h-full text-red-400"
+                className="flex flex-col items-center justify-center text-center p-6 h-full text-red-500 dark:text-red-400"
               >
-                <AlertCircle size={32} className="mb-3 opacity-80" />
-                <p className="text-xs font-semibold leading-relaxed">{error}</p>
+                <AlertCircle size={36} className="mb-4 opacity-80" />
+                <p className="text-xs font-semibold leading-relaxed max-w-[240px]">{error}</p>
               </motion.div>
             )}
 
@@ -212,13 +212,13 @@ export default function AIDiseaseScanner() {
                 key="empty"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex flex-col items-center justify-center text-center p-6 h-full text-white/30"
+                className="flex flex-col items-center justify-center text-center p-6 h-full text-gray-400 dark:text-white/30 my-auto"
               >
-                <FileText size={36} className="mb-3 opacity-60" />
-                <h5 className="font-bold text-xs uppercase tracking-widest mb-1">
+                <FileText size={40} className="mb-4 opacity-50 dark:opacity-60" />
+                <h5 className="font-extrabold text-xs uppercase tracking-widest mb-1.5">
                   {lang === 'en' ? 'Awaiting Scan' : 'سکین کا انتظار ہے'}
                 </h5>
-                <p className="text-[11px] leading-relaxed max-w-[200px]">
+                <p className="text-[11px] leading-relaxed max-w-[200px] text-gray-400 dark:text-white/40">
                   {lang === 'en'
                     ? 'Upload an image on the left to review diagnostic reports here.'
                     : 'رپورٹ دیکھنے کے لیے بائیں جانب تصویر اپ لوڈ کریں۔'}
