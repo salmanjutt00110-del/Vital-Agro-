@@ -33,9 +33,9 @@ const getCategoryLabel = (category) => {
   }
 };
 
-// Apple-style color mapping themes for V10 Ultra Premium Glow Experience
+// Apple-style color mapping themes for V13 Trillion-Dollar Experience
 const PRODUCT_COLOR_THEMES = {
-  "aaqaab": { glow: "rgba(59, 130, 246, 0.4)", particle: "#3b82f6", themeName: "Blue Space" },
+  "aaqaab": { glow: "rgba(59, 130, 246, 0.4)", particle: "#3b82f6", themeName: "Blue Cosmic" },
   "vac-zinc": { glow: "rgba(74, 222, 128, 0.4)", particle: "#4ade80", themeName: "Emerald Forest" },
   "dr-pp": { glow: "rgba(234, 179, 8, 0.4)", particle: "#eab308", themeName: "Golden Aurum" },
   "easy-grow": { glow: "rgba(236, 72, 153, 0.45)", particle: "#ec4899", themeName: "Neon Pink" },
@@ -78,7 +78,7 @@ const RollingCardPrice = ({ price }) => {
   return <span>PKR {displayVal.toLocaleString()}</span>;
 };
 
-// Apple Style Slide to Add Cart Component
+// Stripe-style Premium Slide to Add Cart Component
 const SlideToCart = ({ onSlideSuccess, lang }) => {
   const trackRef = useRef(null);
   const [trackWidth, setTrackWidth] = useState(240);
@@ -89,11 +89,11 @@ const SlideToCart = ({ onSlideSuccess, lang }) => {
     }
   }, []);
 
-  const handleSize = 42; // px
+  const handleSize = 40; // px
   const maxSlideDist = trackWidth - handleSize - 8;
 
   const handleDragEnd = (event, info) => {
-    if (info.offset.x >= maxSlideDist * 0.8) {
+    if (info.offset.x >= maxSlideDist * 0.78) {
       onSlideSuccess();
     }
   };
@@ -101,10 +101,10 @@ const SlideToCart = ({ onSlideSuccess, lang }) => {
   return (
     <div 
       ref={trackRef} 
-      className="relative w-full h-12 bg-white/5 rounded-2xl border border-white/10 flex items-center p-1 overflow-hidden"
+      className="relative w-full h-11 bg-white/5 rounded-2xl border border-white/10 flex items-center p-1 overflow-hidden select-none"
     >
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0">
-        <span className="text-[10px] font-black text-white/50 uppercase tracking-widest">
+        <span className="text-[9px] font-black text-white/50 uppercase tracking-widest">
           {lang === 'en' ? '→ Slide to Add Cart' : '← سلائیڈ کر کے کارٹ میں ڈالیں'}
         </span>
       </div>
@@ -112,19 +112,19 @@ const SlideToCart = ({ onSlideSuccess, lang }) => {
       <motion.div
         drag="x"
         dragConstraints={{ left: 0, right: maxSlideDist > 0 ? maxSlideDist : 180 }}
-        dragElastic={0.08}
+        dragElastic={0.06}
         dragTransition={{ bounceStiffness: 600, bounceDamping: 35 }}
         dragSnapToOrigin
         onDragEnd={handleDragEnd}
-        className="w-10 h-10 bg-[#76C945] hover:bg-[#8AD65A] text-[#0A2E1F] rounded-xl flex items-center justify-center cursor-grab active:cursor-grabbing shadow-md transition-colors duration-200 z-10 font-bold"
+        className="w-9 h-9 bg-gradient-to-r from-[#76C945] to-[#5cb85c] hover:shadow-[0_0_12px_#76C945] text-[#0A2E1F] rounded-xl flex items-center justify-center cursor-grab active:cursor-grabbing shadow-md transition-shadow duration-200 z-10"
       >
-        <ShoppingBag size={16} />
+        <ShoppingBag size={14} className="pointer-events-none" />
       </motion.div>
     </div>
   );
 };
 
-// Premium Apple-Style Product Explorer Card Component
+// True 3D Product Explorer Card Component optimized for Mobile & spacing
 const ProductCard = ({ product, index, lang, wishlist, toggleWishlist, addToCart }) => {
   const [sizeIdx, setSizeIdx] = useState(0);
   const [qty, setQty] = useState(1);
@@ -167,7 +167,7 @@ const ProductCard = ({ product, index, lang, wishlist, toggleWishlist, addToCart
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setMouseOffset({ x: x * 18, y: y * 18 });
+    setMouseOffset({ x: x * 16, y: y * 16 });
   };
 
   const handleMouseLeave = () => {
@@ -180,20 +180,20 @@ const ProductCard = ({ product, index, lang, wishlist, toggleWishlist, addToCart
     <div 
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="product-explorer-card w-[310px] sm:w-[370px] h-[585px] flex-shrink-0 snap-center rounded-[32px] p-6 bg-gradient-to-b from-white/[0.06] to-white/[0.01] border border-white/10 backdrop-blur-3xl shadow-[0_25px_50px_rgba(0,0,0,0.5)] hover:shadow-[0_35px_60px_rgba(0,0,0,0.8)] hover:border-white/20 flex flex-col justify-between transition-all duration-500 overflow-hidden relative group select-none text-white"
+      className="product-explorer-card w-[290px] xs:w-[325px] sm:w-[370px] min-h-[500px] xs:min-h-[540px] sm:min-h-[585px] flex-shrink-0 snap-center rounded-[32px] p-4 xs:p-5 sm:p-6 bg-gradient-to-b from-white/[0.06] to-white/[0.01] border border-white/10 backdrop-blur-3xl shadow-[0_25px_50px_rgba(0,0,0,0.5)] hover:shadow-[0_35px_60px_rgba(0,0,0,0.8)] hover:border-white/20 flex flex-col justify-between transition-all duration-500 overflow-hidden relative group select-none text-white"
     >
       {/* Background themed glow orb */}
       <div 
-        className="absolute top-[28%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full blur-[65px] pointer-events-none opacity-25 group-hover:opacity-40 transition-all duration-700 group-hover:scale-125"
+        className="absolute top-[28%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 sm:w-48 sm:h-48 rounded-full blur-[60px] sm:blur-[65px] pointer-events-none opacity-25 group-hover:opacity-40 transition-all duration-700 group-hover:scale-125"
         style={{ backgroundColor: activeTheme.particle }}
       />
 
       {/* Header bar within card */}
-      <div className="flex justify-between items-center z-10">
-        <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/80 text-[10px] font-black uppercase tracking-widest">
+      <div className="flex justify-between items-center z-10 text-[9px] sm:text-[10px]">
+        <span className="px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-white/5 border border-white/10 text-white/80 font-black uppercase tracking-widest">
           {promoBadge}
         </span>
-        <span className="text-[10px] font-black tracking-widest" style={{ color: activeTheme.particle }}>
+        <span className="font-black tracking-widest" style={{ color: activeTheme.particle }}>
           {getCategoryLabel(product.category)}
         </span>
       </div>
@@ -201,7 +201,7 @@ const ProductCard = ({ product, index, lang, wishlist, toggleWishlist, addToCart
       {/* Floating Interactive 3D Image Area */}
       <Link 
         to={`/products/${product.slug}`}
-        className="relative flex-1 flex items-center justify-center max-h-[230px] my-3 overflow-visible cursor-pointer z-10"
+        className="relative flex-1 flex items-center justify-center max-h-[160px] xs:max-h-[190px] sm:max-h-[230px] my-2 xs:my-3 sm:my-4 overflow-visible cursor-pointer z-10"
       >
         <motion.div
           animate={{
@@ -211,10 +211,10 @@ const ProductCard = ({ product, index, lang, wishlist, toggleWishlist, addToCart
             rotateY: mouseOffset.x * 1.5
           }}
           transition={{ type: "spring", stiffness: 150, damping: 20 }}
-          className="relative w-[70%] h-full flex items-center justify-center"
+          className="relative w-[65%] h-full flex items-center justify-center"
         >
           {/* Subtle bottom shadow under the bottle */}
-          <div className="absolute -bottom-2 w-[80%] h-4 bg-black/40 rounded-full blur-[8px] pointer-events-none" />
+          <div className="absolute -bottom-2 w-[80%] h-3.5 bg-black/40 rounded-full blur-[8px] pointer-events-none" />
           
           <img
             src={product.pngUrl || product.imageUrl}
@@ -226,15 +226,15 @@ const ProductCard = ({ product, index, lang, wishlist, toggleWishlist, addToCart
       </Link>
 
       {/* Info block */}
-      <div className="space-y-1 z-10">
+      <div className="space-y-0.5 xs:space-y-1 z-10">
         <Link 
           to={`/products/${product.slug}`}
-          className="font-black text-2xl text-white leading-tight block truncate hover:text-[#8AD65A] transition-colors"
+          className="font-black text-xl sm:text-2xl text-white leading-tight block truncate hover:text-[#8AD65A] transition-colors"
         >
           {product.name[lang]}
         </Link>
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-white/50 font-bold block truncate max-w-[200px]">
+        <div className="flex items-center justify-between text-[11px] sm:text-xs">
+          <span className="text-white/50 font-bold block truncate max-w-[170px] sm:max-w-[210px]">
             {product.genericName[lang] || product.genericName.en}
           </span>
           {product.formulation && (
@@ -252,7 +252,7 @@ const ProductCard = ({ product, index, lang, wishlist, toggleWishlist, addToCart
             <button
               key={idx}
               onClick={() => setSizeIdx(idx)}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-black border transition-all ${
+              className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[9px] sm:text-[10px] font-black border transition-all ${
                 sizeIdx === idx
                   ? 'bg-white text-black border-white shadow-lg'
                   : 'bg-white/5 text-white/70 border-white/5 hover:bg-white/10 hover:border-white/10'
@@ -265,12 +265,12 @@ const ProductCard = ({ product, index, lang, wishlist, toggleWishlist, addToCart
       )}
 
       {/* Price row */}
-      <div className="flex items-center justify-between border-t border-white/5 pt-3 mt-3 z-10">
+      <div className="flex items-center justify-between border-t border-white/5 pt-2.5 mt-2.5 sm:pt-3 sm:mt-3 z-10">
         <div className="flex flex-col">
-          <span className="text-xl font-black font-mono tracking-tight text-[#8AD65A]">
+          <span className="text-lg sm:text-xl font-black font-mono tracking-tight text-[#8AD65A]">
             <RollingCardPrice price={displayedPrice} />
           </span>
-          <span className="text-[9px] font-black uppercase tracking-widest mt-0.5" style={{ color: activeTheme.particle }}>
+          <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest mt-0.5" style={{ color: activeTheme.particle }}>
             {currentSize.stockStatus === 'In Stock' ? 'IN STOCK' : 'LOW STOCK'}
           </span>
         </div>
@@ -279,14 +279,14 @@ const ProductCard = ({ product, index, lang, wishlist, toggleWishlist, addToCart
         <div className="flex items-center gap-2 bg-white/5 rounded-xl border border-white/10 p-1">
           <button
             onClick={() => setQty(q => Math.max(1, q - 1))}
-            className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-sm text-white font-black transition-all active:scale-90"
+            className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-xs sm:text-sm text-white font-black transition-all active:scale-90"
           >
             -
           </button>
-          <span className="w-5 text-center text-sm font-black text-white font-mono">{qty}</span>
+          <span className="w-4 sm:w-5 text-center text-xs sm:text-sm font-black text-white font-mono">{qty}</span>
           <button
             onClick={() => setQty(q => q + 1)}
-            className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-sm text-white font-black transition-all active:scale-90"
+            className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-xs sm:text-sm text-white font-black transition-all active:scale-90"
           >
             +
           </button>
@@ -294,17 +294,18 @@ const ProductCard = ({ product, index, lang, wishlist, toggleWishlist, addToCart
       </div>
 
       {/* Actions */}
-      <div className="mt-3.5 z-10 flex gap-2.5 items-center">
+      <div className="mt-2.5 sm:mt-3.5 z-10 flex gap-2 items-center">
         {/* Wishlist toggle */}
         <button
           onClick={handleWishlistClick}
-          className={`p-3 rounded-2xl border transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center ${
+          className={`p-2.5 sm:p-3 rounded-2xl border transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center ${
             isWishlisted
               ? 'border-red-500 bg-red-500/10 text-red-500'
               : 'border-white/10 hover:bg-white/10 text-white/70'
           }`}
+          aria-label="Toggle Wishlist"
         >
-          <Heart className={`w-4.5 h-4.5 ${isWishlisted ? 'fill-current' : ''}`} />
+          <Heart className={`w-4 h-4 sm:w-4.5 sm:h-4.5 ${isWishlisted ? 'fill-current' : ''}`} />
         </button>
 
         {/* COD WhatsApp Button */}
@@ -313,12 +314,12 @@ const ProductCard = ({ product, index, lang, wishlist, toggleWishlist, addToCart
             product={product}
             defaultSize={currentSize.size}
             defaultQuantity={qty}
-            className="py-3 text-xs font-black rounded-2xl bg-green-600/10 hover:bg-green-600/20 border border-green-500/20 text-green-400"
+            className="py-2.5 sm:py-3 text-[10px] sm:text-xs font-black rounded-2xl bg-green-600/10 hover:bg-green-600/20 border border-green-500/20 text-green-400"
           />
         </div>
       </div>
 
-      <div className="mt-2.5 z-10">
+      <div className="mt-2 sm:mt-2.5 z-10">
         <SlideToCart onSlideSuccess={handleSlideSuccess} lang={lang} />
       </div>
     </div>
@@ -333,8 +334,26 @@ export default function Products() {
   const [search, setSearch] = useState('');
   const [activeCrop, setActiveCrop] = useState(null);
   const [activeIdx, setActiveIdx] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [phIdx, setPhIdx] = useState(0);
 
   const containerRef = useRef(null);
+
+  // Dynamic Fading Placeholder Texts
+  const PLACEHOLDERS = [
+    "Search premium insecticides...",
+    "Search high-efficacy fungicides...",
+    "Search imported herbicides...",
+    "Search plant nutrients...",
+    "Search Vital-C, Aaqaab..."
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPhIdx((prev) => (prev + 1) % PLACEHOLDERS.length);
+    }, 3200);
+    return () => clearInterval(interval);
+  }, []);
 
   // Wishlist state persisted in localStorage
   const [wishlist, setWishlist] = useState(() => {
@@ -395,6 +414,29 @@ export default function Products() {
   }, [products, category, search, activeCrop, lang]);
 
   const activeProduct = filtered[activeIdx];
+
+  // Auto product rotation sequence every 7 seconds
+  useEffect(() => {
+    if (isHovered || filtered.length <= 1) return;
+
+    const rotationInterval = setInterval(() => {
+      const nextIdx = (activeIdx + 1) % filtered.length;
+      setActiveIdx(nextIdx);
+
+      if (containerRef.current) {
+        const container = containerRef.current;
+        const card = container.querySelector('.product-explorer-card');
+        if (card) {
+          container.scrollTo({
+            left: (card.offsetWidth + 32) * nextIdx,
+            behavior: 'smooth'
+          });
+        }
+      }
+    }, 7000); // 7 seconds
+
+    return () => clearInterval(rotationInterval);
+  }, [activeIdx, filtered, isHovered]);
 
   // Dynamically compute layout background details from current card
   const bgStyle = useMemo(() => {
@@ -476,43 +518,46 @@ export default function Products() {
         keywords="buy insecticide Pakistan, herbicide online, fungicide price Pakistan, agricultural chemicals COD"
       />
 
-      {/* Background Floating Particles mapping the active theme */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute rounded-full opacity-20"
-            style={{
-              width: Math.random() * 8 + 4 + 'px',
-              height: Math.random() * 8 + 4 + 'px',
-              backgroundColor: bgStyle.particleColor,
-              left: Math.random() * 100 + '%',
-              top: Math.random() * 100 + '%',
-              boxShadow: `0 0 20px ${bgStyle.particleColor}`
-            }}
-            animate={{
-              y: [0, Math.random() * -150 - 50],
-              x: [0, Math.random() * 50 - 25],
-              opacity: [0.1, 0.35, 0]
-            }}
-            transition={{
-              duration: Math.random() * 6 + 5,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: Math.random() * 4
-            }}
-          />
-        ))}
+      {/* Dynamic Stripe-Inspired Mesh Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <motion.div 
+          animate={{
+            x: [0, 60, -40, 0],
+            y: [0, -40, 50, 0],
+            scale: [1, 1.15, 0.9, 1]
+          }}
+          transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute w-[450px] sm:w-[600px] h-[450px] sm:h-[600px] rounded-full blur-[100px] sm:blur-[130px] opacity-40 -top-40 -left-20"
+          style={{ backgroundColor: bgStyle.particleColor + '22' }}
+        />
+        <motion.div 
+          animate={{
+            x: [0, -50, 40, 0],
+            y: [0, 60, -30, 0],
+            scale: [1, 0.9, 1.1, 1]
+          }}
+          transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute w-[450px] sm:w-[600px] h-[450px] sm:h-[600px] rounded-full blur-[100px] sm:blur-[130px] opacity-30 -bottom-40 -right-20"
+          style={{ backgroundColor: bgStyle.particleColor + '18' }}
+        />
       </div>
+
+      {/* Noise overlay filter */}
+      <div 
+        className="absolute inset-0 opacity-[0.015] pointer-events-none mix-blend-overlay z-0"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
+        }}
+      />
 
       {/* Ambient Glow Aura */}
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full blur-[140px] pointer-events-none transition-all duration-1000 z-0"
-        style={{ backgroundColor: bgStyle.glow, opacity: 0.5 }}
+        style={{ backgroundColor: bgStyle.glow, opacity: 0.45 }}
       />
       
-      {/* Page Header: Dark Green premium backdrop */}
-      <section className="relative py-12 overflow-hidden z-10">
+      {/* Page Header */}
+      <section className="relative py-10 overflow-hidden z-10 select-none">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div 
             initial={{ opacity: 0, y: 15 }} 
@@ -534,7 +579,7 @@ export default function Products() {
             <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight leading-none">
               {lang === 'en' ? 'Product Explorer' : 'زرعی مصنوعات اور حل'}
             </h1>
-            <p className="text-white/60 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+            <p className="text-white/60 text-xs sm:text-sm max-w-2xl mx-auto leading-relaxed">
               {lang === 'en' 
                 ? 'Discover our high-efficacy formulas utilizing imported formulations. Swipe or scroll horizontally to inspect profiles.'
                 : 'ہماری بہترین کوالٹی کی کیڑے مار ادویات، فنگس کش، اور پلانٹ نیوٹریشن دیکھیں۔'}
@@ -544,9 +589,10 @@ export default function Products() {
       </section>
 
       {/* Sticky Filtering Bar: Apple Store Navigation Pills */}
-      <section className="py-5 border-y border-white/5 sticky top-20 z-30 bg-black/60 backdrop-blur-xl">
+      <section className="py-4 border-y border-white/5 sticky top-20 z-30 bg-black/60 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+            
             {/* Category selection pills with horizontal scroll */}
             <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1 w-full lg:w-auto flex-nowrap whitespace-nowrap select-none">
               {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
@@ -555,8 +601,8 @@ export default function Products() {
                   onClick={() => setCategory(key)}
                   className={`px-4.5 py-2.5 rounded-full text-xs font-black transition-all flex-shrink-0 ${
                     category === key
-                      ? 'bg-white text-black shadow-lg shadow-white/10'
-                      : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
+                      ? 'bg-white text-black shadow-lg shadow-white/10 scale-102'
+                      : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white hover:scale-102'
                   }`}
                 >
                   {label}
@@ -564,14 +610,14 @@ export default function Products() {
               ))}
             </div>
 
-            {/* Keyword Search Input */}
+            {/* Keyword Search Input with Dynamic placeholder transition */}
             <div className="relative w-full lg:w-80">
               <Search className={`absolute ${isRTL ? 'right-3.5' : 'left-3.5'} top-1/2 -translate-y-1/2 w-4 h-4 text-white/40`} />
               <Input
-                placeholder={lang === 'en' ? "Search premium products..." : "پروڈکٹ تلاش کریں..."}
+                placeholder={PLACEHOLDERS[phIdx]}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className={`h-11 border-white/10 focus:border-[#76C945] rounded-full focus:ring-2 focus:ring-[#76C945]/20 bg-white/5 text-white placeholder-white/35 ${isRTL ? "pr-11 pl-4 text-right" : "pl-11 pr-4"}`}
+                className={`h-11 border-white/10 focus:border-[#76C945] rounded-full focus:ring-2 focus:ring-[#76C945]/20 bg-white/5 text-white placeholder-white/35 transition-all ${isRTL ? "pr-11 pl-4 text-right" : "pl-11 pr-4"}`}
               />
             </div>
           </div>
@@ -579,14 +625,14 @@ export default function Products() {
       </section>
 
       {/* Crop Filter Selection inside premium glass container */}
-      <section className="py-6 z-20 relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white/[0.03] p-5 rounded-3xl border border-white/10 backdrop-blur-md shadow-xl">
+      <section className="py-4 z-20 relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white/[0.03] p-4.5 sm:p-5 rounded-3xl border border-white/10 backdrop-blur-md shadow-xl">
           <CropFilter onCropSelect={setActiveCrop} activeCrop={activeCrop} />
         </div>
       </section>
 
       {/* Horizontal Product Explorer Section */}
-      <section className="py-10 relative z-20 overflow-visible">
+      <section className="py-6 sm:py-10 relative z-20 overflow-visible">
         <div className="max-w-7xl mx-auto relative px-4 sm:px-6 lg:px-8">
           
           {/* Active Product Theme Indicator Badge */}
@@ -594,25 +640,31 @@ export default function Products() {
             <div className="mb-4 flex items-center justify-center gap-2">
               <span className="h-2 w-2 rounded-full animate-ping" style={{ backgroundColor: bgStyle.particleColor }} />
               <span className="text-[10px] font-mono uppercase tracking-widest text-white/50">
-                Vision Aura: <span className="font-bold text-white" style={{ color: bgStyle.particleColor }}>{PRODUCT_COLOR_THEMES[activeProduct.slug]?.themeName || "Vital Green"}</span>
+                Vision Aura: <span className="font-bold text-white transition-colors duration-500" style={{ color: bgStyle.particleColor }}>{PRODUCT_COLOR_THEMES[activeProduct.slug]?.themeName || "Vital Green"}</span>
               </span>
             </div>
           )}
 
           {/* Explorer Lane Container */}
-          <div className="relative group/lane">
+          <div 
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            className="relative group/lane"
+          >
             {/* Arrow Overlays for desktop */}
             {filtered.length > 0 && (
               <>
                 <button
                   onClick={() => scrollLane(-1)}
                   className="absolute left-[-16px] top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-black/50 hover:bg-black/75 border border-white/10 text-white flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-30 opacity-0 group-hover/lane:opacity-100 shadow-[0_0_20px_rgba(0,0,0,0.5)] cursor-pointer hidden md:flex"
+                  aria-label="Scroll left"
                 >
                   <ChevronLeft size={24} />
                 </button>
                 <button
                   onClick={() => scrollLane(1)}
                   className="absolute right-[-16px] top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-black/50 hover:bg-black/75 border border-white/10 text-white flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-30 opacity-0 group-hover/lane:opacity-100 shadow-[0_0_20px_rgba(0,0,0,0.5)] cursor-pointer hidden md:flex"
+                  aria-label="Scroll right"
                 >
                   <ChevronRight size={24} />
                 </button>
@@ -622,7 +674,7 @@ export default function Products() {
             {/* Horizontal Snap Row */}
             <div 
               ref={containerRef}
-              className="flex overflow-x-auto snap-x snap-mandatory gap-8 py-6 px-2 md:px-6 scrollbar-none scroll-smooth relative z-20 w-full"
+              className="flex overflow-x-auto snap-x snap-mandatory gap-6 sm:gap-8 py-4 px-2 md:px-6 scrollbar-none scroll-smooth relative z-20 w-full"
               style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
             >
               {filtered.map((product, i) => (
@@ -645,7 +697,7 @@ export default function Products() {
 
           {/* Dots Indicator showing the active scroll position */}
           {filtered.length > 1 && (
-            <div className="flex justify-center gap-2 mt-8 z-20 relative select-none">
+            <div className="flex justify-center gap-2 mt-6 z-20 relative select-none">
               {filtered.map((_, idx) => (
                 <button
                   key={idx}
@@ -667,6 +719,7 @@ export default function Products() {
                       ? 'w-8 bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]' 
                       : 'w-2 bg-white/20 hover:bg-white/40'
                   }`}
+                  aria-label={`Slide to product ${idx + 1}`}
                 />
               ))}
             </div>
