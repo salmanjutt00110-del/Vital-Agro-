@@ -28,6 +28,7 @@ export const useWhatsAppOrder = (product, defaultSize = null, defaultQuantity = 
   const [form, setForm] = useState({
     customerName: '',
     phone: '',
+    email: '',
     city: '',
     address: '',
     province: '',
@@ -104,6 +105,7 @@ export const useWhatsAppOrder = (product, defaultSize = null, defaultQuantity = 
       customer: {
         name:       form.customerName,
         phone:      form.phone,
+        email:      form.email || '',
         city:       form.city,
         address:    form.address,
         province:   form.province,

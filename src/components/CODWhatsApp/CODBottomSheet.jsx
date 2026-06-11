@@ -1,41 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShieldCheck, Image, AlertCircle, CreditCard, Landmark, Truck, Copy, Check, Clock } from 'lucide-react';
+import { X, ShieldCheck, Image, AlertCircle, CreditCard, Landmark, Truck, Copy, Check, Clock, User, Phone, Mail, MapPin, ChevronRight, Edit, Package } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/lib/LanguageContext';
-import OrderConfirmButton from './OrderConfirmButton';
 import { verifyReceipt } from '@/lib/ai/receiptVerifier';
 import { verifyReceiptUnique } from '@/lib/api';
+import confetti from 'canvas-confetti';
 
-const InputField = ({ label, error, value, ...props }) => {
+const InputField = ({ label, error, value, icon: Icon, ...props }) => {
   const [focused, setFocused] = useState(false);
   const isFilled = value && String(value).length > 0;
 
   return (
     <div className="w-full relative">
-      <div className="relative">
+      <div className="relative flex items-center">
+        {Icon && (
+          <div className={`absolute left-4 transition-colors duration-300 ${focused ? 'text-[#8AD65A]' : 'text-white/30'}`}>
+            <Icon size={16} />
+          </div>
+        )}
         <input
           value={value}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           {...props}
           className={`
-            w-full px-4 pt-6 pb-2 rounded-2xl text-sm text-white
-            bg-white/[0.03] border outline-none
+            w-full pt-6 pb-2 rounded-2xl text-sm text-white
+            bg-white/[0.02] border outline-none
             placeholder-transparent
-            focus:bg-white/[0.05]
+            focus:bg-white/[0.04]
             transition-all duration-300
+            ${Icon ? 'pl-11 pr-4' : 'px-4'}
             ${error
-              ? 'border-red-500/50 bg-red-500/5'
+              ? 'border-red-500/50 bg-red-500/5 shadow-[0_0_15px_rgba(239,68,68,0.1)]'
               : focused
-              ? 'border-[#76C945]'
-              : 'border-white/10'
+              ? 'border-[#76C945] shadow-[0_0_15px_rgba(118,201,69,0.15)]'
+              : 'border-white/10 hover:border-white/20'
             }
           `}
         />
         <label 
           className={`
             absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-white/40 uppercase tracking-wider transition-all duration-200 pointer-events-none
+            ${Icon ? 'left-11' : 'left-4'}
             ${(focused || isFilled) ? 'top-3 text-[9px] text-[#8AD65A] font-black' : ''}
           `}
         >
@@ -101,7 +108,7 @@ const GlassCreditCard = ({ paymentMethod, customerName, phone, amount }) => {
     <div
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className={`relative w-full h-44 rounded-3xl p-5 border ${theme.border} backdrop-blur-2xl shadow-[0_20px_40px_rgba(0,0,0,0.5)] overflow-hidden cursor-pointer select-none transition-all duration-300`}
+      className={`relative w-full h-40 rounded-3xl p-5 border ${theme.border} backdrop-blur-2xl shadow-[0_20px_40px_rgba(0,0,0,0.5)] overflow-hidden cursor-pointer select-none transition-all duration-300`}
       style={{
         background: theme.bg,
         transformStyle: 'preserve-3d',
@@ -114,15 +121,15 @@ const GlassCreditCard = ({ paymentMethod, customerName, phone, amount }) => {
       <div className="h-full flex flex-col justify-between relative z-10 font-mono">
         <div className="flex justify-between items-start">
           <div>
-            <span className="text-[8px] text-white/40 block">VITAL AGRO HYBRID GATEWAY</span>
-            <span className="text-[11px] font-black tracking-wider text-white">{theme.logo}</span>
+            <span className="text-[8px] text-white/40 block font-black">VITAL AGRO HYBRID GATEWAY</span>
+            <span className="text-[10px] font-black tracking-wider text-white">{theme.logo}</span>
           </div>
           <div className="w-8 h-6 rounded-md bg-white/10 flex items-center justify-center font-bold text-white/50 text-[9px]">
             NFC
           </div>
         </div>
 
-        <div className="text-base font-black tracking-widest text-white/90 my-1">
+        <div className="text-sm font-black tracking-widest text-white/90 my-1">
           {paymentMethod === 'Stripe' ? '••••  ••••  ••••  4242' : `ID: ${phone || '••••  ••••  ••'}`}
         </div>
 
@@ -147,29 +154,47 @@ const GlassCreditCard = ({ paymentMethod, customerName, phone, amount }) => {
 
 export default function CODBottomSheet({
   product, isOpen, setIsOpen,
-  form, setForm, errors, isSubmitting, setIsSubmitting, handleSubmit,
+  form, setForm, errors: externalErrors, isSubmitting, setIsSubmitting, handleSubmit,
   validate, submitOrder, resetForm,
 }) {
   const { lang } = useLanguage();
   const navigate = useNavigate();
   const [createdOrderId, setCreatedOrderId] = useState(null);
-  
-  // OCR Flow States
+
+  // Multi-step pagination states
+  const [currentStep, setCurrentStep] = useState(1);
+  const [direction, setDirection] = useState(0);
+  const [localErrors, setLocalErrors] = useState({});
+
+  // Success Experience Timeline states
+  const [successPhase, setSuccessPhase] = useState('idle'); // 'idle' | 'packing' | 'shipping' | 'delivered' | 'confirmed'
+  const [successProgress, setSuccessProgress] = useState(0);
+
+  // OCR & Stripe Flow States
   const [isVerifyingReceipt, setIsVerifyingReceipt] = useState(false);
   const [ocrStepIndex, setOcrStepIndex] = useState(0);
   const [receiptError, setReceiptError] = useState(null);
   const [receiptSuccess, setReceiptSuccess] = useState(false);
-
-  // Stripe Flow Simulation
   const [stripeSimulating, setStripeSimulating] = useState(false);
   const [stripeStep, setStripeStep] = useState(1);
 
-  // Copy Buttons feedback
+  // Clipboard feedbacks
   const [copiedNumber, setCopiedNumber] = useState(false);
   const [copiedTitle, setCopiedTitle] = useState(false);
 
-  // Countdown timer state (15 minutes)
+  // Countdown timer for mobile wallets
   const [timeLeft, setTimeLeft] = useState(900);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setCurrentStep(1);
+      setSuccessPhase('idle');
+      setLocalErrors({});
+      setReceiptSuccess(false);
+      setReceiptError(null);
+      return;
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen || (form.paymentMethod !== 'JazzCash' && form.paymentMethod !== 'Easypaisa')) {
@@ -224,14 +249,13 @@ export default function CODBottomSheet({
     setReceiptError(null);
     setReceiptSuccess(false);
 
-    // Simulate stepping through OCR stages visually
     const stepInterval = setInterval(() => {
       setOcrStepIndex(prev => {
         if (prev < ocrSteps.length - 1) return prev + 1;
         clearInterval(stepInterval);
         return prev;
       });
-    }, 900);
+    }, 800);
 
     const reader = new FileReader();
     reader.onloadend = async () => {
@@ -240,37 +264,32 @@ export default function CODBottomSheet({
 
       try {
         const parsed = await verifyReceipt(base64Data, mimeType);
-        
-        // 1. Merchant Destination Wallet Validation
         const expectedWallet = form.paymentMethod === 'JazzCash' ? '03001234567' : '03011837160';
         const parsedWalletClean = parsed.receiverWallet ? parsed.receiverWallet.replace(/\D/g, '') : '';
         
         if (parsedWalletClean && !parsedWalletClean.includes(expectedWallet)) {
           clearInterval(stepInterval);
           setIsVerifyingReceipt(false);
-          setReceiptError(`Receiver account mismatch. Expected merchant wallet ${expectedWallet} but read ${parsedWalletClean || 'N/A'}. Make sure you sent to the correct account.`);
+          setReceiptError(`Receiver account mismatch. Expected merchant wallet ${expectedWallet} but read ${parsedWalletClean || 'N/A'}.`);
           return;
         }
 
-        // 2. Duplicate Check / Double Spend Verification
         const checkResult = await verifyReceiptUnique(parsed.refId);
         if (checkResult.duplicate) {
           clearInterval(stepInterval);
           setIsVerifyingReceipt(false);
           setForm(prev => ({ ...prev, paymentDuplicate: true }));
-          setReceiptError("Duplicate transaction detected. This transaction receipt was already used for another order.");
+          setReceiptError("Duplicate transaction receipt already registered.");
           return;
         }
 
-        // 3. Amount Matching Check
         if (parsed.amount < grandTotal) {
           clearInterval(stepInterval);
           setIsVerifyingReceipt(false);
-          setReceiptError(`Amount mismatch. Expected PKR ${grandTotal.toLocaleString()} but read PKR ${parsed.amount.toLocaleString()}. Transfer full total or contact support.`);
+          setReceiptError(`Amount mismatch. Expected PKR ${grandTotal.toLocaleString()} but read PKR ${parsed.amount.toLocaleString()}.`);
           return;
         }
 
-        // Complete Verification
         clearInterval(stepInterval);
         setForm(prev => ({
           ...prev,
@@ -287,7 +306,7 @@ export default function CODBottomSheet({
         setReceiptSuccess(true);
       } catch (err) {
         clearInterval(stepInterval);
-        setReceiptError(lang === 'en' ? 'Failed to read receipt details. Please upload a clear receipt.' : 'رسید کی تفصیلات پڑھنے میں ناکامی۔ براہ کرم واضح رسید اپ لوڈ کریں۔');
+        setReceiptError(lang === 'en' ? 'Failed to read receipt details. Please upload a clear screenshot.' : 'رسید کی تفصیلات پڑھنے میں ناکامی۔ براہ کرم واضح سکرین شاٹ اپ لوڈ کریں۔');
       } finally {
         setIsVerifyingReceipt(false);
       }
@@ -297,11 +316,19 @@ export default function CODBottomSheet({
 
   if (!product) return null;
 
-  const updateForm = (key, value) =>
+  const updateForm = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value }));
+    // Clear error dynamically as the user types
+    if (localErrors[key]) {
+      setLocalErrors(prev => {
+        const copy = { ...prev };
+        delete copy[key];
+        return copy;
+      });
+    }
+  };
 
   const sizes = product.sizes ? product.sizes.map(s => typeof s === 'object' ? s.size : s) : [];
-
   const getPriceForSize = (selectedSizeName) => {
     if (product.sizes && product.sizes.length > 0) {
       const match = product.sizes.find(s => {
@@ -323,533 +350,1112 @@ export default function CODBottomSheet({
   const localizedName = typeof product.name === 'object' ? (product.name[lang] || product.name.en) : product.name;
   const imageSrc = product.pngUrl || product.imageUrl || product.image;
 
-  // Checkout Calculations
+  // Pricing calculations
   const itemsSubtotal = currentPrice * form.quantity;
   const deliveryCharges = itemsSubtotal > 3000 ? 0 : 250;
   const grandTotal = itemsSubtotal + deliveryCharges;
 
+  // Estimated Delivery window calculations
+  const today = new Date();
+  const deliveryMinDate = new Date(today);
+  deliveryMinDate.setDate(deliveryMinDate.getDate() + 2);
+  const deliveryMaxDate = new Date(today);
+  deliveryMaxDate.setDate(deliveryMaxDate.getDate() + 4);
+
+  const formatDateString = (d) => {
+    return d.toLocaleDateString(lang === 'en' ? 'en-US' : 'ur-PK', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
+
   const startStripeFlow = async () => {
     setStripeSimulating(true);
     setStripeStep(1);
-    await new Promise(r => setTimeout(r, 1400));
+    await new Promise(r => setTimeout(r, 1200));
     setStripeStep(2);
-    await new Promise(r => setTimeout(r, 1600));
+    await new Promise(r => setTimeout(r, 1400));
     setStripeStep(3);
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 900));
     setStripeSimulating(false);
+    setReceiptSuccess(true);
+  };
+
+  // Step Validations
+  const validateStep2 = () => {
+    const e = {};
+    if (!form.customerName || !form.customerName.trim()) {
+      e.customerName = lang === 'en' ? 'Full Name is required' : 'مکمل نام درج کرنا ضروری ہے';
+    }
+    if (!form.phone || !form.phone.trim()) {
+      e.phone = lang === 'en' ? 'Phone Number is required' : 'فون نمبر درج کرنا ضروری ہے';
+    } else if (!/^0\d{10}$/.test(form.phone.replace(/[-\s]/g, ''))) {
+      e.phone = lang === 'en' ? 'Enter valid Pakistani number (03XXXXXXXXX)' : 'درست پاکستانی نمبر درج کریں (03XXXXXXXXX)';
+    }
+    if (form.email && form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      e.email = lang === 'en' ? 'Enter a valid email address' : 'درست ای میل ایڈریس درج کریں';
+    }
+    setLocalErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const validateStep3 = () => {
+    const e = {};
+    if (!form.province || !form.province.trim()) {
+      e.province = lang === 'en' ? 'Province is required' : 'صوبہ کا نام ضروری ہے';
+    }
+    if (!form.city || !form.city.trim()) {
+      e.city = lang === 'en' ? 'City is required' : 'شہر کا نام ضروری ہے';
+    }
+    if (!form.address || !form.address.trim()) {
+      e.address = lang === 'en' ? 'Street Address is required' : 'مکمل پتہ درج کرنا ضروری ہے';
+    }
+    setLocalErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleNextStep = () => {
+    if (currentStep === 2 && !validateStep2()) return;
+    if (currentStep === 3 && !validateStep3()) return;
+    if (currentStep === 4) {
+      if (form.paymentMethod !== 'COD' && !receiptSuccess) {
+        setLocalErrors({ payment: lang === 'en' ? 'Please complete your payment process first' : 'براہ کرم پہلے ادائیگی مکمل کریں' });
+        return;
+      }
+    }
+    setDirection(1);
+    setCurrentStep(prev => prev + 1);
+  };
+
+  const handlePrevStep = () => {
+    setDirection(-1);
+    setCurrentStep(prev => prev - 1);
+  };
+
+  const handlePlaceOrderTimeline = async () => {
+    setSuccessPhase('packing');
+    
+    // Asynchronously submit to Firestore database
+    const orderSavePromise = submitOrder();
+
+    // Packing phase timer
+    await new Promise(r => setTimeout(r, 2000));
+    
+    // Transit/Shipping Phase
+    setSuccessPhase('shipping');
+    setSuccessProgress(0);
+
+    const duration = 2400;
+    const intervalTime = 40;
+    const steps = duration / intervalTime;
+    let currentStepTick = 0;
+
+    const timer = setInterval(() => {
+      currentStepTick++;
+      const currentVal = Math.min((currentStepTick / steps) * 100, 100);
+      setSuccessProgress(currentVal);
+      if (currentStepTick >= steps) {
+        clearInterval(timer);
+      }
+    }, intervalTime);
+
+    await new Promise(r => setTimeout(r, duration));
+
+    // Await database creation completion
+    let finalOrderId = null;
+    try {
+      finalOrderId = await orderSavePromise;
+      if (finalOrderId) {
+        setCreatedOrderId(finalOrderId);
+      }
+    } catch (e) {
+      console.error("Firebase submit error:", e);
+    }
+
+    // Delivered Phase
+    setSuccessPhase('delivered');
+    await new Promise(r => setTimeout(r, 1600));
+
+    // Confirm state
+    setSuccessPhase('confirmed');
+
+    // Trigger premium organic celebration checkmark burst
+    confetti({
+      particleCount: 80,
+      spread: 70,
+      origin: { y: 0.75 },
+      colors: ['#76C945', '#8AD65A', '#2d6a2d', '#ffffff']
+    });
+  };
+
+  // Sliding transitions values
+  const stepVariants = {
+    enter: (dir) => ({
+      x: dir > 0 ? '60%' : '-60%',
+      opacity: 0,
+      filter: 'blur(4px)'
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      filter: 'blur(0px)',
+      transition: { type: 'spring', stiffness: 260, damping: 26 }
+    },
+    exit: (dir) => ({
+      x: dir < 0 ? '60%' : '-60%',
+      opacity: 0,
+      filter: 'blur(4px)',
+      transition: { duration: 0.2 }
+    })
   };
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black text-white font-sans">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black text-white font-sans selection:bg-[#76C945] selection:text-[#0A2E1F]">
           
           <motion.div
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            transition={{ type: 'spring', stiffness: 220, damping: 28 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 26 }}
             className="min-h-screen w-full flex flex-col relative"
             style={{
               background: 'radial-gradient(circle at top, #0f2d1a 0%, #050a06 100%)',
             }}
           >
             {/* Header Toolbar */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-white/10 backdrop-blur-md sticky top-0 bg-black/60 z-30">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#5cb85c] animate-pulse" />
-                <h2 className="text-lg font-black tracking-widest uppercase">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-white/5 backdrop-blur-md sticky top-0 bg-black/60 z-30">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#76C945] animate-pulse" />
+                <h2 className="text-sm font-black tracking-widest uppercase font-mono text-white/80">
                   {lang === 'en' ? 'Vital Agro Premium Checkout' : 'وائٹل ایگرو پریمیم چیک آؤٹ'}
                 </h2>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center transition-colors border border-white/10 text-white/70 hover:text-white"
+                className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors border border-white/10 text-white/70 hover:text-white"
               >
                 <X size={18} />
               </button>
             </div>
 
-            {/* Main Checkout Layout Grid */}
-            <div className="max-w-7xl mx-auto w-full px-6 py-8 grid lg:grid-cols-12 gap-8 items-start flex-1">
-              
-              {/* Left Column: Form Info */}
-              <div className="lg:col-span-7 space-y-8 bg-white/[0.02] border border-white/5 rounded-3xl p-6 md:p-8">
-                <div>
-                  <h3 className="text-lg font-extrabold tracking-tight text-[#8AD65A] mb-1">
-                    {lang === 'en' ? 'Shipping Destination' : 'ڈیلیوری کا پتہ'}
-                  </h3>
-                  <p className="text-white/40 text-xs font-semibold">
-                    Provide valid delivery credentials to finalize packaging logs.
-                  </p>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-5">
-                  <InputField
-                    label={lang === 'en' ? "Full Name *" : "مکمل نام *"}
-                    placeholder="Muhammad Ali"
-                    value={form.customerName}
-                    onChange={(e) => updateForm('customerName', e.target.value)}
-                    error={errors.customerName}
+            {/* Top Wizard Steps Timeline */}
+            {successPhase === 'idle' && (
+              <div className="w-full px-6 py-4 bg-white/[0.01] border-b border-white/5 sticky top-[80px] z-20 backdrop-blur-md">
+                <div className="max-w-3xl mx-auto flex items-center justify-between relative">
+                  <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-0.5 bg-white/10 -z-10" />
+                  <motion.div 
+                    className="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-gradient-to-r from-[#76C945] to-[#8AD65A] -z-10"
+                    initial={{ width: '0%' }}
+                    animate={{ width: `${((currentStep - 1) / 5) * 100}%` }}
+                    transition={{ duration: 0.3 }}
                   />
-
-                  <InputField
-                    label={lang === 'en' ? "Phone Number *" : "فون نمبر *"}
-                    placeholder="03001234567"
-                    value={form.phone}
-                    onChange={(e) => updateForm('phone', e.target.value)}
-                    error={errors.phone}
-                    inputMode="tel"
-                  />
-                </div>
-
-                <div className="grid md:grid-cols-3 gap-5">
-                  <InputField
-                    label={lang === 'en' ? "City *" : "شہر *"}
-                    placeholder="Haroonabad"
-                    value={form.city}
-                    onChange={(e) => updateForm('city', e.target.value)}
-                    error={errors.city}
-                  />
-
-                  <InputField
-                    label={lang === 'en' ? "Province / State *" : "صوبہ *"}
-                    placeholder="Punjab"
-                    value={form.province}
-                    onChange={(e) => updateForm('province', e.target.value)}
-                    error={errors.province}
-                  />
-
-                  <InputField
-                    label={lang === 'en' ? "Postal Code (Optional)" : "پوسٹل کوڈ (اختیاری)"}
-                    placeholder="62300"
-                    value={form.postalCode}
-                    onChange={(e) => updateForm('postalCode', e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-white/50 text-[11px] font-black uppercase tracking-wider">
-                    {lang === 'en' ? 'Complete Street Address *' : 'مکمل پتہ *'}
-                  </label>
-                  <textarea
-                    rows={2.5}
-                    placeholder={lang === 'en' ? "House No, Street, Mohalla, Nearby Landmark..." : "مکان نمبر، گلی، محلہ، نزدیکی نشان..."}
-                    value={form.address}
-                    onChange={(e) => updateForm('address', e.target.value)}
-                    className={`
-                      w-full px-4 py-3.5 rounded-2xl text-sm text-white bg-white/[0.03] border outline-none resize-none
-                      placeholder:text-white/20 focus:border-[#76C945] focus:bg-white/[0.06] transition-all duration-300
-                      ${errors.address ? 'border-red-500/50 bg-red-500/5' : 'border-white/10'}
-                    `}
-                  />
-                  {errors.address && (
-                    <p className="text-red-400 text-[10px] font-semibold mt-1 ml-1">{errors.address}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-white/50 text-[11px] font-black uppercase tracking-wider">
-                    {lang === 'en' ? 'Special Delivery Instructions (Optional)' : 'خصوصی ہدایات (اختیاری)'}
-                  </label>
-                  <textarea
-                    rows={2}
-                    placeholder={lang === 'en' ? "Deliver after 4 PM, call before arrival, etc." : "شام 4 بجے کے بعد ڈیلیور کریں، آمد سے پہلے کال کریں، وغیرہ..."}
-                    value={form.specialInstructions || ''}
-                    onChange={(e) => updateForm('specialInstructions', e.target.value)}
-                    className="w-full px-4 py-3.5 rounded-2xl text-sm text-white bg-white/[0.03] border border-white/10 outline-none resize-none placeholder:text-white/20 focus:border-[#76C945] focus:bg-white/[0.06] transition-all duration-300"
-                  />
-                </div>
-              </div>
-
-              {/* Right Column: Checkout Summary, Payments & Confirmation */}
-              <div className="lg:col-span-5 lg:sticky lg:top-28 space-y-6">
-                
-                {/* 1. Selected Product Card */}
-                <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-5 space-y-4">
-                  <h4 className="text-[#8AD65A] font-extrabold text-xs uppercase tracking-widest">
-                    {lang === 'en' ? 'Order Summary' : 'آرڈر کی تفصیلات'}
-                  </h4>
-
-                  <div className="flex gap-4 items-center">
-                    <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 p-1 flex items-center justify-center shrink-0">
-                      <img src={imageSrc} alt={localizedName} className="w-full h-full object-contain drop-shadow" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h5 className="text-white font-bold text-sm truncate">{localizedName}</h5>
-                      <p className="text-white/40 text-[11px] mt-0.5 truncate">
-                        {product.activeIngredient || product.formula || product.category}
-                      </p>
-                      <p className="text-[#5cb85c] font-mono font-black text-xs mt-1">
-                        PKR {currentPrice.toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-
-                  {sizes.length > 1 && (
-                    <div className="pt-3 border-t border-white/5">
-                      <span className="text-[10px] font-black text-white/40 uppercase tracking-wider block mb-2">Pack Size:</span>
-                      <div className="flex flex-wrap gap-2">
-                        {sizes.map(size => (
-                          <button
-                            key={size}
-                            onClick={() => updateForm('selectedSize', size)}
-                            className={`
-                              px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all duration-200
-                              ${form.selectedSize === size
-                                ? 'bg-[#2d6a2d]/30 border-[#5cb85c] text-white shadow-lg shadow-[#5cb85c]/10'
-                                : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10'
-                              }
-                            `}
-                          >
-                            {size}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex justify-between items-center pt-3 border-t border-white/5">
-                    <span className="text-white/40 text-xs font-bold">Quantity:</span>
-                    <div className="flex items-center gap-3.5">
-                      <button
-                        onClick={() => updateForm('quantity', Math.max(1, form.quantity - 1))}
-                        className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-black transition-colors"
-                      >
-                        −
-                      </button>
-                      <span className="text-white font-black text-sm w-4 text-center">{form.quantity}</span>
-                      <button
-                        onClick={() => updateForm('quantity', form.quantity + 1)}
-                        className="w-8 h-8 rounded-full bg-[#2d6a2d]/50 hover:bg-[#3d8c3d] text-white flex items-center justify-center font-black transition-colors"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. Billing Breakdown */}
-                <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-5 space-y-3 font-mono text-xs">
-                  <div className="flex justify-between text-white/55">
-                    <span>Subtotal:</span>
-                    <span>PKR {itemsSubtotal.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-white/55">
-                    <span>Delivery Charges:</span>
-                    <span>{deliveryCharges === 0 ? 'FREE' : `PKR ${deliveryCharges}`}</span>
-                  </div>
-                  <div className="flex justify-between text-[#8AD65A] font-black text-sm pt-2.5 border-t border-white/5">
-                    <span>Grand Total:</span>
-                    <span>PKR {grandTotal.toLocaleString()}</span>
-                  </div>
-                </div>
-
-                {/* 3. Interactive Payment Option Cards */}
-                <div className="space-y-3">
-                  <h4 className="text-white/50 text-[11px] font-black uppercase tracking-wider">
-                    {lang === 'en' ? 'Choose Payment Method' : 'طریقہ ادائیگی منتخب کریں'}
-                  </h4>
-
-                  <div className="grid grid-cols-2 gap-2.5">
-                    {[
-                      { id: 'COD', name: 'Cash On Delivery', desc: 'Pay at your doorstep', icon: Truck },
-                      { id: 'Stripe', name: 'Credit / Debit Card', desc: 'Secure by Stripe', icon: CreditCard },
-                      { id: 'JazzCash', name: 'JazzCash Wallet', desc: 'Transfer & verify', icon: ShieldCheck },
-                      { id: 'Easypaisa', name: 'Easypaisa Wallet', desc: 'Transfer & verify', icon: ShieldCheck },
-                      { id: 'Bank', name: 'Meezan Bank Ltd', desc: 'Direct bank transfer', icon: Landmark },
-                    ].map((method) => {
-                      const Icon = method.icon;
-                      const isSelected = form.paymentMethod === method.id;
-                      return (
-                        <motion.button
-                          key={method.id}
+                  
+                  {Array.from({ length: 6 }).map((_, idx) => {
+                    const stepNum = idx + 1;
+                    const isActive = currentStep === stepNum;
+                    const isCompleted = currentStep > stepNum;
+                    
+                    return (
+                      <div key={idx} className="flex flex-col items-center gap-1.5 relative">
+                        <button
                           type="button"
-                          onClick={() => updateForm('paymentMethod', method.id)}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          style={{
-                            boxShadow: isSelected
-                              ? '0 0 25px rgba(92, 184, 92, 0.25), inset 0 0 10px rgba(92, 184, 92, 0.1)'
-                              : 'none',
+                          onClick={() => {
+                            if (stepNum < currentStep) {
+                              setDirection(stepNum > currentStep ? 1 : -1);
+                              setCurrentStep(stepNum);
+                            }
                           }}
+                          disabled={stepNum >= currentStep}
                           className={`
-                            p-4 rounded-2xl border text-left flex flex-col gap-2.5 transition-all duration-300
-                            ${isSelected
-                              ? 'bg-[#2d6a2d]/15 border-[#5cb85c] text-white'
-                              : 'bg-white/[0.02] border-white/10 text-white/60 hover:bg-white/[0.04]'
+                            w-8 h-8 rounded-full flex items-center justify-center text-xs font-black font-mono transition-all duration-300 border select-none
+                            ${isActive 
+                              ? 'bg-[#76C945] text-[#0A2E1F] border-[#76C945] shadow-[0_0_15px_rgba(118,201,69,0.5)] scale-110' 
+                              : isCompleted 
+                                ? 'bg-[#2d6a2d] text-white border-[#5cb85c]' 
+                                : 'bg-black border-white/10 text-white/30 cursor-not-allowed'
                             }
                           `}
                         >
-                          <div className={`p-2 rounded-xl w-fit ${isSelected ? 'bg-[#5cb85c]/25 text-[#8AD65A]' : 'bg-white/5 text-white/40'}`}>
-                            <Icon size={18} />
-                          </div>
-                          <div>
-                            <span className="font-extrabold text-xs block text-white">{method.name}</span>
-                            <span className="text-[9px] text-white/35 block mt-0.5">{method.desc}</span>
-                          </div>
-                        </motion.button>
-                      );
-                    })}
-                  </div>
+                          {isCompleted ? '✓' : stepNum}
+                        </button>
+                        <span className={`text-[8px] uppercase font-black tracking-widest hidden sm:block ${isActive ? 'text-[#8AD65A]' : isCompleted ? 'text-white/50' : 'text-white/20'}`}>
+                          {stepNum === 1 ? 'Cart' : stepNum === 2 ? 'Info' : stepNum === 3 ? 'Address' : stepNum === 4 ? 'Payment' : stepNum === 5 ? 'Review' : 'Place'}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
+              </div>
+            )}
 
-                {/* 3.5 Glassmorphic Interactive 3D Payment Card */}
-                {(form.paymentMethod === 'Stripe' || form.paymentMethod === 'JazzCash' || form.paymentMethod === 'Easypaisa') && (
-                  <GlassCreditCard
-                    paymentMethod={form.paymentMethod}
-                    customerName={form.customerName}
-                    phone={form.phone}
-                    amount={grandTotal}
-                  />
-                )}
-
-                {/* 4. Payment Workflows (Countdown, QR codes, copy buttons, OCR visualizer) */}
-                {(form.paymentMethod === 'JazzCash' || form.paymentMethod === 'Easypaisa') && (
-                  <div className="p-5 bg-white/[0.02] border border-white/5 rounded-3xl space-y-4">
-                    
-                    {/* Countdown Timer Header */}
-                    <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                      <h5 className="font-extrabold text-xs text-[#8AD65A] uppercase tracking-wide">
-                        {form.paymentMethod} Transfer Details
-                      </h5>
-                      <div className="flex items-center gap-1 text-[11px] font-mono font-bold text-amber-400 bg-amber-400/5 border border-amber-400/20 px-2 py-0.5 rounded-lg">
-                        <Clock size={12} className="animate-spin" style={{ animationDuration: '6s' }} />
-                        <span>{formatTime(timeLeft)}</span>
+            {/* Scrollable Form Container */}
+            <div className="flex-1 overflow-y-auto px-4 xs:px-6 py-8 max-w-4xl mx-auto w-full flex flex-col justify-start relative">
+              <AnimatePresence mode="wait" custom={direction}>
+                <motion.div
+                  key={currentStep}
+                  custom={direction}
+                  variants={stepVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  className="w-full flex-1 flex flex-col justify-start"
+                >
+                  
+                  {/* STEP 1: PRODUCT SUMMARY */}
+                  {currentStep === 1 && (
+                    <div className="space-y-6 w-full">
+                      <div className="border-b border-white/5 pb-3">
+                        <h3 className="text-base font-black tracking-tight text-[#8AD65A] uppercase">{lang === 'en' ? 'Product Summary' : 'آرڈر کا خلاصہ'}</h3>
+                        <p className="text-white/40 text-[11px] font-semibold mt-0.5">{lang === 'en' ? 'Inspect pack size specifications and adjust quantities.' : 'پیک سائز کی تفصیلات دیکھیں اور مقدار کو تبدیل کریں۔'}</p>
                       </div>
-                    </div>
 
-                    {/* Merchant Transfer Specs */}
-                    <div className="text-xs text-white/70 space-y-3 leading-relaxed font-mono relative">
-                      <div className="flex justify-between items-center bg-white/[0.01] border border-white/5 p-2 rounded-xl">
-                        <div>
-                          <span className="text-[9px] text-white/30 block uppercase font-bold">Account Title</span>
-                          <span className="text-white font-bold">Vital Agro</span>
+                      {/* Summary Showcase Card */}
+                      <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-5 flex flex-col sm:flex-row gap-5 items-center relative overflow-hidden backdrop-blur-md">
+                        <div className="w-24 h-24 rounded-2xl bg-white/5 border border-white/10 p-2 flex items-center justify-center shrink-0">
+                          <img src={imageSrc} alt={localizedName} className="w-full h-full object-contain drop-shadow" />
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => copyToClipboard('Vital Agro', 'title')}
-                          className="p-1.5 bg-white/5 rounded hover:bg-white/10 transition-colors border border-white/10 text-white/50 hover:text-white"
-                        >
-                          {copiedTitle ? <Check size={12} className="text-[#8AD65A]" /> : <Copy size={12} />}
-                        </button>
-                      </div>
-
-                      <div className="flex justify-between items-center bg-white/[0.01] border border-white/5 p-2 rounded-xl">
-                        <div>
-                          <span className="text-[9px] text-white/30 block uppercase font-bold">{form.paymentMethod} Number</span>
-                          <span className="text-white font-black">{form.paymentMethod === 'JazzCash' ? '0300-1234567' : '0301-1837160'}</span>
+                        <div className="flex-1 min-w-0 text-center sm:text-left space-y-1">
+                          <h4 className="text-white font-extrabold text-base truncate">{localizedName}</h4>
+                          <p className="text-white/40 text-xs truncate">
+                            {product.activeIngredient || product.formula || product.category}
+                          </p>
+                          <p className="text-[#8AD65A] font-mono font-black text-sm">
+                            PKR {currentPrice.toLocaleString()}
+                          </p>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => copyToClipboard(form.paymentMethod === 'JazzCash' ? '03001234567' : '03011837160', 'number')}
-                          className="p-1.5 bg-white/5 rounded hover:bg-white/10 transition-colors border border-white/10 text-white/50 hover:text-white"
-                        >
-                          {copiedNumber ? <Check size={12} className="text-[#8AD65A]" /> : <Copy size={12} />}
-                        </button>
                       </div>
 
-                      {/* Premium QR Code SVG representation */}
-                      <div className="flex flex-col items-center justify-center p-3 border border-white/5 bg-white/[0.01] rounded-2xl gap-2 mt-2">
-                        <span className="text-[8px] text-white/40 uppercase tracking-widest font-black">Scan Wallet QR Code</span>
-                        <svg className="w-24 h-24 text-[#8AD65A]" viewBox="0 0 100 100" fill="currentColor">
-                          <rect x="10" y="10" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="6" />
-                          <rect x="15" y="15" width="15" height="15" fill="currentColor" />
-                          <rect x="65" y="10" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="6" />
-                          <rect x="70" y="15" width="15" height="15" fill="currentColor" />
-                          <rect x="10" y="65" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="6" />
-                          <rect x="15" y="70" width="15" height="15" fill="currentColor" />
-                          {/* Random noise matrix blocks for premium feel */}
-                          <rect x="45" y="20" width="10" height="10" fill="currentColor" />
-                          <rect x="45" y="45" width="10" height="10" fill="currentColor" />
-                          <rect x="20" y="45" width="10" height="10" fill="currentColor" />
-                          <rect x="75" y="45" width="10" height="10" fill="currentColor" />
-                          <rect x="65" y="75" width="15" height="10" fill="currentColor" />
-                          <rect x="45" y="70" width="10" height="20" fill="currentColor" />
-                        </svg>
-                      </div>
-                    </div>
+                      {/* Variant Size pills */}
+                      {sizes.length > 1 && (
+                        <div className="bg-white/[0.01] border border-white/5 rounded-3xl p-5 space-y-3">
+                          <span className="text-[10px] font-black text-white/40 uppercase tracking-widest block">{lang === 'en' ? 'Selected Pack Variant:' : 'پیک سائز منتخب کریں:'}</span>
+                          <div className="flex flex-wrap gap-2.5">
+                            {sizes.map(size => (
+                              <button
+                                key={size}
+                                type="button"
+                                onClick={() => updateForm('selectedSize', size)}
+                                className={`
+                                  px-4 py-2.5 rounded-2xl text-xs font-extrabold border transition-all duration-300 select-none
+                                  ${form.selectedSize === size
+                                    ? 'bg-[#2d6a2d]/30 border-[#76C945] text-white shadow-lg shadow-[#76C945]/10 scale-105'
+                                    : 'bg-white/[0.02] border-white/10 text-white/40 hover:bg-white/5 hover:text-white'
+                                  }
+                                `}
+                              >
+                                {size}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
-                    {/* Screenshot Upload Block */}
-                    <div className="space-y-3 pt-2">
-                      <span className="text-[9px] font-black text-white/40 uppercase tracking-widest block">
-                        Upload Transfer Receipt Screenshot
-                      </span>
-
-                      {form.receiptBase64 ? (
-                        <div className="relative rounded-2xl border border-white/10 overflow-hidden aspect-video bg-black/40 flex items-center justify-center">
-                          <img src={form.receiptBase64} alt="Receipt Preview" className="w-full h-full object-contain" />
+                      {/* Quantities & Calculations */}
+                      <div className="bg-white/[0.01] border border-white/5 rounded-3xl p-5 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div className="text-center sm:text-left">
+                          <span className="text-[10px] font-black text-white/40 uppercase tracking-widest block">{lang === 'en' ? 'Item Quantity' : 'تعداد'}</span>
+                          <span className="text-xs text-white/80 font-bold">{lang === 'en' ? 'Configure total order metric units' : 'آرڈر یونٹس کی کل تعداد ترتیب دیں'}</span>
+                        </div>
+                        <div className="flex items-center gap-4.5 bg-black/40 border border-white/10 rounded-2xl p-1.5">
                           <button
                             type="button"
-                            onClick={() => {
-                              updateForm('receiptBase64', '');
-                              updateForm('paymentRefId', '');
-                              updateForm('paymentAmount', 0);
-                              updateForm('paymentTimestamp', '');
-                              updateForm('paymentSender', '');
-                              updateForm('paymentReceiver', '');
-                              updateForm('paymentReceiverWallet', '');
-                              updateForm('paymentConfidence', 1.0);
-                              updateForm('paymentDuplicate', false);
-                              setReceiptSuccess(false);
-                              setReceiptError(null);
-                            }}
-                            className="absolute top-2.5 right-2.5 p-2 bg-black/70 rounded-full text-white/80 hover:text-white border border-white/10 transition-colors"
+                            onClick={() => updateForm('quantity', Math.max(1, form.quantity - 1))}
+                            className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center font-black transition-colors text-sm"
                           >
-                            <X size={14} />
+                            −
+                          </button>
+                          <span className="text-white font-black text-base w-8 text-center font-mono">{form.quantity}</span>
+                          <button
+                            type="button"
+                            onClick={() => updateForm('quantity', form.quantity + 1)}
+                            className="w-10 h-10 rounded-xl bg-[#2d6a2d]/40 hover:bg-[#3d8c3d] text-white flex items-center justify-center font-black transition-colors text-sm"
+                          >
+                            +
                           </button>
                         </div>
-                      ) : (
-                        <label className="border-2 border-dashed border-white/10 hover:border-[#5cb85c]/40 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer bg-white/[0.01] hover:bg-white/[0.03] transition-all">
-                          <Image size={24} className="text-white/40 mb-2" />
-                          <span className="text-xs font-bold text-white/80 mb-0.5">
-                            {isVerifyingReceipt ? 'AI Verifying Receipt...' : 'Select Screenshot Receipt'}
+                      </div>
+
+                      {/* Delivery Estimates Alert */}
+                      <div className="p-4.5 rounded-2xl border border-white/5 bg-white/[0.01] flex items-start gap-3">
+                        <Clock size={16} className="text-[#8AD65A] shrink-0 mt-0.5" />
+                        <div>
+                          <span className="text-[10px] font-black text-[#8AD65A] uppercase tracking-widest block">{lang === 'en' ? 'Estimated Delivery' : 'توقعہ تاریخ وصولی'}</span>
+                          <span className="text-xs text-white/70 block mt-0.5">
+                            {formatDateString(deliveryMinDate)} – {formatDateString(deliveryMaxDate)}
                           </span>
-                          <span className="text-[10px] text-white/20">PNG, JPG, JPEG up to 10MB</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleReceiptUpload}
-                            disabled={isVerifyingReceipt}
-                            className="hidden"
-                          />
-                        </label>
-                      )}
-
-                      {/* Step-by-step progress visualizer overlay */}
-                      {isVerifyingReceipt && (
-                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-2">
-                          <div className="flex items-center gap-2 text-[#8AD65A]">
-                            <span className="w-4.5 h-4.5 border-2 border-current border-t-transparent animate-spin rounded-full shrink-0" />
-                            <span className="text-xs font-bold font-mono tracking-wide uppercase">AI Payment Verification</span>
-                          </div>
-                          
-                          {/* Visual Steps Trail */}
-                          <div className="space-y-1 mt-2 font-mono text-[10px] text-white/60">
-                            {ocrSteps.map((step, idx) => {
-                              const isActive = idx === ocrStepIndex;
-                              const isCompleted = idx < ocrStepIndex;
-                              return (
-                                <div key={idx} className="flex items-center gap-2">
-                                  <span className={`w-1.5 h-1.5 rounded-full ${
-                                    isCompleted 
-                                      ? 'bg-emerald-500' 
-                                      : isActive 
-                                        ? 'bg-[#8AD65A] animate-ping' 
-                                        : 'bg-white/15'
-                                  }`} />
-                                  <span className={isCompleted ? 'text-emerald-400 font-semibold' : isActive ? 'text-white font-bold' : 'text-white/30'}>
-                                    {step} {isCompleted && '✓'}
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </div>
                         </div>
-                      )}
+                      </div>
+                    </div>
+                  )}
 
-                      {receiptError && (
+                  {/* STEP 2: CUSTOMER DETAILS */}
+                  {currentStep === 2 && (
+                    <div className="space-y-6 w-full">
+                      <div className="border-b border-white/5 pb-3">
+                        <h3 className="text-base font-black tracking-tight text-[#8AD65A] uppercase">{lang === 'en' ? 'Customer Profile' : 'ذاتی معلومات'}</h3>
+                        <p className="text-white/40 text-[11px] font-semibold mt-0.5">{lang === 'en' ? 'Provide contact registry details to link database node.' : 'ڈیٹا بیس سے منسلک کرنے کے لیے رابطے کی معلومات درج کریں۔'}</p>
+                      </div>
+
+                      <div className="grid gap-5">
+                        <InputField
+                          label={lang === 'en' ? "Full Name *" : "مکمل نام *"}
+                          placeholder="Muhammad Ali"
+                          value={form.customerName}
+                          onChange={(e) => updateForm('customerName', e.target.value)}
+                          error={localErrors.customerName || externalErrors.customerName}
+                          icon={User}
+                        />
+
+                        <InputField
+                          label={lang === 'en' ? "Phone Number *" : "فون نمبر *"}
+                          placeholder="03001234567"
+                          value={form.phone}
+                          onChange={(e) => updateForm('phone', e.target.value)}
+                          error={localErrors.phone || externalErrors.phone}
+                          inputMode="tel"
+                          icon={Phone}
+                        />
+
+                        <InputField
+                          label={lang === 'en' ? "Email Address (Optional)" : "ای میل ایڈریس (اختیاری)"}
+                          placeholder="name@domain.com"
+                          value={form.email}
+                          onChange={(e) => updateForm('email', e.target.value)}
+                          error={localErrors.email}
+                          inputMode="email"
+                          icon={Mail}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 3: SHIPPING ADDRESS */}
+                  {currentStep === 3 && (
+                    <div className="space-y-6 w-full">
+                      <div className="border-b border-white/5 pb-3">
+                        <h3 className="text-base font-black tracking-tight text-[#8AD65A] uppercase">{lang === 'en' ? 'Shipping Destination' : 'ڈیلیوری کا پتہ'}</h3>
+                        <p className="text-white/40 text-[11px] font-semibold mt-0.5">{lang === 'en' ? 'Specify geographic delivery details.' : 'ڈیلیوری کے لیے جغرافیائی تفصیلات درج کریں۔'}</p>
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-5">
+                        <InputField
+                          label={lang === 'en' ? "City *" : "شہر *"}
+                          placeholder="Haroonabad"
+                          value={form.city}
+                          onChange={(e) => updateForm('city', e.target.value)}
+                          error={localErrors.city || externalErrors.city}
+                          icon={MapPin}
+                        />
+
+                        <InputField
+                          label={lang === 'en' ? "Province *" : "صوبہ *"}
+                          placeholder="Punjab"
+                          value={form.province}
+                          onChange={(e) => updateForm('province', e.target.value)}
+                          error={localErrors.province || externalErrors.province}
+                          icon={MapPin}
+                        />
+                      </div>
+
+                      <div className="grid gap-5">
+                        <InputField
+                          label={lang === 'en' ? "Postal Code (Optional)" : "پوسٹل کوڈ (اختیاری)"}
+                          placeholder="62300"
+                          value={form.postalCode}
+                          onChange={(e) => updateForm('postalCode', e.target.value)}
+                        />
+
+                        {/* Complete address textarea box */}
+                        <div className="space-y-2">
+                          <label className="block text-white/50 text-[10px] font-black uppercase tracking-widest">
+                            {lang === 'en' ? 'Complete Street Address *' : 'مکمل پتہ *'}
+                          </label>
+                          <textarea
+                            rows={3}
+                            placeholder={lang === 'en' ? "House No, Street, Mohalla, Nearby Landmark..." : "مکان نمبر، گلی، محلہ، نزدیکی نشان..."}
+                            value={form.address}
+                            onChange={(e) => updateForm('address', e.target.value)}
+                            className={`
+                              w-full px-4 py-3.5 rounded-2xl text-sm text-white bg-white/[0.02] border outline-none resize-none
+                              placeholder:text-white/20 focus:bg-white/[0.04] transition-all duration-300
+                              ${(localErrors.address || externalErrors.address) ? 'border-red-500/50 bg-red-500/5 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 'border-white/10 focus:border-[#76C945] focus:shadow-[0_0_15px_rgba(118,201,69,0.15)]'}
+                            `}
+                          />
+                          {(localErrors.address || externalErrors.address) && (
+                            <p className="text-red-400 text-[10px] font-semibold mt-1 ml-1">{localErrors.address || externalErrors.address}</p>
+                          )}
+                        </div>
+
+                        {/* Special Location Notes */}
+                        <div className="space-y-2">
+                          <label className="block text-white/50 text-[10px] font-black uppercase tracking-widest">
+                            {lang === 'en' ? 'Special Instructions / Location Notes (Optional)' : 'خصوصی ہدایات (اختیاری)'}
+                          </label>
+                          <textarea
+                            rows={2}
+                            placeholder={lang === 'en' ? "Deliver after 4 PM, call before arrival, etc." : "شام 4 بجے کے بعد ڈیلیور کریں، آمد سے پہلے کال کریں، وغیرہ..."}
+                            value={form.specialInstructions || ''}
+                            onChange={(e) => updateForm('specialInstructions', e.target.value)}
+                            className="w-full px-4 py-3.5 rounded-2xl text-sm text-white bg-white/[0.02] border border-white/10 outline-none resize-none placeholder:text-white/20 focus:border-[#76C945] focus:bg-white/[0.04] transition-all duration-300"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 4: DELIVERY & PAYMENT GATEWAY */}
+                  {currentStep === 4 && (
+                    <div className="space-y-6 w-full">
+                      <div className="border-b border-white/5 pb-3">
+                        <h3 className="text-base font-black tracking-tight text-[#8AD65A] uppercase">{lang === 'en' ? 'Delivery & Payment' : 'ڈیلیوری اور ادائیگی'}</h3>
+                        <p className="text-white/40 text-[11px] font-semibold mt-0.5">{lang === 'en' ? 'Select payment node and finalize shipping logistics charges.' : 'ادائیگی کا طریقہ منتخب کریں اور ڈیلیوری چارجز کی تصدیق کریں۔'}</p>
+                      </div>
+
+                      {/* Billing Breakdown */}
+                      <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-5 space-y-3 font-mono text-xs backdrop-blur-md">
+                        <div className="flex justify-between text-white/50">
+                          <span>{lang === 'en' ? 'Subtotal:' : 'مصنوعات کی قیمت:'}</span>
+                          <span>PKR {itemsSubtotal.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-white/50">
+                          <span>{lang === 'en' ? 'Delivery Charges:' : 'ڈیلیوری چارجز:'}</span>
+                          <span className="font-bold text-[#8AD65A]">{deliveryCharges === 0 ? 'FREE' : `PKR ${deliveryCharges}`}</span>
+                        </div>
+                        <div className="flex justify-between text-[#8AD65A] font-black text-sm pt-2.5 border-t border-white/5">
+                          <span>{lang === 'en' ? 'Grand Total:' : 'کل قیمت:'}</span>
+                          <span>PKR {grandTotal.toLocaleString()}</span>
+                        </div>
+                      </div>
+
+                      {/* Payment Method Selector Grid */}
+                      <div className="space-y-3">
+                        <h4 className="text-white/50 text-[10px] font-black uppercase tracking-widest">
+                          {lang === 'en' ? 'Select Payment Mode' : 'ادائیگی کا طریقہ منتخب کریں'}
+                        </h4>
+
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
+                          {[
+                            { id: 'COD', name: 'Cash On Delivery', desc: 'Pay at your doorstep', icon: Truck },
+                            { id: 'Stripe', name: 'Credit Card', desc: 'Secure via Stripe', icon: CreditCard },
+                            { id: 'JazzCash', name: 'JazzCash Wallet', desc: 'Verify transaction ref', icon: ShieldCheck },
+                            { id: 'Easypaisa', name: 'Easypaisa Wallet', desc: 'Verify transaction ref', icon: ShieldCheck },
+                            { id: 'Bank', name: 'Meezan Bank Ltd', desc: 'Direct bank deposit', icon: Landmark },
+                          ].map((method) => {
+                            const Icon = method.icon;
+                            const isSelected = form.paymentMethod === method.id;
+                            return (
+                              <button
+                                key={method.id}
+                                type="button"
+                                onClick={() => {
+                                  updateForm('paymentMethod', method.id);
+                                  setReceiptSuccess(false);
+                                  setReceiptError(null);
+                                }}
+                                className={`
+                                  p-4 rounded-2xl border text-left flex flex-col gap-2.5 transition-all duration-300 select-none
+                                  ${isSelected
+                                    ? 'bg-[#2d6a2d]/15 border-[#5cb85c] text-white shadow-[0_0_15px_rgba(92,184,92,0.15)] scale-[1.02]'
+                                    : 'bg-white/[0.02] border-white/10 text-white/50 hover:bg-white/5'
+                                  }
+                                `}
+                              >
+                                <div className={`p-2 rounded-xl w-fit ${isSelected ? 'bg-[#5cb85c]/25 text-[#8AD65A]' : 'bg-white/5 text-white/40'}`}>
+                                  <Icon size={16} />
+                                </div>
+                                <div>
+                                  <span className="font-extrabold text-xs block text-white">{method.name}</span>
+                                  <span className="text-[9px] text-white/35 block mt-0.5">{method.desc}</span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Display validation warning for optional payments */}
+                      {localErrors.payment && (
                         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-2 text-red-400">
                           <AlertCircle size={14} className="shrink-0 mt-0.5" />
-                          <span className="text-[10px] font-semibold leading-relaxed">{receiptError}</span>
+                          <span className="text-[10px] font-semibold">{localErrors.payment}</span>
                         </div>
                       )}
 
+                      {/* Payment Interactive Card Visual */}
+                      {(form.paymentMethod === 'Stripe' || form.paymentMethod === 'JazzCash' || form.paymentMethod === 'Easypaisa') && (
+                        <GlassCreditCard
+                          paymentMethod={form.paymentMethod}
+                          customerName={form.customerName}
+                          phone={form.phone}
+                          amount={grandTotal}
+                        />
+                      )}
+
+                      {/* Stripe Secure Simulation */}
+                      {form.paymentMethod === 'Stripe' && !receiptSuccess && (
+                        <button
+                          type="button"
+                          onClick={startStripeFlow}
+                          disabled={stripeSimulating}
+                          className="w-full py-4.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs uppercase tracking-widest border border-indigo-400/20 shadow-lg transition-colors flex items-center justify-center gap-2"
+                        >
+                          <CreditCard size={14} />
+                          <span>{stripeSimulating ? 'Processing Stripe Gateway...' : 'Initialize Secure Card Payment'}</span>
+                        </button>
+                      )}
+
+                      {/* JazzCash / Easypaisa Workflow */}
+                      {(form.paymentMethod === 'JazzCash' || form.paymentMethod === 'Easypaisa') && (
+                        <div className="p-5 bg-white/[0.02] border border-white/5 rounded-3xl space-y-4 font-mono text-xs">
+                          <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                            <h5 className="font-extrabold text-[10px] text-[#8AD65A] uppercase tracking-wider">
+                              {form.paymentMethod} Account Specs
+                            </h5>
+                            <div className="flex items-center gap-1 text-[10px] font-bold text-amber-400 bg-amber-400/5 border border-amber-400/20 px-2 py-0.5 rounded-lg">
+                              <Clock size={10} className="animate-spin" style={{ animationDuration: '6s' }} />
+                              <span>{formatTime(timeLeft)}</span>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2.5">
+                            <div className="flex justify-between items-center bg-white/[0.01] border border-white/5 p-2.5 rounded-xl">
+                              <div>
+                                <span className="text-[8px] text-white/30 block uppercase font-bold">Account Title</span>
+                                <span className="text-white font-bold">Vital Agro</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => copyToClipboard('Vital Agro', 'title')}
+                                className="p-1.5 bg-white/5 rounded-lg border border-white/10 text-white/50 hover:text-white"
+                              >
+                                {copiedTitle ? <Check size={12} className="text-[#8AD65A]" /> : <Copy size={12} />}
+                              </button>
+                            </div>
+
+                            <div className="flex justify-between items-center bg-white/[0.01] border border-white/5 p-2.5 rounded-xl">
+                              <div>
+                                <span className="text-[8px] text-white/30 block uppercase font-bold">Wallet Number</span>
+                                <span className="text-white font-black">{form.paymentMethod === 'JazzCash' ? '0300-1234567' : '0301-1837160'}</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => copyToClipboard(form.paymentMethod === 'JazzCash' ? '03001234567' : '03011837160', 'number')}
+                                className="p-1.5 bg-white/5 rounded-lg border border-white/10 text-white/50 hover:text-white"
+                              >
+                                {copiedNumber ? <Check size={12} className="text-[#8AD65A]" /> : <Copy size={12} />}
+                              </button>
+                            </div>
+
+                            {/* SCAN QR SECTION */}
+                            <div className="flex flex-col items-center justify-center p-3 border border-white/5 bg-white/[0.01] rounded-2xl gap-2 mt-2">
+                              <span className="text-[8px] text-white/40 uppercase tracking-widest font-black">Scan Wallet QR Code</span>
+                              <svg className="w-24 h-24 text-[#8AD65A]" viewBox="0 0 100 100" fill="currentColor">
+                                <rect x="10" y="10" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="6" />
+                                <rect x="15" y="15" width="15" height="15" fill="currentColor" />
+                                <rect x="65" y="10" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="6" />
+                                <rect x="70" y="15" width="15" height="15" fill="currentColor" />
+                                <rect x="10" y="65" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="6" />
+                                <rect x="15" y="70" width="15" height="15" fill="currentColor" />
+                                <rect x="45" y="20" width="10" height="10" fill="currentColor" />
+                                <rect x="45" y="45" width="10" height="10" fill="currentColor" />
+                                <rect x="20" y="45" width="10" height="10" fill="currentColor" />
+                                <rect x="75" y="45" width="10" height="10" fill="currentColor" />
+                                <rect x="65" y="75" width="15" height="10" fill="currentColor" />
+                                <rect x="45" y="70" width="10" height="20" fill="currentColor" />
+                              </svg>
+                            </div>
+
+                            {/* UPLOAD SCREENSHOT */}
+                            <div className="space-y-3 pt-2">
+                              <span className="text-[9px] font-black text-white/40 uppercase tracking-widest block">
+                                Upload Receipt Screenshot
+                              </span>
+
+                              {form.receiptBase64 ? (
+                                <div className="relative rounded-2xl border border-white/10 overflow-hidden aspect-video bg-black/40 flex items-center justify-center">
+                                  <img src={form.receiptBase64} alt="Receipt Preview" className="w-full h-full object-contain" />
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      updateForm('receiptBase64', '');
+                                      updateForm('paymentRefId', '');
+                                      updateForm('paymentAmount', 0);
+                                      setReceiptSuccess(false);
+                                      setReceiptError(null);
+                                    }}
+                                    className="absolute top-2.5 right-2.5 p-2 bg-black/70 rounded-full text-white/85 hover:text-white border border-white/10"
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                </div>
+                              ) : (
+                                <label className="border-2 border-dashed border-white/10 hover:border-[#76C945]/40 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer bg-white/[0.01] hover:bg-white/[0.03] transition-all">
+                                  <Image size={24} className="text-white/40 mb-2" />
+                                  <span className="text-xs font-bold text-white/80 mb-0.5">
+                                    {isVerifyingReceipt ? 'AI Verifying Receipt...' : 'Select Screenshot Receipt'}
+                                  </span>
+                                  <span className="text-[10px] text-white/20">PNG, JPG up to 10MB</span>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleReceiptUpload}
+                                    disabled={isVerifyingReceipt}
+                                    className="hidden"
+                                  />
+                                </label>
+                              )}
+
+                              {isVerifyingReceipt && (
+                                <div className="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-2">
+                                  <div className="flex items-center gap-2 text-[#8AD65A]">
+                                    <span className="w-4 h-4 border-2 border-current border-t-transparent animate-spin rounded-full shrink-0" />
+                                    <span className="text-xs font-bold tracking-wide uppercase">AI Verification Running</span>
+                                  </div>
+                                  
+                                  <div className="space-y-1 mt-2 font-mono text-[9px] text-white/50">
+                                    {ocrSteps.map((step, idx) => {
+                                      const isActive = idx === ocrStepIndex;
+                                      const isCompleted = idx < ocrStepIndex;
+                                      return (
+                                        <div key={idx} className="flex items-center gap-2">
+                                          <span className={`w-1 h-1 rounded-full ${isCompleted ? 'bg-emerald-500' : isActive ? 'bg-[#8AD65A] animate-ping' : 'bg-white/10'}`} />
+                                          <span className={isCompleted ? 'text-emerald-400 font-semibold' : isActive ? 'text-white font-bold' : 'text-white/30'}>
+                                            {step} {isCompleted && '✓'}
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+
+                              {receiptError && (
+                                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-2 text-red-400">
+                                  <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                                  <span className="text-[10px] font-semibold">{receiptError}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Bank Meezan Details */}
+                      {form.paymentMethod === 'Bank' && (
+                        <div className="p-5 bg-white/[0.02] border border-white/5 rounded-3xl space-y-3 text-xs leading-relaxed font-mono backdrop-blur-md">
+                          <h5 className="font-extrabold text-[10px] text-[#8AD65A] border-b border-white/5 pb-2 uppercase">
+                            Meezan Bank Details
+                          </h5>
+                          <p><span className="text-white/40">Bank Title:</span> Meezan Bank Ltd</p>
+                          <p><span className="text-white/40">Account Name:</span> Vital Agro Chemical Industries</p>
+                          <p><span className="text-white/40">IBAN Number:</span> PK53MEZN0012345678901234</p>
+                        </div>
+                      )}
+
+                      {/* COD default confirmation */}
+                      {form.paymentMethod === 'COD' && (
+                        <div className="p-4.5 bg-emerald-500/5 border border-emerald-500/15 rounded-3xl text-xs text-white/70 leading-relaxed flex items-start gap-2.5">
+                          <Truck size={18} className="text-[#8AD65A] shrink-0 mt-0.5" />
+                          <div>
+                            <span className="text-[#8AD65A] font-extrabold block mb-0.5">{lang === 'en' ? 'Cash on Delivery Verified' : 'کیش آن ڈیلیوری کی تصدیق'}</span>
+                            <p className="text-white/55">{lang === 'en' ? 'No advance fees required. Simply click Continue and complete the order steps.' : 'کوئی ایڈوانس فیس درکار نہیں ہے۔ بس کنٹینیو پر کلک کریں اور آرڈر کے مراحل مکمل کریں۔'}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Success Payment Scan message */}
                       {receiptSuccess && (
-                        <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl space-y-3">
-                          <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest block">
-                            ✓ Gemini AI Vision Verified
-                          </span>
-                          <div className="grid grid-cols-2 gap-3 text-xs">
-                            <div>
-                              <span className="text-white/40 block text-[9px] uppercase font-bold">Transaction Ref ID</span>
-                              <input
-                                type="text"
-                                value={form.paymentRefId}
-                                onChange={(e) => updateForm('paymentRefId', e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs font-mono text-white mt-1"
-                              />
-                            </div>
-                            <div>
-                              <span className="text-white/40 block text-[9px] uppercase font-bold">Verified Amount</span>
-                              <input
-                                type="number"
-                                value={form.paymentAmount}
-                                onChange={(e) => updateForm('paymentAmount', Number(e.target.value))}
-                                className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs font-mono text-white mt-1"
-                              />
-                            </div>
+                        <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-start gap-2.5 text-emerald-400">
+                          <ShieldCheck size={18} className="shrink-0 mt-0.5" />
+                          <div>
+                            <span className="text-xs font-black uppercase block">{lang === 'en' ? 'Payment Approved' : 'ادائیگی کی تصدیق ہو گئی'}</span>
+                            <p className="text-[10px] text-white/50 font-mono mt-0.5">{lang === 'en' ? 'Gateway tokens registered successfully.' : 'گیٹ وے ٹوکن رجسٹر ہو گیا ہے۔'}</p>
                           </div>
                         </div>
                       )}
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Bank / Manual Instructions */}
-                {form.paymentMethod === 'Bank' && (
-                  <div className="p-5 bg-white/[0.02] border border-white/5 rounded-3xl space-y-3 text-xs leading-relaxed font-mono">
-                    <h5 className="font-extrabold text-xs text-[#8AD65A] border-b border-white/5 pb-2">
-                      Meezan Bank Account
-                    </h5>
-                    <p><span className="text-white/40">Bank Title:</span> Meezan Bank Ltd</p>
-                    <p><span className="text-white/40">Account Name:</span> Vital Agro Chemical Industries</p>
-                    <p><span className="text-white/40">IBAN Number:</span> PK53MEZN0012345678901234</p>
-                    <p className="text-[10px] text-white/30 pt-1">
-                      Our finance team will cross-reference the bank deposits once your order goes to WhatsApp confirmation.
-                    </p>
-                  </div>
-                )}
+                  {/* STEP 5: REVIEW ORDER */}
+                  {currentStep === 5 && (
+                    <div className="space-y-6 w-full">
+                      <div className="border-b border-white/5 pb-3 flex justify-between items-center">
+                        <div>
+                          <h3 className="text-base font-black tracking-tight text-[#8AD65A] uppercase">{lang === 'en' ? 'Review Ledger' : 'آرڈر چیک کریں'}</h3>
+                          <p className="text-white/40 text-[11px] font-semibold mt-0.5">{lang === 'en' ? 'Double check all metrics before dispatch registration.' : 'آرڈر روانہ کرنے سے پہلے تمام معلومات کی تصدیق کریں۔'}</p>
+                        </div>
+                      </div>
 
-                {/* COD note details */}
-                {form.paymentMethod === 'COD' && (
-                  <div className="p-4 bg-emerald-500/5 border border-emerald-500/15 rounded-3xl text-xs text-white/60 leading-relaxed">
-                    <span className="text-[#8AD65A] font-bold block mb-1">Cash on Delivery (COD)</span>
-                    No advance payments required. Simply verify your order metrics and click Complete Order to dispatch details.
-                  </div>
-                )}
+                      <div className="grid gap-5">
+                        {/* 1. Item Details Card */}
+                        <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-5 space-y-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-black text-[#8AD65A] uppercase tracking-widest">{lang === 'en' ? 'Selected Products' : 'مصنوعات'}</span>
+                            <button
+                              type="button"
+                              onClick={() => { setDirection(-1); setCurrentStep(1); }}
+                              className="text-[#8AD65A] hover:text-[#76C945] text-[10px] uppercase font-black tracking-wider flex items-center gap-1 transition-colors select-none"
+                            >
+                              <Edit size={10} />
+                              <span>{lang === 'en' ? 'Edit' : 'تبدیل کریں'}</span>
+                            </button>
+                          </div>
+                          
+                          <div className="flex gap-4 items-center">
+                            <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 p-1 flex items-center justify-center shrink-0">
+                              <img src={imageSrc} alt={localizedName} className="w-full h-full object-contain" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h5 className="text-white font-extrabold text-sm truncate">{localizedName}</h5>
+                              <p className="text-white/40 text-[10px] font-mono mt-0.5">
+                                {form.selectedSize} × {form.quantity} units
+                              </p>
+                            </div>
+                            <div className="text-right shrink-0 font-mono text-xs font-black text-[#8AD65A]">
+                              PKR {itemsSubtotal.toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
 
-                {/* 5. Complete Button Action Container */}
-                <div className="pt-4 space-y-4">
-                  <OrderConfirmButton
-                    disabled={isSubmitting || stripeSimulating || (form.paymentMethod !== 'COD' && form.paymentMethod !== 'Stripe' && !receiptSuccess)}
-                    onValidate={validate}
-                    onConfirm={async () => {
-                      setIsSubmitting(true);
-                      
-                      if (form.paymentMethod === 'Stripe') {
-                        await startStripeFlow();
-                      }
+                        {/* 2. Customer Credentials card */}
+                        <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-5 space-y-3">
+                          <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                            <span className="text-[10px] font-black text-[#8AD65A] uppercase tracking-widest">{lang === 'en' ? 'Customer Profile' : 'ذاتی معلومات'}</span>
+                            <button
+                              type="button"
+                              onClick={() => { setDirection(-1); setCurrentStep(2); }}
+                              className="text-[#8AD65A] hover:text-[#76C945] text-[10px] uppercase font-black tracking-wider flex items-center gap-1 transition-colors select-none"
+                            >
+                              <Edit size={10} />
+                              <span>{lang === 'en' ? 'Edit' : 'تبدیل کریں'}</span>
+                            </button>
+                          </div>
+                          <div className="text-xs space-y-1.5">
+                            <p className="text-white/60"><span className="text-white/30 mr-2 font-mono">NAME:</span> {form.customerName}</p>
+                            <p className="text-white/60"><span className="text-white/30 mr-2 font-mono">PHONE:</span> {form.phone}</p>
+                            {form.email && <p className="text-white/60"><span className="text-white/30 mr-2 font-mono">EMAIL:</span> {form.email}</p>}
+                          </div>
+                        </div>
 
-                      try {
-                        const newId = await submitOrder();
-                        if (newId) {
-                          setCreatedOrderId(newId);
-                          return newId;
-                        }
-                      } catch (e) {
-                        console.error("Firebase submit error:", e);
-                      }
-                      return null;
-                    }}
-                    onComplete={(orderId) => {
-                      resetForm();
-                      setIsSubmitting(false);
-                      setCreatedOrderId(null);
-                      const targetId = orderId || createdOrderId;
-                      if (targetId) {
-                        navigate(`/order-success/${targetId}`);
-                      }
-                    }}
-                  />
-                  <p className="text-center text-white/20 text-[10px] uppercase tracking-wider">
-                    {lang === 'en' ? 'Click complete to register order details' : 'آرڈر کی تفصیلات واٹس ایپ پر منتقل کرنے کے لیے کلک کریں'}
-                  </p>
-                </div>
+                        {/* 3. Address card */}
+                        <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-5 space-y-3">
+                          <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                            <span className="text-[10px] font-black text-[#8AD65A] uppercase tracking-widest">{lang === 'en' ? 'Shipping Destination' : 'ڈیلیوری ایڈریس'}</span>
+                            <button
+                              type="button"
+                              onClick={() => { setDirection(-1); setCurrentStep(3); }}
+                              className="text-[#8AD65A] hover:text-[#76C945] text-[10px] uppercase font-black tracking-wider flex items-center gap-1 transition-colors select-none"
+                            >
+                              <Edit size={10} />
+                              <span>{lang === 'en' ? 'Edit' : 'تبدیل کریں'}</span>
+                            </button>
+                          </div>
+                          <div className="text-xs space-y-1.5">
+                            <p className="text-white/60"><span className="text-white/30 mr-2 font-mono">LOCATION:</span> {form.address}, {form.city}, {form.province} {form.postalCode ? `(${form.postalCode})` : ''}</p>
+                            {form.specialInstructions && <p className="text-white/60"><span className="text-white/30 mr-2 font-mono">NOTES:</span> {form.specialInstructions}</p>}
+                          </div>
+                        </div>
 
-              </div>
+                        {/* 4. Payment method Details card */}
+                        <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-5 space-y-3">
+                          <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                            <span className="text-[10px] font-black text-[#8AD65A] uppercase tracking-widest">{lang === 'en' ? 'Payment Details' : 'ادائیگی کی تفصیلات'}</span>
+                            <button
+                              type="button"
+                              onClick={() => { setDirection(-1); setCurrentStep(4); }}
+                              className="text-[#8AD65A] hover:text-[#76C945] text-[10px] uppercase font-black tracking-wider flex items-center gap-1 transition-colors select-none"
+                            >
+                              <Edit size={10} />
+                              <span>{lang === 'en' ? 'Edit' : 'تبدیل کریں'}</span>
+                            </button>
+                          </div>
+                          <div className="text-xs flex justify-between items-center">
+                            <span className="text-white/60 font-black uppercase font-mono">{form.paymentMethod === 'COD' ? 'Cash on Delivery (COD)' : form.paymentMethod}</span>
+                            <span className="text-[#8AD65A] font-black font-mono">PKR {grandTotal.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
+                  {/* STEP 6: PLACE ORDER */}
+                  {currentStep === 6 && (
+                    <div className="space-y-6 w-full flex-1 flex flex-col justify-center text-center">
+                      <div className="relative w-20 h-20 mx-auto bg-[#76C945]/10 rounded-full flex items-center justify-center border border-[#76C945]/30">
+                        <motion.div
+                          className="absolute inset-0 rounded-full border border-dashed border-[#76C945]/40"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
+                        />
+                        <Package size={32} className="text-[#8AD65A]" />
+                      </div>
+
+                      <div className="space-y-2 max-w-sm mx-auto">
+                        <h3 className="text-lg font-black tracking-tight text-white uppercase">{lang === 'en' ? 'Final Confirmation' : 'روانگی کی تصدیق'}</h3>
+                        <p className="text-white/50 text-xs leading-relaxed">
+                          {lang === 'en' 
+                            ? 'Ready to register order details to the database and generate receipt ledger?' 
+                            : 'کیا آپ ڈیٹا بیس میں آرڈر کی معلومات درج کرنے کے لیے تیار ہیں؟'}
+                        </p>
+                      </div>
+
+                      {/* Display final price highlight summary block */}
+                      <div className="bg-white/[0.01] border border-white/5 rounded-3xl p-5 max-w-sm mx-auto w-full font-mono space-y-2 text-xs text-left">
+                        <div className="flex justify-between text-white/50">
+                          <span>{lang === 'en' ? 'Grand Total:' : 'کل لاگت:'}</span>
+                          <span className="text-[#8AD65A] font-black text-sm">PKR {grandTotal.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-white/40">
+                          <span>{lang === 'en' ? 'Payment Method:' : 'ادائیگی کا طریقہ:'}</span>
+                          <span className="font-bold uppercase">{form.paymentMethod}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                </motion.div>
+              </AnimatePresence>
             </div>
+
+            {/* Bottom Wizard Navigation Controls */}
+            {successPhase === 'idle' && (
+              <div className="border-t border-white/5 bg-black/40 backdrop-blur-md px-6 py-4.5 flex items-center justify-between sticky bottom-0 z-20">
+                <button
+                  type="button"
+                  onClick={currentStep === 1 ? () => setIsOpen(false) : handlePrevStep}
+                  className="px-5 py-3 rounded-xl border border-white/10 text-white/70 hover:text-white bg-white/5 hover:bg-white/10 transition-all font-bold text-xs uppercase tracking-wider select-none"
+                >
+                  {currentStep === 1 ? (lang === 'en' ? 'Cancel' : 'کینسل') : (lang === 'en' ? 'Back' : 'واپس')}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={currentStep === 6 ? handlePlaceOrderTimeline : handleNextStep}
+                  disabled={isSubmitting}
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#2d6a2d] to-[#3d8c3d] text-white font-extrabold text-xs uppercase tracking-widest border border-[rgba(92,184,92,0.4)] shadow-[0_0_20px_rgba(92,184,92,0.2)] hover:shadow-[0_0_35px_rgba(92,184,92,0.4)] transition-all flex items-center gap-1.5 select-none"
+                >
+                  <span>{currentStep === 6 ? (lang === 'en' ? 'Place Order' : 'آرڈر کریں') : (lang === 'en' ? 'Continue' : 'جاری رکھیں')}</span>
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            )}
+
+            {/* Cinematic Success Portal Animation Overlay */}
+            {successPhase !== 'idle' && (
+              <motion.div 
+                className="absolute inset-0 bg-[#050a06]/98 z-50 flex flex-col items-center justify-center p-6 text-center select-none overflow-y-auto"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4 }}
+              >
+                <div className="max-w-md w-full space-y-8 py-10 px-4">
+                  {/* Animation stage nodes */}
+                  <div className="relative h-60 w-full flex items-center justify-center overflow-visible">
+                    
+                    {/* Phase 1: Packing */}
+                    {successPhase === 'packing' && (
+                      <motion.div
+                        key="packing"
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.8, opacity: 0 }}
+                        className="flex flex-col items-center gap-4"
+                      >
+                        <div className="relative w-28 h-28 flex items-center justify-center">
+                          <motion.div
+                            className="absolute inset-0 border border-[#76C945]/30 rounded-3xl bg-[#76C945]/5"
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+                          />
+                          <motion.svg className="w-16 h-16 text-[#8AD65A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <motion.rect x="3" y="9" width="18" height="12" rx="2" strokeWidth="2.5" />
+                            <motion.path 
+                              d="M3 9 L12 15 L21 9" 
+                              initial={{ pathLength: 0 }}
+                              animate={{ pathLength: 1 }}
+                              transition={{ duration: 1.5, ease: "easeInOut" }}
+                            />
+                            <motion.path 
+                              d="M12 9 L12 21" 
+                              initial={{ scaleY: 0 }}
+                              animate={{ scaleY: 1 }}
+                              transition={{ duration: 1.2, delay: 0.5 }}
+                            />
+                          </motion.svg>
+                        </div>
+                        <h3 className="text-lg font-black tracking-widest text-[#8AD65A] uppercase font-mono">
+                          {lang === 'en' ? 'Securing Item Package...' : 'پیکیج تیار کیا جا رہا ہے...'}
+                        </h3>
+                        <p className="text-white/40 text-xs font-mono">
+                          {lang === 'en' ? 'Generating secure package barcode labels...' : 'سیکیورٹی بارکوڈ لیبل تیار کیے جا رہے ہیں...'}
+                        </p>
+                      </motion.div>
+                    )}
+
+                    {/* Phase 2: Shipping */}
+                    {successPhase === 'shipping' && (
+                      <motion.div
+                        key="shipping"
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.8, opacity: 0 }}
+                        className="w-full flex flex-col items-center gap-6"
+                      >
+                        <div className="w-full h-32 relative flex items-center justify-center overflow-hidden border border-white/5 rounded-3xl bg-white/[0.01]">
+                          <div className="absolute bottom-6 left-0 right-0 flex justify-between px-6 opacity-30">
+                            {Array.from({ length: 8 }).map((_, i) => (
+                              <motion.div
+                                key={i}
+                                className="w-3 h-0.5 bg-[#8AD65A] shrink-0"
+                                animate={{ x: [0, -40] }}
+                                transition={{ duration: 0.5, repeat: Infinity, ease: 'linear' }}
+                              />
+                            ))}
+                          </div>
+                          <motion.div 
+                            className="w-20 h-16 text-[#8AD65A] z-10"
+                            animate={{ y: [0, -2, 0] }}
+                            transition={{ duration: 0.2, repeat: Infinity }}
+                          >
+                            <Truck size={48} className="mx-auto" />
+                          </motion.div>
+                        </div>
+                        
+                        <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden relative">
+                          <motion.div 
+                            className="h-full bg-gradient-to-r from-[#76C945] to-[#8AD65A] shadow-[0_0_10px_#8AD65A]"
+                            initial={{ width: '0%' }}
+                            animate={{ width: `${successProgress}%` }}
+                            transition={{ duration: 0.1, ease: 'linear' }}
+                          />
+                        </div>
+                        
+                        <h3 className="text-lg font-black tracking-widest text-[#8AD65A] uppercase font-mono">
+                          {lang === 'en' ? 'Dispatching Delivery Logistics...' : 'ڈیلیوری روانہ کی جا رہی ہے...'}
+                        </h3>
+                        <p className="text-white/40 text-xs font-mono">
+                          {lang === 'en' ? 'Connecting to warehousing delivery grid...' : 'ڈیلیوری گرڈ سے رابطہ قائم کیا جا رہا ہے...'}
+                        </p>
+                      </motion.div>
+                    )}
+
+                    {/* Phase 3: Delivered */}
+                    {successPhase === 'delivered' && (
+                      <motion.div
+                        key="delivered"
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.8, opacity: 0 }}
+                        className="flex flex-col items-center gap-4"
+                      >
+                        <div className="relative w-28 h-28 flex items-center justify-center">
+                          <motion.div
+                            className="absolute inset-0 bg-emerald-500/10 rounded-full border border-emerald-500/20"
+                            animate={{ scale: [1, 1.15, 1] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          />
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: 'spring', stiffness: 200, damping: 10 }}
+                          >
+                            <MapPin size={48} className="text-[#8AD65A] stroke-[2.5]" />
+                          </motion.div>
+                        </div>
+                        <h3 className="text-lg font-black tracking-widest text-[#8AD65A] uppercase font-mono">
+                          {lang === 'en' ? 'Package Arrived at Gate...' : 'پیکیج تیار ہے...'}
+                        </h3>
+                        <p className="text-white/40 text-xs font-mono">
+                          {lang === 'en' ? 'Syncing order transaction logs to client portal...' : 'آرڈر کی تفصیلات پورٹل پر اپ ڈیٹ ہو رہی ہیں...'}
+                        </p>
+                      </motion.div>
+                    )}
+
+                    {/* Phase 4: Confirmed Details */}
+                    {successPhase === 'confirmed' && (
+                      <motion.div
+                        key="confirmed"
+                        initial={{ scale: 0.85, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="w-full flex flex-col items-center gap-6"
+                      >
+                        <div className="relative w-24 h-24 flex items-center justify-center">
+                          <div 
+                            className="absolute inset-0 rounded-full blur-xl opacity-60"
+                            style={{ background: 'rgba(92,184,92,0.45)' }}
+                          />
+                          <motion.div 
+                            className="relative w-20 h-20 rounded-full bg-black border-2 border-[#5cb85c] flex items-center justify-center shadow-[0_0_30px_rgba(92,184,92,0.6)]"
+                            initial={{ rotate: -90 }}
+                            animate={{ rotate: 0 }}
+                            transition={{ type: 'spring', stiffness: 200, damping: 12 }}
+                          >
+                            <Check size={36} className="text-[#8AD65A] stroke-[3.5]" />
+                          </motion.div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <h2 className="text-2xl font-black text-white uppercase tracking-wider drop-shadow-md">
+                            {lang === 'en' ? 'Order Successfully Placed!' : 'آرڈر کامیابی سے درج ہو گیا!'}
+                          </h2>
+                          <p className="text-white/50 text-xs font-semibold leading-relaxed max-w-sm mx-auto">
+                            {lang === 'en' 
+                              ? 'Your order has been logged in our databases and is pending confirmation.' 
+                              : 'آپ کا آرڈر کامیابی سے محفوظ کر لیا گیا ہے۔'}
+                          </p>
+                        </div>
+
+                        {/* Generated Order Info */}
+                        <motion.div 
+                          className="w-full p-5 rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-md space-y-3 text-left font-mono"
+                          initial={{ y: 20, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          transition={{ delay: 0.3 }}
+                        >
+                          <div className="flex justify-between border-b border-white/5 pb-2">
+                            <span className="text-white/30 text-[9px] uppercase font-bold tracking-widest">{lang === 'en' ? 'Order Registry ID' : 'آرڈر نمبر'}</span>
+                            <span className="text-[#8AD65A] font-black text-xs tracking-wider">
+                              {createdOrderId ? `VA-O-${createdOrderId.slice(0, 6).toUpperCase()}` : 'VA-O-PENDING'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-xs pt-1">
+                            <span className="text-white/40">{lang === 'en' ? 'Customer' : 'خریدار'}</span>
+                            <span className="text-white font-bold">{form.customerName}</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-white/40">{lang === 'en' ? 'Contact Phone' : 'رابطہ نمبر'}</span>
+                            <span className="text-white font-bold">{form.phone}</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-white/40">{lang === 'en' ? 'Grand Total' : 'کل قیمت'}</span>
+                            <span className="text-[#8AD65A] font-black">PKR {grandTotal.toLocaleString()}</span>
+                          </div>
+                        </motion.div>
+
+                        <motion.button
+                          onClick={() => {
+                            resetForm();
+                            setIsOpen(false);
+                            setSuccessPhase('idle');
+                            setCurrentStep(1);
+                            navigate('/');
+                          }}
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.97 }}
+                          className="w-full py-4.5 rounded-full bg-gradient-to-r from-[#2d6a2d] to-[#3d8c3d] text-white font-black text-sm uppercase tracking-widest border border-white/10 shadow-[0_0_20px_rgba(92,184,92,0.3)] hover:shadow-[0_0_30px_rgba(92,184,92,0.5)] transition-all"
+                        >
+                          {lang === 'en' ? 'Return to Homepage' : 'ہوم پیج پر واپس جائیں'}
+                        </motion.button>
+                      </motion.div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
           </motion.div>
 
           {/* Stripe Simulation Modal Overlay */}
