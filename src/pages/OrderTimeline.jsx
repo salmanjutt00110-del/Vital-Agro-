@@ -9,8 +9,9 @@ import { useLanguage } from '@/lib/LanguageContext';
 import SEOHead from '@/lib/seo/SEOHead';
 
 const TRACKING_STEPS = [
-  { status: 'pending', labelEn: 'Order Placed', labelUr: 'آرڈر موصول ہوا', descEn: 'We have received your order details and are preparing confirmations.', descUr: 'ہمیں آپ کا آرڈر موصول ہو گیا ہے اور ہم اس کی تصدیق کر رہے ہیں۔' },
-  { status: 'confirmed', labelEn: 'Payment Verified / Confirmed', labelUr: 'ادائیگی کی تصدیق / تصدیق شدہ', descEn: 'Your payment or COD layout has been approved and confirmed by head office.', descUr: 'آپ کی ادائیگی یا سی او ڈی کی ہیڈ آفس سے تصدیق کر دی گئی ہے۔' },
+  { status: 'pending', labelEn: 'Order Registered', labelUr: 'آرڈر رجسٹرڈ ہوا', descEn: 'Order recorded. Awaiting payment processing.', descUr: 'آرڈر درج کر لیا گیا ہے۔ ادائیگی کا عمل شروع ہونے کا انتظار ہے۔' },
+  { status: 'payment_verified', labelEn: 'AI Payment Verified', labelUr: 'اے آئی ادائیگی کی تصدیق', descEn: 'Receipt screenshot read and verified by AI.', descUr: 'رسید کا سکرین شاٹ اے آئی سے تصدیق شدہ ہے۔' },
+  { status: 'confirmed', labelEn: 'Order Confirmed', labelUr: 'آرڈر کنفرمڈ', descEn: 'Warehouse logistics approved the dispatch details.', descUr: 'گودام سے آرڈر کی تیاری شروع کر دی گئی ہے۔' },
   { status: 'dispatched', labelEn: 'Dispatched / In Transit', labelUr: 'روانہ کر دیا گیا', descEn: 'Your package is on the way via courier logistics.', descUr: 'آپ کا آرڈر کوریئر سروس کے ذریعے روانہ کر دیا گیا ہے۔' },
   { status: 'delivered', labelEn: 'Delivered', labelUr: 'پہنچ گیا', descEn: 'The shipment has arrived at your destination address.', descUr: 'آرڈر کامیابی کے ساتھ آپ کے پتے پر پہنچ گیا ہے۔' }
 ];
@@ -72,11 +73,21 @@ export default function OrderTimeline() {
   // Determine current active step index
   const getActiveStepIndex = () => {
     switch (order.status) {
-      case 'pending': return 0;
-      case 'confirmed': return 1;
-      case 'dispatched': return 2;
-      case 'delivered': return 3;
-      default: return 0;
+      case 'pending_payment':
+      case 'pending': 
+        return 0;
+      case 'payment_uploaded':
+      case 'ai_reviewing':
+      case 'payment_verified':
+        return 1;
+      case 'confirmed': 
+        return 2;
+      case 'dispatched': 
+        return 3;
+      case 'delivered': 
+        return 4;
+      default: 
+        return 0;
     }
   };
 

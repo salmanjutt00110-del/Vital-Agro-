@@ -40,11 +40,22 @@ export default function AICropAssistant() {
     setIsLoading(true);
 
     const systemContext = `
-      You are "Vital Agro's Agricultural AI Advisor". 
+      You are "Vital Agro's Agricultural AI Advisor".
       You are a professional agronomist specializing in crop protection, plant nutrition, and progressive farming in Pakistan.
-      You recommend modern, highly effective treatments, citing Vital Agro products (such as Conference Gold systemic insecticide, leaf feeds, growth promoters) where applicable.
-      Provide detailed but concise, practical advice tailored to Pakistani regional agriculture (Punjab, Sindh, KPK).
-      Reply in both Urdu and English clearly.
+      You must answer questions about:
+      - Vital Agro Products (Conference Gold systemic insecticide, Vital Leaf feeds, growth promoters, fungicides, herbicides).
+      - Prices (range from PKR 500 to PKR 5,000 depending on pack size and selection).
+      - Categories (Insecticides, Herbicides, Fungicides, Plant Nutrition, Growth Promoters).
+      - Crops (Cotton, Wheat, Rice, Sugarcane, Maize, Vegetables).
+      - Delivery Time (2-4 business days across Pakistan. Free shipping above 3000 PKR; otherwise 250 PKR).
+      - Order Status (Customers can track orders in real-time at "/track/:orderId" using their document ID, or view invoices).
+      - Payment Methods (Cash on Delivery, Stripe Card Payments, JazzCash, Easypaisa, Meezan Bank Transfer).
+      - Refund Policy (Claims/complaints must be reported to support within 24 hours of delivery).
+      - Company Info (Vital Agro Chemical Industries, located in Haroonabad, Bahawalpur, Punjab, Pakistan).
+      - Contact Info (WhatsApp Support: +92-301-1837160, Email: support@vitalagro.com, hours: 9 AM - 6 PM Monday-Saturday).
+
+      If a user asks about anything else outside of these agricultural and platform topics, or if you cannot answer, politely inform them of your limits and suggest they open WhatsApp Live Support (using phone +92-301-1837160).
+      Keep your response detailed, clear, and bilingual (English + Urdu) to help Pakistani farmers.
       User query: ${query}
     `;
 
@@ -57,8 +68,8 @@ export default function AICropAssistant() {
         { 
           role: 'model', 
           text: lang === 'en'
-            ? "Apologies, I encountered a temporary connection issue. Please verify your internet and try again."
-            : "معذرت، رابطہ قائم کرنے میں عارضی مسئلہ پیش آیا ہے۔ براہ کرم انٹرنیٹ چیک کر کے دوبارہ کوشش کریں۔"
+            ? "Apologies, I encountered a temporary connection issue. Please verify your internet and try again or contact WhatsApp Live Support (+92-301-1837160)."
+            : "معذرت، رابطہ قائم کرنے میں عارضی مسئلہ پیش آیا ہے۔ براہ کرم انٹرنیٹ چیک کریں یا واٹس ایپ سپورٹ (+92-301-1837160) پر رابطہ کریں۔"
         }
       ]);
       console.error(err);
@@ -149,7 +160,22 @@ export default function AICropAssistant() {
                       ? 'bg-gradient-to-r from-[#225c22] to-[#2d7a2d] text-white border border-[#76C945]/20 rounded-tr-none'
                       : 'bg-white/5 text-white/95 border border-white/8 rounded-tl-none'
                   }`}>
-                    {m.text}
+                    <div>{m.text}</div>
+                    {m.role === 'model' && (m.text.includes('+92-301-1837160') || m.text.toLowerCase().includes('whatsapp')) && (
+                      <div className="mt-3">
+                        <a 
+                          href="https://wa.me/923011837160" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#25d366] hover:bg-[#20ba5a] text-[#0A2E1F] font-black text-[10px] rounded-xl transition-all shadow-md shadow-[#25d366]/20"
+                        >
+                          <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24">
+                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.458L0 24zm6.235-1.635l.359.214a9.818 9.818 0 005.007 1.368c5.42 0 9.818-4.398 9.818-9.818 0-2.618-1.018-5.08-2.868-6.932A9.784 9.784 0 0012 2.182c-5.42 0-9.818 4.398-9.818 9.818 0 2.13.554 4.2 1.613 6.002l.234.372-.993 3.629 3.722-.977z"/>
+                          </svg>
+                          <span>WhatsApp Support</span>
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

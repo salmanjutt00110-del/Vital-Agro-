@@ -30,6 +30,9 @@ export const useWhatsAppOrder = (product, defaultSize = null, defaultQuantity = 
     phone: '',
     city: '',
     address: '',
+    province: '',
+    postalCode: '',
+    specialInstructions: '',
     quantity: defaultQuantity || 1,
     selectedSize: getInitialSize(),
     paymentMethod: 'COD',
@@ -37,6 +40,11 @@ export const useWhatsAppOrder = (product, defaultSize = null, defaultQuantity = 
     paymentAmount: 0,
     paymentTimestamp: '',
     receiptBase64: '',
+    paymentSender: '',
+    paymentReceiver: '',
+    paymentReceiverWallet: '',
+    paymentConfidence: 1.0,
+    paymentDuplicate: false,
   });
   const [errors, setErrors] = useState({});
 
@@ -48,6 +56,7 @@ export const useWhatsAppOrder = (product, defaultSize = null, defaultQuantity = 
                                       e.phone = 'Enter valid Pakistani number (0XXXXXXXXXX)';
     if (!form.city.trim())            e.city = 'City is required';
     if (!form.address.trim())         e.address = 'Address is required';
+    if (!form.province.trim())        e.province = 'Province is required';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -93,11 +102,14 @@ export const useWhatsAppOrder = (product, defaultSize = null, defaultQuantity = 
         productImage: imageSrc,
       },
       customer: {
-        name:    form.customerName,
-        phone:   form.phone,
-        city:    form.city,
-        address: form.address,
+        name:       form.customerName,
+        phone:      form.phone,
+        city:       form.city,
+        address:    form.address,
+        province:   form.province,
+        postalCode: form.postalCode,
       },
+      specialInstructions: form.specialInstructions,
       totalAmount:   price * form.quantity,
       paymentMethod: form.paymentMethod || 'COD',
       paymentDetails: form.paymentMethod !== 'COD' ? {
@@ -105,7 +117,12 @@ export const useWhatsAppOrder = (product, defaultSize = null, defaultQuantity = 
         amountPaid: Number(form.paymentAmount) || 0,
         timestamp: form.paymentTimestamp || '',
         receiptBase64: form.receiptBase64 || '',
-        status: 'pending_approval',
+        status: form.paymentMethod === 'Stripe' ? 'approved' : 'pending_approval',
+        senderName: form.paymentSender || '',
+        receiverName: form.paymentReceiver || '',
+        receiverWallet: form.paymentReceiverWallet || '',
+        confidenceScore: form.paymentConfidence || 1.0,
+        duplicateDetected: form.paymentDuplicate || false,
       } : null,
       source:        'website',
       whatsappSent:  true,
@@ -137,6 +154,9 @@ export const useWhatsAppOrder = (product, defaultSize = null, defaultQuantity = 
       phone: '',
       city: '',
       address: '',
+      province: '',
+      postalCode: '',
+      specialInstructions: '',
       quantity: 1,
       paymentMethod: 'COD',
       paymentRefId: '',

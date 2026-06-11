@@ -6,7 +6,7 @@ import { analyzeImageWithGemini } from '../gemini';
  * 
  * @param {string} base64Data - Raw base64 string without headers.
  * @param {string} mimeType - Image mime type.
- * @returns {Promise<{refId: string, amount: number, timestamp: string, paymentMethod: string, sender: string|null}>}
+ * @returns {Promise<{refId: string, amount: number, timestamp: string, paymentMethod: string, sender: string|null, receiver: string|null, receiverWallet: string|null, confidenceScore: number}>}
  */
 export async function verifyReceipt(base64Data, mimeType) {
   const prompt = `
@@ -17,7 +17,10 @@ export async function verifyReceipt(base64Data, mimeType) {
       "amount": "The amount transferred as a number (number)",
       "timestamp": "The transaction timestamp, formatted as YYYY-MM-DD HH:MM if possible (string)",
       "paymentMethod": "Easypaisa, JazzCash, or Bank Transfer (string)",
-      "sender": "Sender name/phone if visible, otherwise null (string or null)"
+      "sender": "Sender name/phone if visible, otherwise null (string or null)",
+      "receiver": "Receiver name if visible (e.g. 'Vital Agro', 'Vital Agro Chemical Industries') (string or null)",
+      "receiverWallet": "Receiver mobile wallet number or account number (e.g. '0300-1234567', '0301-1837160') (string or null)",
+      "confidenceScore": "Your confidence estimation for this scanning accuracy as a float number between 0.0 and 1.0 (number)"
     }
     Important: Return ONLY the JSON object. Do not wrap it in markdown code blocks or add explanatory text.
   `;
@@ -33,13 +36,16 @@ export async function verifyReceipt(base64Data, mimeType) {
 
     const parsed = JSON.parse(cleanedJson);
 
-    // Enforce basic type checking/fallbacks
+    // Enforce type checks and fallbacks
     return {
       refId: parsed.refId || 'UNKNOWN_' + Date.now(),
       amount: Number(parsed.amount) || 0,
       timestamp: parsed.timestamp || new Date().toISOString().replace('T', ' ').substring(0, 16),
       paymentMethod: parsed.paymentMethod || 'Manual Transfer',
-      sender: parsed.sender || null
+      sender: parsed.sender || null,
+      receiver: parsed.receiver || null,
+      receiverWallet: parsed.receiverWallet ? parsed.receiverWallet.replace(/\D/g, '') : null,
+      confidenceScore: Number(parsed.confidenceScore) || 0.85
     };
   } catch (err) {
     console.error("Failed to parse OCR receipt verification:", err, "Raw response:", rawText);

@@ -32,6 +32,7 @@ const AdminDashboard = React.lazy(() => import('./pages/admin'));
 const AdminLogin = React.lazy(() => import('./pages/admin/AdminLogin'));
 const AIScannerPage = React.lazy(() => import('./pages/AIScannerPage'));
 const OrderTimeline = React.lazy(() => import('./pages/OrderTimeline'));
+const OrderSuccess = React.lazy(() => import('./pages/OrderSuccess'));
 
 const PageLoader = () => (
   <div className="min-h-[60vh] flex items-center justify-center bg-[#F4F7F5] dark:bg-[#0A2E1F]">
@@ -72,6 +73,7 @@ const AuthenticatedApp = () => {
         <Route path="/contact" element={<Contact />} />
         <Route path="/ai-scanner" element={<AIScannerPage />} />
         <Route path="/track/:id" element={<OrderTimeline />} />
+        <Route path="/order-success/:id" element={<OrderSuccess />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
