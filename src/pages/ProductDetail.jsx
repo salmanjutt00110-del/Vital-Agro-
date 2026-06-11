@@ -5,16 +5,18 @@ import {
   Phone, ArrowLeft, Download, Send, MessageCircle,
   CheckCircle2, AlertTriangle, HelpCircle, Shield, Award, Cpu,
   Flame, HardHat, FileText, Info, Leaf, Check, Sparkles, Zap, Clock, ShieldCheck, Gauge, Layers, Activity, Maximize,
-  ArrowRight, FileBadge, Users
+  FileBadge, Users, ShoppingCart, CreditCard, Lock
 } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { getProductBySlug, PRODUCTS_DATA } from '@/data/productsData';
 import { useToast } from '@/components/ui/use-toast';
-import { useQuery } from '@tanstack/react-query';
+import { useCart } from '@/lib/CartContext';
 import useVideoAutoplay from '@/hooks/useVideoAutoplay';
 
 // Import local assets via standard React pipeline
 import vitalBg from '@/assets/vital bg.mp4';
+import vitalBgWebm from '@/assets/vital_bg.webm';
+import vitalBgPoster from '@/assets/vital_bg_poster.webp';
 import vitalAgroLogo from '@/assets/vital agro logo.webp';
 import tagLogo from '@/assets/tag logo.webp';
 import vitalGroup from '@/assets/vital group.webp';
@@ -71,7 +73,7 @@ const PAGE_TRANS = {
     successTitle: "Inquiry Submitted!",
     successDesc: "Thank you for contacting Vital Agro. Our agronomy team will contact you shortly.",
     successClose: "Close",
-    zoomHint: "Click image to inspect packaging details"
+    zoomHint: "Hover to zoom details. Click to view full image."
   },
   ur: {
     backToProducts: "مصنوعات کی طرف واپس جائیں",
@@ -122,9 +124,9 @@ const PAGE_TRANS = {
     messageLabel: "آپ کا پیغام",
     submitForm: "انکوائری جمع کروائیں",
     successTitle: "انکوائری موصول ہو گئی ہے!",
-    successDesc: "وائٹل ایگرو سے رابطہ کرنے کا شکریہ۔ ہماری ٹیم جلد آپ سے رابطہ کرے گی۔",
+    successDesc: "وائٹل ایگرو سے رابطہ کرنے کا شکریہ۔ ہماری ٹیم جلد آپ سے رابطہ کرے گا۔",
     successClose: "بند کریں",
-    zoomHint: "پیکنگ کی تفصیلات دیکھنے کے لیے کلک کریں"
+    zoomHint: "تفصیلات دیکھنے کے لیے ماؤس اوپر لائیں، بڑا کرنے کے لیے کلک کریں۔"
   }
 };
 
@@ -172,14 +174,26 @@ export default function ProductDetail() {
   const { id } = useParams();
   const { lang } = useLanguage();
   const { toast } = useToast();
+  const { addToCart, setIsCartOpen } = useCart();
   const [activeTab, setActiveTab] = useState(0); // For product images gallery
-  const [isZoomed, setIsZoomed] = useState(false); // Zoom Modal state
+  const [isZoomed, setIsZoomed] = useState(false); // Fullscreen view state
   const [openFaq, setOpenFaq] = useState(null); // Accordion state
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [formData, setFormData] = useState({ name: '', phone: '', city: '', crop: '', message: '' });
+  
+  // Interactive zoom positioning coordinates
+  const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
+  const [showLens, setShowLens] = useState(false);
+
+  // Selected pack size index
   const [selectedSizeIdx, setSelectedSizeIdx] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [showStickyBar, setShowStickyBar] = useState(false);
+
+  // Local Stripe Form Modal Simulation State
+  const [isStripeModalOpen, setIsStripeModalOpen] = useState(false);
+  const [stripeForm, setStripeForm] = useState({ name: '', number: '', expiry: '', cvc: '' });
+  const [stripeLoading, setStripeLoading] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -192,50 +206,30 @@ export default function ProductDetail() {
   const videoRef = useRef(null);
   useVideoAutoplay(videoRef);
 
+  // Load product from database
+  const product = getProductBySlug(id);
+
+  // Format WhatsApp message dynamic variables
   const getWhatsAppLinkForProduct = (p, l, sizeIdx = 0, qty = 1) => {
     const phone = "923011837160";
     const productName = p.name[l] || p.name.en || p.name;
-    const catNames = {
-      insecticide: { en: 'Insecticide', ur: 'کیڑے مار دوا' },
-      herbicide: { en: 'Herbicide', ur: 'جڑی بوٹی مار دوا' },
-      fungicide: { en: 'Fungicide', ur: 'فنگس مار دوا' },
-      plant_nutrition: { en: 'Plant Nutrition', ur: 'پودوں کی غذائیت' },
-      growth_promoter: { en: 'Growth Promoter', ur: 'نمو بڑھانے والا' },
-      special_product: { en: 'Special Product', ur: 'خاص مصنوع' }
-    };
-    const categoryName = catNames[p.category]?.[l] || catNames[p.category]?.en || p.category;
+    const catLabel = CATEGORY_LABELS[l]?.[p.category] || p.category;
     
-    const pricingOption = p.pricing?.[sizeIdx] || { size: p.packaging, rate: "Negotiable", carton: "N/A" };
-    const size = pricingOption.size;
-    const rate = pricingOption.rate;
-
-    const priceText = rate !== "Negotiable" ? `Rs. ${rate}` : "Negotiable";
-    const totalRate = rate !== "Negotiable" && !isNaN(rate) ? `Rs. ${Number(rate) * qty}` : "Negotiable";
+    // Primary pricing details
+    const selectedOption = p.sizes?.[sizeIdx] || p.pricing?.[sizeIdx] || { size: p.packaging, price: 0, rate: "Negotiable", sku: p.productCode };
+    const size = selectedOption.size;
+    const price = selectedOption.price ? `PKR ${selectedOption.price}` : (selectedOption.rate && selectedOption.rate !== "Negotiable" ? `PKR ${selectedOption.rate}` : "Negotiable");
+    const code = selectedOption.sku || p.productCode;
 
     const message = `Assalam-o-Alaikum Vital Agro Team,
-
-I want to purchase this product.
-
-Product Name:
-${productName}
-
-Category:
-${categoryName}
-
-Pack Size:
-${size}
-
-Price:
-${priceText}
-
-Quantity:
-${qty}
-
-Total Price:
-${totalRate}
-
-Please guide me regarding availability and delivery.
-
+I want to purchase the following product.
+Product Name: ${productName}
+Category: ${catLabel}
+Selected Pack Size: ${size}
+Price: ${price}
+Product Code: ${code}
+Quantity: ${qty}
+Please guide me regarding availability.
 Thank You.`;
 
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
@@ -247,24 +241,6 @@ Thank You.`;
 
   const isRTL = lang === 'ur';
   const tPage = PAGE_TRANS[lang] || PAGE_TRANS.en;
-
-  // Mock DB fetch or fallback lookups
-  const db = globalThis.__B44_DB__ || {};
-  const { data: dbProduct } = useQuery({
-    queryKey: ['db-product', id],
-    queryFn: async () => {
-      if (!db.entities?.Product) return null;
-      try {
-        const list = await db.entities.Product.filter({ id });
-        return list[0] || null;
-      } catch (e) {
-        return null;
-      }
-    },
-    enabled: !!id,
-  });
-
-  const product = getProductBySlug(id) || (dbProduct ? getProductBySlug(dbProduct.name) : null);
 
   // Programmatic SEO implementation & Schema injection
   useEffect(() => {
@@ -328,7 +304,6 @@ Thank You.`;
     }
 
     return () => {
-      // Clean up dynamic meta tag updates on component unmount
       const script = document.getElementById('product-schema');
       if (script) script.remove();
     };
@@ -348,7 +323,7 @@ Thank You.`;
     );
   }
 
-  // Handle Action functions
+  // Handle Download simulation
   const handleDownload = (type) => {
     toast({
       title: `${type} download started`,
@@ -371,53 +346,86 @@ Thank You.`;
     const phone = "923011837160";
     const productName = product.name[lang] || product.name.en;
     const message = `Hello Vital Agro,
-
 I would like to submit a dealer/product inquiry.
 
-Inquirer Name:
-${formData.name}
-
-Phone Number:
-${formData.phone}
-
-City:
-${formData.city || "Not provided"}
-
-Target Crop:
-${formData.crop || "Not provided"}
-
-Interested Product:
-${productName}
-
-Inquiry Message:
-${formData.message || "No message provided"}
+Inquirer Name: ${formData.name}
+Phone Number: ${formData.phone}
+City: ${formData.city || "Not provided"}
+Target Crop: ${formData.crop || "Not provided"}
+Interested Product: ${productName}
+Inquiry Message: ${formData.message || "No message provided"}
 
 Thank you.`;
 
     const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(waUrl, '_blank');
-
     setFormSubmitted(true);
   };
 
-  // Automated recommendations (Related products)
+  // Sizing pricing details helpers
+  const sizesList = product.sizes || [];
+  const currentSize = sizesList[selectedSizeIdx] || { size: product.packaging, price: 0, oldPrice: 0, stockStatus: 'In Stock', sku: product.productCode, weight: 'N/A' };
+  
+  // Simulated Stripe payment form submit
+  const handleStripePayment = (e) => {
+    e.preventDefault();
+    if (!stripeForm.name || !stripeForm.number || !stripeForm.expiry || !stripeForm.cvc) {
+      toast({
+        variant: "destructive",
+        title: "Incomplete Payment Details",
+        description: "Please fill in all details for Stripe checkout."
+      });
+      return;
+    }
+    setStripeLoading(true);
+    setTimeout(() => {
+      setStripeLoading(false);
+      setIsStripeModalOpen(false);
+      setStripeForm({ name: '', number: '', expiry: '', cvc: '' });
+      toast({
+        title: "Simulated Checkout Successful",
+        description: "Thank you for your sandbox order! Stripe live production payment is coming soon."
+      });
+    }, 1500);
+  };
+
+  // Image zoom coordinate tracker
+  const handleZoomMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomPos({ x, y });
+  };
+
+  // Add to cart helper
+  const handleAddToCart = () => {
+    addToCart(product, currentSize, quantity);
+  };
+
+  // Direct checkout Stripe drawer opener
+  const handleDirectStripeCheckout = () => {
+    addToCart(product, currentSize, quantity);
+    setIsCartOpen(true);
+  };
+
+  // Related products recommendation logic
   const related = Object.values(PRODUCTS_DATA)
-    .filter(p => p.id && p.id !== product.id)
+    .filter(p => p.id && p.id !== product.id && p.category === product.category)
     .slice(0, 3);
 
-  // Gallery items matching "Thumbnail Gallery"
+  // Gallery items prioritizing transparent PNG
   const galleryImages = [
-    { url: product.imageUrl, label: "Packaging" },
+    { url: product.pngUrl || product.imageUrl, label: "Premium Showcase" },
+    { url: product.imageUrl, label: "Packaging Details" },
     { url: vitalGroup, label: "Vital Certified", isLogo: true },
     { url: tagLogo, label: "Tag Formula", isLogo: true }
   ];
 
   return (
-    <div className="min-h-screen bg-[#F4F7F5] overflow-x-hidden pt-20">
+    <div className="min-h-screen bg-[#F4F7F5] overflow-x-hidden pt-20 select-none">
       
       {/* 1. Large Product Hero Section with Background Video and Glass Cards */}
       <section className="relative min-h-[90vh] flex items-center overflow-hidden py-12 px-4 sm:px-6 lg:px-8 bg-[#0A2E1F]">
-        {/* Looping Background Video */}
         <video
           ref={videoRef}
           autoPlay
@@ -425,25 +433,29 @@ Thank you.`;
           muted
           playsInline
           preload="metadata"
-          className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay"
+          poster={vitalBgPoster}
+          className="absolute inset-0 w-full h-full object-cover opacity-25 mix-blend-overlay"
           style={{ transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
         >
+          <source src={vitalBgWebm} type="video/webm" />
           <source src={vitalBg} type="video/mp4" />
         </video>
         
-        {/* Radial Green Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-[#0A2E1F] via-[#0A2E1F]/90 to-[#0A2E1F]/40" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-[#061E14] via-[#0A2E1F]/95 to-[#0A2E1F]/50" />
 
-        <div className="relative z-10 max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="relative z-10 max-w-7xl mx-auto w-full grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           
           {/* Left Column: Glass Bottle Card & Thumbnail Gallery */}
-          <div className="flex flex-col items-center justify-center">
-            {/* Glass Card for Product Bottle with 3D Hover effect */}
+          <div className="lg:col-span-5 flex flex-col items-center justify-center">
+            {/* Glass Card for Product Bottle with interactive zoom lens */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8 }}
-              className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-4 sm:p-8 w-full max-w-[420px] aspect-square flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] group cursor-zoom-in"
+              className="relative bg-white/5 border border-white/10 backdrop-blur-xl rounded-3xl p-6 w-full max-w-[420px] aspect-square flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] group overflow-hidden cursor-crosshair"
+              onMouseMove={handleZoomMouseMove}
+              onMouseEnter={() => setShowLens(true)}
+              onMouseLeave={() => setShowLens(false)}
               onClick={() => setIsZoomed(true)}
             >
               {/* Product Image Zoom / Showcase */}
@@ -471,17 +483,20 @@ Thank you.`;
                     <motion.img
                       src={galleryImages[activeTab].url}
                       alt={product.name[lang]}
-                      className="max-h-[300px] sm:max-h-[340px] w-auto object-contain drop-shadow-[0_25px_35px_rgba(0,0,0,0.4)] group-hover:scale-105 transition-transform duration-500"
-                      animate={{ y: [-6, 6, -6] }}
-                      transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+                      className="max-h-[280px] sm:max-h-[320px] w-auto object-contain drop-shadow-[0_25px_35px_rgba(0,0,0,0.5)]"
+                      style={{
+                        transform: showLens ? 'scale(2.2)' : 'scale(1)',
+                        transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
+                        transition: showLens ? 'none' : 'transform 0.3s ease-out'
+                      }}
                     />
                   )}
                 </motion.div>
               </AnimatePresence>
 
               {/* Magnify Icon Hint */}
-              <div className="absolute bottom-4 right-4 bg-white/15 p-2.5 rounded-full border border-white/25 hover:bg-white/35 transition-all">
-                <Maximize className="w-4 h-4 text-white" />
+              <div className="absolute bottom-4 right-4 bg-black/40 p-2.5 rounded-full border border-white/20 pointer-events-none">
+                <Maximize className="w-4 h-4 text-white/80" />
               </div>
               <div className="absolute top-4 left-4">
                 <span className="px-3.5 py-1.5 bg-[#76C945]/15 border border-[#76C945]/30 text-[#8AD65A] text-xs font-black rounded-full uppercase tracking-wider backdrop-blur-md">
@@ -490,13 +505,18 @@ Thank you.`;
               </div>
             </motion.div>
 
+            {/* Hint message */}
+            <p className="text-[10px] sm:text-xs text-white/40 mt-3 font-bold">
+              {tPage.zoomHint}
+            </p>
+
             {/* Thumbnail Gallery */}
             <div className="flex gap-4 mt-6">
               {galleryImages.map((img, i) => (
                 <button
                   key={i}
                   onClick={() => setActiveTab(i)}
-                  className={`w-16 h-16 rounded-xl border-2 transition-all overflow-hidden p-2 flex items-center justify-center bg-white/5 backdrop-blur-sm ${
+                  className={`w-16 h-16 rounded-xl border transition-all overflow-hidden p-2 flex items-center justify-center bg-white/5 backdrop-blur-sm ${
                     activeTab === i ? 'border-[#76C945] bg-white/10 scale-105' : 'border-white/10 opacity-60 hover:opacity-100'
                   }`}
                 >
@@ -511,120 +531,154 @@ Thank you.`;
             </div>
           </div>
 
-          {/* Right Column: Title, Category, Badge & Quick Description */}
+          {/* Right Column: Title, Category, Badge & Premium Glass Price Card */}
           <motion.div
             initial={{ opacity: 0, x: isRTL ? -40 : 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="flex flex-col text-white"
+            className="lg:col-span-7 flex flex-col text-white"
           >
-            {/* Premium Imported Formula Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/30 text-[#D8B470] text-xs font-extrabold w-max mb-6">
-              <Award className="w-3.5 h-3.5" />
-              <span>{tPage.formulaBadge}</span>
+            {/* Header badges */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#C5A059]/20 border border-[#C5A059]/30 text-[#D8B470] text-xs font-extrabold">
+                <Award className="w-3.5 h-3.5" />
+                <span>{tPage.formulaBadge}</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#76C945]/20 border border-[#76C945]/30 text-[#8AD65A] text-xs font-extrabold">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{lang === 'en' ? 'Research Based' : 'ریسرچ بیسڈ'}</span>
+              </div>
             </div>
 
             {/* Product Name */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none mb-4">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none mb-3">
               {product.name[lang]}
             </h1>
             {product.formulation && (
-              <span className="px-4 py-1.5 bg-white/10 border border-white/20 text-white font-bold rounded-full w-max text-sm mb-6">
-                {product.formulation}
+              <span className="px-4 py-1.5 bg-[#76C945]/15 border border-[#76C945]/30 text-[#8AD65A] font-bold rounded-full w-max text-sm mb-5">
+                {product.formulation} | {product.activeIngredient}
               </span>
             )}
 
             {/* Short Description */}
-            <p className="text-lg text-white/80 leading-relaxed mb-8 border-l-4 border-[#76C945] pl-4 italic">
-              {lang === 'en' ? product.description.en.split('.')[0] + '.' : product.description.ur.split('۔')[0] + '۔'}
+            <p className="text-base sm:text-lg text-white/80 leading-relaxed mb-6 border-l-4 border-[#76C945] pl-4 italic">
+              {product.shortDesc ? (product.shortDesc[lang] || product.shortDesc.en) : (lang === 'en' ? product.description.en.split('.')[0] + '.' : product.description.ur.split('۔')[0] + '۔')}
             </p>
 
-            {/* 2. Product Information Grid */}
-            <div className="grid grid-cols-2 gap-4 bg-white/5 backdrop-blur-md p-6 rounded-2xl border border-white/10 mb-6">
-              <div>
-                <span className="text-xs text-white/50 block uppercase font-bold tracking-wider">{tPage.productCode}</span>
-                <span className="text-base font-black tracking-widest text-[#76C945]">{product.productCode}</span>
-              </div>
-              <div>
-                <span className="text-xs text-white/50 block uppercase font-bold tracking-wider">{tPage.availablePacking}</span>
-                <span className="text-base font-extrabold">{product.packaging}</span>
-              </div>
-              <div>
-                <span className="text-xs text-white/50 block uppercase font-bold tracking-wider">{tPage.status}</span>
-                <span className="inline-flex items-center gap-1.5 text-sm font-bold text-green-400">
-                  <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-ping" />
-                  {product.status[lang]}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-white/50 block uppercase font-bold tracking-wider">{lang === 'en' ? "Active Ingredient" : "فارمولا"}</span>
-                <span className="text-sm font-semibold truncate block max-w-[150px]">{product.activeIngredient}</span>
-              </div>
-            </div>
+            {/* Glass Price Card (Centralized interactive system) */}
+            <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden space-y-6">
+              {/* Internal neon glows */}
+              <div className="absolute top-0 right-0 w-24 h-24 bg-[#76C945]/10 filter blur-xl rounded-full pointer-events-none" />
 
-            {/* Premium Size Selector */}
-            {product.pricing && product.pricing.length > 0 && (
-              <div className="mb-6 p-5 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10">
-                <span className="text-xs text-white/60 block uppercase font-black tracking-widest mb-3">
-                  {lang === 'en' ? 'Select Packing Size' : 'پیکنگ سائز منتخب کریں'}
-                </span>
-                <div className="flex flex-wrap gap-2.5">
-                  {product.pricing.map((priceOption, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setSelectedSizeIdx(idx)}
-                      className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all duration-300 border ${
-                        selectedSizeIdx === idx
-                          ? 'bg-[#76C945] text-[#0A2E1F] border-[#76C945] shadow-lg shadow-[#76C945]/20 scale-105'
-                          : 'bg-white/5 text-white/80 border-white/10 hover:bg-white/15 hover:text-white'
-                      }`}
-                    >
-                      {priceOption.size} {priceOption.rate !== "Negotiable" ? `- Rs. ${priceOption.rate}` : ''}
-                    </button>
-                  ))}
+              {/* Sizing options selectors */}
+              {sizesList.length > 0 && (
+                <div className="space-y-2.5">
+                  <span className="text-xs text-white/50 block uppercase font-black tracking-wider">
+                    {lang === 'en' ? 'Select Pack Size' : 'پیکنگ سائز منتخب کریں'}
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {sizesList.map((sz, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedSizeIdx(idx)}
+                        className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold border transition-all duration-300 ${
+                          selectedSizeIdx === idx
+                            ? 'bg-[#76C945]/20 text-[#8AD65A] border-[#76C945] scale-105'
+                            : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:border-white/20'
+                        }`}
+                      >
+                        {sz.size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Dynamic Price Display */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-white/5 pt-5">
+                <div className="space-y-1">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl sm:text-3xl font-black text-white">
+                      PKR {currentSize.price}
+                    </span>
+                    {currentSize.oldPrice && (
+                      <>
+                        <span className="line-through text-white/40 text-sm sm:text-base">
+                          PKR {currentSize.oldPrice}
+                        </span>
+                        <span className="px-1.5 py-0.5 bg-red-500/20 text-red-400 text-[10px] font-black rounded">
+                          Save {Math.round((1 - currentSize.price / currentSize.oldPrice) * 100)}%
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  
+                  {/* Metadata Row */}
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/40 font-medium">
+                    <span>SKU: <span className="text-white/60 font-bold">{currentSize.sku}</span></span>
+                    {currentSize.weight && <span>Weight: <span className="text-white/60 font-bold">{currentSize.weight}</span></span>}
+                    <span className="flex items-center gap-1">
+                      <span className={`w-1.5 h-1.5 rounded-full ${currentSize.stockStatus === 'In Stock' ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'}`} />
+                      <span className={currentSize.stockStatus === 'In Stock' ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
+                        {currentSize.stockStatus === 'In Stock' ? (lang === 'en' ? 'In Stock' : 'دستیاب ہے') : (lang === 'en' ? 'Low Stock' : 'محدود اسٹاک')}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Quantity adjustments */}
+                <div className="flex items-center gap-3 bg-white/5 rounded-xl border border-white/15 px-3 py-1.5 h-max w-max sm:self-center">
+                  <button
+                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                    className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center font-bold text-white text-base active:scale-95 transition-all"
+                  >
+                    -
+                  </button>
+                  <span className="w-8 text-center text-sm font-black text-white font-mono">{quantity}</span>
+                  <button
+                    onClick={() => setQuantity(q => q + 1)}
+                    className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center font-bold text-white text-base active:scale-95 transition-all"
+                  >
+                    +
+                  </button>
                 </div>
               </div>
-            )}
 
-            {/* Premium Quantity Selector */}
-            <div className="mb-8 p-5 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 flex items-center justify-between">
-              <div>
-                <span className="text-xs text-white/60 block uppercase font-black tracking-widest mb-1">
-                  {lang === 'en' ? 'Order Quantity' : 'آرڈر کی مقدار'}
-                </span>
-                <span className="text-[10px] text-[#76C945] font-bold block">
-                  {lang === 'en' ? 'Select units to order' : 'فصل کے لیے مطلوبہ تعداد'}
-                </span>
+              {/* Action Buttons Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-white/5 pt-5">
+                <button
+                  onClick={handleAddToCart}
+                  className="w-full px-4 py-3.5 bg-white/10 border border-white/10 hover:bg-white/15 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all hover:scale-102 active:scale-98"
+                >
+                  <ShoppingCart className="w-4.5 h-4.5 text-[#76C945]" />
+                  <span>{lang === 'en' ? 'Add to Cart' : 'کارٹ میں ڈالیں'}</span>
+                </button>
+
+                <button
+                  onClick={handleDirectStripeCheckout}
+                  className="w-full px-4 py-3.5 bg-[#76C945] hover:bg-[#8AD65A] text-[#0A2E1F] rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-center gap-1.5 transition-all hover:scale-102 active:scale-98 shadow-lg shadow-[#76C945]/20"
+                >
+                  <CreditCard className="w-4.5 h-4.5" />
+                  <span>{lang === 'en' ? 'Stripe Pay' : 'اسٹرائپ ادا'}</span>
+                </button>
+
+                <a
+                  href={getWhatsAppLinkForProduct(product, lang, selectedSizeIdx, quantity)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full px-4 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-center gap-1.5 transition-all hover:scale-102 active:scale-98 shadow-md"
+                >
+                  <MessageCircle className="w-4.5 h-4.5" />
+                  <span>{lang === 'en' ? 'Buy WhatsApp' : 'واٹس ایپ خرید'}</span>
+                </a>
               </div>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
-                  className="w-10 h-10 rounded-xl bg-white/10 text-white border border-white/10 hover:bg-white/20 hover:scale-105 active:scale-95 flex items-center justify-center font-black transition-all text-lg"
-                >
-                  -
-                </button>
-                <span className="w-10 text-center text-lg font-black text-white font-mono">
-                  {quantity}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setQuantity(prev => prev + 1)}
-                  className="w-10 h-10 rounded-xl bg-white/10 text-white border border-white/10 hover:bg-white/20 hover:scale-105 active:scale-95 flex items-center justify-center font-black transition-all text-lg"
-                >
-                  +
-                </button>
+
+              {/* Stripe simulated warning */}
+              <div className="flex gap-2 items-center text-[10px] text-white/40 justify-center">
+                <Lock className="w-3.5 h-3.5" />
+                <span>Simulated Sandbox Checkouts. Stripe secure transactions.</span>
               </div>
             </div>
-
-            {/* Scroll down link to dosage */}
-            <a
-              href="#dosage-table"
-              className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm font-bold w-max"
-            >
-              <span>{lang === 'en' ? "View Dosage Guidelines" : "خوراک کی تفصیلات دیکھیں"}</span>
-              <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-            </a>
           </motion.div>
         </div>
       </section>
@@ -636,7 +690,6 @@ Thank you.`;
             {tPage.quickActions}:
           </span>
           <div className="flex flex-wrap gap-2.5 w-full sm:w-auto">
-            {/* 1. Buy on WhatsApp */}
             <motion.a
               whileTap={{ scale: 0.96 }}
               href={getWhatsAppLinkForProduct(product, lang, selectedSizeIdx, quantity)}
@@ -648,7 +701,6 @@ Thank you.`;
               <span>{lang === 'en' ? 'Buy on WhatsApp' : 'واٹس ایپ پر خریدیں'}</span>
             </motion.a>
 
-            {/* 2. Request Quote (WhatsApp) */}
             <motion.a
               whileTap={{ scale: 0.96 }}
               href={getWhatsAppQuoteLink(product, lang, selectedSizeIdx, quantity)}
@@ -660,7 +712,6 @@ Thank you.`;
               <span>{tPage.requestQuote}</span>
             </motion.a>
 
-            {/* 3. Call Now */}
             <motion.a
               whileTap={{ scale: 0.96 }}
               href="tel:+923011837160"
@@ -670,9 +721,6 @@ Thank you.`;
               <span>{tPage.callNow}</span>
             </motion.a>
 
-
-
-            {/* 5. Download Label */}
             <motion.button
               whileTap={{ scale: 0.96 }}
               onClick={() => handleDownload('Label')}
@@ -682,7 +730,6 @@ Thank you.`;
               <span>{tPage.downloadLabel}</span>
             </motion.button>
 
-            {/* 6. Download Brochure */}
             <motion.button
               whileTap={{ scale: 0.96 }}
               onClick={() => handleDownload('Brochure')}
@@ -692,7 +739,6 @@ Thank you.`;
               <span>{lang === 'en' ? 'Download Brochure' : 'بروشر ڈاؤن لوڈ کریں'}</span>
             </motion.button>
 
-            {/* 7. Dealer Inquiry */}
             <motion.a
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -712,7 +758,6 @@ Thank you.`;
         {/* Left Side: Product Details (2/3 width) */}
         <div className="lg:col-span-2 space-y-12">
           
-          {/* 4. Deep Product Description */}
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -728,7 +773,6 @@ Thank you.`;
             </p>
           </motion.section>
 
-          {/* 5. Key Features with Premium Icons */}
           <section className="bg-white p-8 sm:p-10 rounded-3xl border border-border shadow-sm">
             <h2 className="text-2xl font-black text-[#0A2E1F] mb-8 pb-2 border-b border-border flex items-center gap-2">
               <Sparkles className="w-6 h-6 text-[#76C945]" />
@@ -758,7 +802,6 @@ Thank you.`;
             </div>
           </section>
 
-          {/* 6. Crop Benefits */}
           <section className="bg-white p-8 sm:p-10 rounded-3xl border border-border shadow-sm">
             <h2 className="text-2xl font-black text-[#0A2E1F] mb-8 pb-2 border-b border-border flex items-center gap-2">
               <CheckCircle2 className="w-6 h-6 text-[#76C945]" />
@@ -783,7 +826,6 @@ Thank you.`;
             </div>
           </section>
 
-          {/* 7. Suitable Crops Grid */}
           <section className="bg-white p-8 sm:p-10 rounded-3xl border border-border shadow-sm">
             <h2 className="text-2xl font-black text-[#0A2E1F] mb-8 pb-2 border-b border-border flex items-center gap-2">
               <Info className="w-6 h-6 text-[#76C945]" />
@@ -806,7 +848,6 @@ Thank you.`;
             </div>
           </section>
 
-          {/* 8. Application Method & Mixing */}
           <section className="bg-white p-8 sm:p-10 rounded-3xl border border-border shadow-sm">
             <h2 className="text-2xl font-black text-[#0A2E1F] mb-6 pb-2 border-b border-border flex items-center gap-2">
               <Info className="w-6 h-6 text-[#76C945]" />
@@ -819,7 +860,6 @@ Thank you.`;
             </div>
           </section>
 
-          {/* 9. Recommended Dosage Table */}
           <section id="dosage-table" className="bg-white p-8 sm:p-10 rounded-3xl border border-border shadow-sm overflow-hidden">
             <h2 className="text-2xl font-black text-[#0A2E1F] mb-8 pb-2 border-b border-border flex items-center gap-2">
               <FileText className="w-6 h-6 text-[#76C945]" />
@@ -852,7 +892,7 @@ Thank you.`;
           </section>
 
           {/* Pricing & Carton Packing Matrix */}
-          {product.pricing && product.pricing.length > 0 && (
+          {sizesList.length > 0 && (
             <section className="bg-white p-8 sm:p-10 rounded-3xl border border-border shadow-sm overflow-hidden">
               <h2 className="text-2xl font-black text-[#0A2E1F] mb-8 pb-2 border-b border-border flex items-center gap-2">
                 <Layers className="w-6 h-6 text-[#76C945]" />
@@ -864,30 +904,31 @@ Thank you.`;
                     <tr className="bg-[#0A2E1F] text-white">
                       <th className="p-4 text-sm font-bold text-center">{lang === 'en' ? "Pack Size" : "پیکنگ سائز"}</th>
                       <th className="p-4 text-sm font-bold text-center">{lang === 'en' ? "Carton Packing" : "کارٹن پیکنگ"}</th>
-                      <th className="p-4 text-sm font-bold text-center">{lang === 'en' ? "Net Rate" : "نیٹ ریٹ"}</th>
-                      <th className="p-4 text-sm font-bold text-center">{lang === 'en' ? "Order Urgent" : "فوری آرڈر"}</th>
+                      <th className="p-4 text-sm font-bold text-center">{lang === 'en' ? "Net Rate" : "قیمت (روپے)"}</th>
+                      <th className="p-4 text-sm font-bold text-center">{lang === 'en' ? "Buy Now" : "خریدیں"}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {product.pricing.map((row, i) => (
+                    {sizesList.map((row, i) => (
                       <tr key={i} className="hover:bg-muted/40 transition-colors">
                         <td className="p-4 text-sm font-black text-center text-foreground">{row.size}</td>
                         <td className="p-4 text-sm font-bold text-center text-[#C5A059]">
-                          {row.carton} {lang === 'en' ? 'Units / Carton' : 'بوتلیں فی کارٹن'}
+                          {product.pricing?.[i]?.carton || '24'} {lang === 'en' ? 'Units / Carton' : 'بوتلیں فی کارٹن'}
                         </td>
                         <td className="p-4 text-sm font-black text-center text-[#0A2E1F]">
-                          {row.rate !== "Negotiable" ? `Rs. ${row.rate}` : (lang === 'en' ? 'Negotiable' : 'قابلِ تبادلہ')}
+                          PKR {row.price}
                         </td>
                         <td className="p-4 text-sm font-bold text-center">
-                          <a
-                            href={getWhatsAppLinkForProduct(product, lang, i)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-black transition-all shadow-sm cursor-pointer"
+                          <button
+                            onClick={() => {
+                              setSelectedSizeIdx(i);
+                              handleDirectStripeCheckout();
+                            }}
+                            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-black transition-all shadow-sm"
                           >
-                            <MessageCircle className="w-3.5 h-3.5" />
-                            <span>{lang === 'en' ? 'Buy Now' : 'خریدیں'}</span>
-                          </a>
+                            <ShoppingCart className="w-3.5 h-3.5" />
+                            <span>{lang === 'en' ? 'Checkout' : 'خریدیں'}</span>
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -905,7 +946,6 @@ Thank you.`;
             </section>
           )}
 
-          {/* 10. Technical Specifications */}
           <section className="bg-white p-8 sm:p-10 rounded-3xl border border-border shadow-sm">
             <h2 className="text-2xl font-black text-[#0A2E1F] mb-8 pb-2 border-b border-border flex items-center gap-2">
               <Cpu className="w-6 h-6 text-[#76C945]" />
@@ -921,7 +961,6 @@ Thank you.`;
             </div>
           </section>
 
-          {/* 11. Safety Information */}
           <section className="bg-red-50/50 p-8 sm:p-10 rounded-3xl border border-red-100 shadow-sm">
             <h2 className="text-2xl font-black text-red-900 mb-6 pb-2 border-b border-red-100 flex items-center gap-2">
               <AlertTriangle className="w-6 h-6 text-red-600" />
@@ -945,7 +984,6 @@ Thank you.`;
             </div>
           </section>
 
-          {/* 12. Download Center */}
           <section className="bg-white p-8 sm:p-10 rounded-3xl border border-border shadow-sm">
             <h2 className="text-2xl font-black text-[#0A2E1F] mb-8 pb-2 border-b border-border flex items-center gap-2">
               <Download className="w-6 h-6 text-[#76C945]" />
@@ -975,7 +1013,6 @@ Thank you.`;
             </div>
           </section>
 
-          {/* 13. FAQ Accordion (8-10 questions) */}
           <section className="bg-white p-8 sm:p-10 rounded-3xl border border-border shadow-sm">
             <h2 className="text-2xl font-black text-[#0A2E1F] mb-8 pb-2 border-b border-border flex items-center gap-2">
               <HelpCircle className="w-6 h-6 text-[#76C945]" />
@@ -1017,7 +1054,7 @@ Thank you.`;
         {/* Right Side: Sidebar Components (1/3 width) */}
         <div className="space-y-8">
           
-          {/* 15. Dealer Inquiry Form */}
+          {/* Dealer Inquiry Form */}
           <motion.div
             id="dealer-inquiry"
             initial={{ opacity: 0, y: 30 }}
@@ -1143,52 +1180,54 @@ Thank you.`;
       </div>
 
       {/* 14. Related Products Section */}
-      <section className="bg-muted/30 border-t border-border py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl sm:text-3xl font-black text-[#0A2E1F] mb-12 text-center">
-            {tPage.relatedProducts}
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {related.map((p) => {
-              const catLabel = CATEGORY_LABELS[lang]?.[p.category] || p.category;
-              return (
-                <Link
-                  key={p.id}
-                  to={`/products/${p.id}`}
-                  className="group block bg-white rounded-2xl border border-border overflow-hidden hover:border-[#76C945]/30 hover:shadow-xl transition-all duration-300"
-                >
-                  <div className="relative aspect-square p-8 flex items-center justify-center bg-gradient-to-b from-muted/50 to-transparent">
-                    <img
-                      src={p.imageUrl}
-                      alt={p.name[lang]}
-                      className="max-h-48 w-auto object-contain group-hover:scale-105 transition-transform duration-500"
-                      loading="lazy"
-                    />
-                    <div className="absolute top-4 left-4">
-                      <span className="px-3 py-1 bg-[#C5A059]/10 text-[#C5A059] text-xs font-black rounded-full border border-[#C5A059]/20 uppercase">
-                        {catLabel}
-                      </span>
+      {related.length > 0 && (
+        <section className="bg-[#EBF1ED] border-t border-border py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl sm:text-3xl font-black text-[#0A2E1F] mb-12 text-center">
+              {tPage.relatedProducts}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {related.map((p) => {
+                const catLabel = CATEGORY_LABELS[lang]?.[p.category] || p.category;
+                return (
+                  <Link
+                    key={p.id}
+                    to={`/products/${p.id}`}
+                    className="group block bg-white rounded-2xl border border-border overflow-hidden hover:border-[#76C945]/30 hover:shadow-xl transition-all duration-300"
+                  >
+                    <div className="relative aspect-square p-8 flex items-center justify-center bg-gradient-to-b from-muted/50 to-transparent">
+                      <img
+                        src={p.pngUrl || p.imageUrl}
+                        alt={p.name[lang]}
+                        className="max-h-48 w-auto object-contain group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                      />
+                      <div className="absolute top-4 left-4">
+                        <span className="px-3 py-1 bg-[#C5A059]/10 text-[#C5A059] text-xs font-black rounded-full border border-[#C5A059]/20 uppercase">
+                          {catLabel}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="p-6">
-                    <h3 className="font-black text-[#0A2E1F] text-lg group-hover:text-[#76C945] transition-colors">
-                      {p.name[lang]}
-                    </h3>
-                    <p className="text-muted-foreground text-sm mt-2 line-clamp-2">
-                      {p.description[lang]}
-                    </p>
-                    {p.formulation && (
-                      <span className="inline-block mt-4 px-3 py-1 bg-muted text-muted-foreground text-xs font-semibold rounded-full">
-                        {p.formulation}
-                      </span>
-                    )}
-                  </div>
-                </Link>
-              );
-            })}
+                    <div className="p-6">
+                      <h3 className="font-black text-[#0A2E1F] text-lg group-hover:text-[#76C945] transition-colors">
+                        {p.name[lang]}
+                      </h3>
+                      <p className="text-muted-foreground text-sm mt-2 line-clamp-2">
+                        {p.description[lang]}
+                      </p>
+                      {p.formulation && (
+                        <span className="inline-block mt-4 px-3 py-1 bg-[#F4F7F5] text-muted-foreground text-xs font-semibold rounded-full">
+                          {p.formulation}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Fullscreen Zoom Image Modal */}
       <AnimatePresence>
@@ -1208,7 +1247,7 @@ Thank you.`;
               onClick={(e) => e.stopPropagation()}
             >
               <img
-                src={product.imageUrl}
+                src={galleryImages[activeTab].url}
                 alt={product.name[lang]}
                 className="max-w-full max-h-[75vh] object-contain drop-shadow-[0_35px_60px_rgba(255,255,255,0.15)]"
               />
@@ -1234,23 +1273,21 @@ Thank you.`;
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
-            className="fixed bottom-0 left-0 right-0 z-45 bg-[#02170f]/90 backdrop-blur-xl border-t border-white/10 py-3.5 px-4 sm:hidden flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.5)]"
+            className="fixed bottom-0 left-0 right-0 z-[45] bg-[#02170f]/90 backdrop-blur-xl border-t border-white/10 py-3.5 px-4 sm:hidden flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.5)]"
           >
             <div className="flex flex-col text-white">
               <span className="text-[10px] text-white/50 block font-black uppercase tracking-wider">
                 {product.name[lang]}
               </span>
               <span className="text-sm font-black text-[#76C945]">
-                {product.pricing?.[selectedSizeIdx] 
-                  ? `Rs. ${product.pricing[selectedSizeIdx].rate} x ${quantity}` 
-                  : product.packaging}
+                Rs. {currentSize.price} x {quantity}
               </span>
             </div>
             <a
               href={getWhatsAppLinkForProduct(product, lang, selectedSizeIdx, quantity)}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-1.5 px-5 py-3 btn-premium-whatsapp rounded-full text-xs font-black min-h-[44px]"
+              className="flex items-center justify-center gap-1.5 px-5 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-xs font-black min-h-[44px]"
             >
               <MessageCircle className="w-4 h-4" />
               <span>{lang === 'en' ? 'Buy Now' : 'ابھی خریدیں'}</span>

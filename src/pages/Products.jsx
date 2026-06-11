@@ -1,68 +1,302 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Eye } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { Search, Heart } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import CropFilter from '@/components/products/CropFilter';
 import { useLanguage } from '@/lib/LanguageContext';
 import { PRODUCTS_DATA } from '@/data/productsData';
+import { useCart } from '@/lib/CartContext';
+import { useToast } from '@/components/ui/use-toast';
 import useVideoAutoplay from '@/hooks/useVideoAutoplay';
 
 // Import Assets
 import vitalAgroLogo from '@/assets/vital agro logo.webp';
-import vitalBg from '@/assets/vital bg.mp4';
 
-// Global database access fallback
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
+// Psychological Pricing Helper: Rounds up price to end with 99
+const formatPsychologicalPrice = (price) => {
+  const val = Math.round(price);
+  if (isNaN(val) || val <= 0) return 99;
+  if (val % 100 === 99) return val;
+  if (val % 100 === 0) return val + 99;
+  return Math.ceil(val / 100) * 100 - 1;
+};
+
+// Category label mappings
+const getCategoryLabel = (category) => {
+  switch (category) {
+    case 'insecticide': return 'INSECTICIDE';
+    case 'herbicide': return 'HERBICIDE';
+    case 'fungicide': return 'FUNGICIDE';
+    case 'plant_nutrition': return 'PLANT NUTRITION';
+    case 'growth_promoter': return 'GROWTH PROMOTER';
+    default: return 'SPECIAL PRODUCT';
+  }
+};
+
+// 60FPS High Performance Rolling Number Price Counter
+const RollingCardPrice = ({ price }) => {
+  const [displayVal, setDisplayVal] = useState(price);
+
+  useEffect(() => {
+    let start = displayVal;
+    const end = price;
+    if (start === end) return;
+
+    const duration = 400; // ms
+    const startTime = performance.now();
+
+    const animate = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // easeOutQuad curve
+      const ease = progress * (2 - progress);
+      const current = Math.round(start + (end - start) * ease);
+      setDisplayVal(current);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }, [price]);
+
+  return <span>Rs.{displayVal.toLocaleString()}</span>;
+};
+
+// Apple Style Slide to Add Cart Component
+const SlideToCart = ({ onSlideSuccess, lang }) => {
+  const trackRef = useRef(null);
+  const [trackWidth, setTrackWidth] = useState(240);
+
+  useEffect(() => {
+    if (trackRef.current) {
+      setTrackWidth(trackRef.current.offsetWidth);
+    }
+  }, []);
+
+  const handleSize = 42; // px
+  const maxSlideDist = trackWidth - handleSize - 8; // Adjust for left/right paddings
+
+  const handleDragEnd = (event, info) => {
+    if (info.offset.x >= maxSlideDist * 0.82) {
+      onSlideSuccess();
+    }
+  };
+
+  return (
+    <div 
+      ref={trackRef} 
+      className="relative w-full h-12 bg-[#0A2E1F]/5 rounded-full border border-[#0A2E1F]/10 flex items-center p-1 overflow-hidden"
+    >
+      {/* Slider Label Text */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0">
+        <span className="text-[10px] font-black text-[#0A2E1F]/60 uppercase tracking-widest">
+          {lang === 'en' ? '← Slide to Add Cart →' : '← سلائیڈ کر کے کارٹ میں ڈالیں →'}
+        </span>
+      </div>
+
+      {/* Draggable knob handle */}
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: 0, right: maxSlideDist > 0 ? maxSlideDist : 180 }}
+        dragElastic={0.08}
+        dragTransition={{ bounceStiffness: 600, bounceDamping: 35 }}
+        dragSnapToOrigin
+        onDragEnd={handleDragEnd}
+        className="w-10 h-10 bg-[#0A2E1F] hover:bg-[#76C945] hover:text-[#0A2E1F] text-white rounded-full flex items-center justify-center cursor-grab active:cursor-grabbing shadow-md transition-colors duration-200 z-10 font-bold"
+      >
+        →
+      </motion.div>
+    </div>
+  );
+};
+
+// Redesigned Apple Store Product Card
+const ProductCard = ({ product, index, lang, wishlist, toggleWishlist, addToCart }) => {
+  const [sizeIdx, setSizeIdx] = useState(0);
+  const [qty, setQty] = useState(1);
+  const { toast } = useToast();
+
+  const sizes = product.sizes || [];
+  const currentSize = sizes[sizeIdx] || { size: product.packaging, price: 999, oldPrice: 1299, sku: product.productCode, stockStatus: 'In Stock' };
+
+  // Calculate dynamic marketing badge (NEW, HOT, BEST SELLER, LIMITED)
+  const promoBadge = useMemo(() => {
+    if (product.featured) return "BEST SELLER";
+    const badgesList = ["NEW", "HOT", "LIMITED", "BEST SELLER"];
+    return badgesList[index % badgesList.length];
+  }, [product, index]);
+
+  const displayedPrice = formatPsychologicalPrice(currentSize.price);
+  const isWishlisted = wishlist.includes(product.slug);
+
+  const handleSlideSuccess = () => {
+    addToCart(product, currentSize, qty);
+    toast({
+      title: lang === 'en' ? "Added to Cart" : "کارٹ میں شامل کر دیا گیا",
+      description: `${qty}x ${product.name[lang]} (${currentSize.size}) added to your checkout drawer.`
+    });
+    setQty(1); // Reset quantity
+  };
+
+  const handleWishlistClick = (e) => {
+    e.preventDefault();
+    toggleWishlist(product.slug);
+    toast({
+      title: isWishlisted ? (lang === 'en' ? "Removed from Wishlist" : "خواہش کی فہرست سے نکال دیا گیا") : (lang === 'en' ? "Added to Wishlist" : "خواہش کی فہرست میں شامل کیا گیا"),
+      description: `${product.name[lang]} has been ${isWishlisted ? 'removed from' : 'added to'} your wishlist.`
+    });
+  };
+
+  return (
+    <div className="relative w-full max-w-[320px] h-[520px] md:max-w-[280px] md:h-[500px] xl:max-w-[320px] xl:h-[520px] bg-white rounded-[26px] border border-[#0A2E1F]/10 shadow-[0_20px_60px_rgba(0,0,0,0.06)] hover:shadow-[0_30px_70px_rgba(10,46,31,0.12)] hover:border-[#76C945]/30 p-5 flex flex-col justify-between transition-all duration-300 overflow-hidden group select-none bg-gradient-to-b from-white to-[#F4F7F5]/40">
+      
+      {/* Top badges bar */}
+      <div className="flex justify-between items-center z-10">
+        <span className="px-2.5 py-0.5 rounded-md bg-[#0A2E1F]/5 text-[#0A2E1F] text-[9px] font-black uppercase tracking-wider">
+          {promoBadge}
+        </span>
+        <span className="text-[9px] font-black text-[#76C945] tracking-widest">
+          {getCategoryLabel(product.category)}
+        </span>
+      </div>
+
+      {/* Main product PNG (Center Floating Area) */}
+      <Link 
+        to={`/products/${product.slug}`}
+        className="relative flex-1 flex items-center justify-center max-h-[200px] sm:max-h-[220px] my-3 overflow-hidden cursor-pointer"
+      >
+        <motion.img
+          src={product.pngUrl || product.imageUrl}
+          alt={product.name[lang]}
+          className="max-h-full w-auto object-contain drop-shadow-[0_15px_25px_rgba(0,0,0,0.18)]"
+          whileHover={{ 
+            scale: 1.06, 
+            rotate: index % 2 === 0 ? 3 : -3,
+            y: -5
+          }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+          loading="lazy"
+        />
+      </Link>
+
+      {/* Product Information */}
+      <div className="space-y-1">
+        <Link 
+          to={`/products/${product.slug}`}
+          className="font-black text-xl text-[#0A2E1F] leading-tight block truncate hover:text-[#76C945] transition-colors"
+        >
+          {product.name[lang]}
+        </Link>
+        <span className="text-[10px] text-muted-foreground/80 font-bold block truncate max-w-full">
+          {product.genericName[lang] || product.genericName.en}
+        </span>
+      </div>
+
+      {/* Pack Size pill selector */}
+      {sizes.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-2.5">
+          {sizes.slice(0, 4).map((sz, idx) => (
+            <button
+              key={idx}
+              onClick={() => setSizeIdx(idx)}
+              className={`px-2 py-1 rounded-md text-[9px] font-black border transition-all ${
+                sizeIdx === idx
+                  ? 'bg-[#0A2E1F] text-white border-[#0A2E1F]'
+                  : 'bg-white text-muted-foreground border-border hover:bg-muted'
+              }`}
+            >
+              {sz.size}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Price & Quantity controllers row */}
+      <div className="flex items-center justify-between border-t border-[#0A2E1F]/5 pt-3.5 mt-3">
+        {/* Rolling price */}
+        <div className="flex flex-col">
+          <span className="text-lg font-black text-[#0A2E1F] font-mono tracking-tight">
+            <RollingCardPrice price={displayedPrice} />
+          </span>
+          <span className="text-[8px] font-black text-[#76C945] uppercase tracking-wider">
+            {currentSize.stockStatus === 'In Stock' ? 'IN STOCK' : 'LOW STOCK'}
+          </span>
+        </div>
+
+        {/* Quantity control [-] 1 [+] */}
+        <div className="flex items-center gap-2 bg-[#0A2E1F]/5 rounded-lg border border-[#0A2E1F]/10 p-0.5">
+          <button
+            onClick={() => setQty(q => Math.max(1, q - 1))}
+            className="w-6 h-6 rounded-md bg-white hover:bg-[#76C945]/20 flex items-center justify-center text-xs text-[#0A2E1F] font-bold transition-all active:scale-90"
+          >
+            -
+          </button>
+          <span className="w-5 text-center text-xs font-black text-[#0A2E1F] font-mono">{qty}</span>
+          <button
+            onClick={() => setQty(q => q + 1)}
+            className="w-6 h-6 rounded-md bg-white hover:bg-[#76C945]/20 flex items-center justify-center text-xs text-[#0A2E1F] font-bold transition-all active:scale-90"
+          >
+            +
+          </button>
+        </div>
+      </div>
+
+      {/* Bottom slide action bar */}
+      <div className="flex items-center gap-3.5 border-t border-[#0A2E1F]/5 pt-3.5 mt-3">
+        {/* Wishlist Heart Icon */}
+        <button
+          onClick={handleWishlistClick}
+          className={`p-2 rounded-xl border transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center ${
+            isWishlisted
+              ? 'border-red-500 bg-red-50 text-red-500'
+              : 'border-[#0A2E1F]/10 hover:bg-muted text-muted-foreground'
+          }`}
+        >
+          <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
+        </button>
+
+        {/* Slide to Add handle */}
+        <div className="flex-1">
+          <SlideToCart onSlideSuccess={handleSlideSuccess} lang={lang} />
+        </div>
+      </div>
+
+    </div>
+  );
+};
 
 export default function Products() {
   const { lang, t } = useLanguage();
+  const { addToCart } = useCart();
   const [category, setCategory] = useState('all');
   const [search, setSearch] = useState('');
   const [activeCrop, setActiveCrop] = useState(null);
+  
+  // Wishlist state persisted in localStorage
+  const [wishlist, setWishlist] = useState(() => {
+    try {
+      const saved = localStorage.getItem('vital_agro_wishlist');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
 
-  const videoRef1 = useRef(null);
-  const videoRef2 = useRef(null);
-  useVideoAutoplay(videoRef1);
-  useVideoAutoplay(videoRef2);
-
-  const getWhatsAppLinkForProduct = (product, lang) => {
-    const phone = "923011837160";
-    const productName = product.name[lang] || product.name.en || product.name;
-    const catNames = {
-      insecticide: { en: 'Insecticide', ur: 'کیڑے مار دوا' },
-      herbicide: { en: 'Herbicide', ur: 'جڑی بوٹی مار دوا' },
-      fungicide: { en: 'Fungicide', ur: 'فنگس مار دوا' },
-      plant_nutrition: { en: 'Plant Nutrition', ur: 'پودوں کی غذائیت' },
-      growth_promoter: { en: 'Growth Promoter', ur: 'نمو بڑھانے والا' },
-      special_product: { en: 'Special Product', ur: 'خاص مصنوع' }
-    };
-    const categoryName = catNames[product.category]?.[lang] || catNames[product.category]?.en || product.category;
-    const packing = product.packaging || (product.specs?.packing?.[lang] || "");
-    const message = `Hello Vital Agro,
-
-I am interested in purchasing the following product.
-
-Product Name:
-${productName}
-
-Category:
-${categoryName}
-
-Packing:
-${packing}
-
-Please provide:
-
-• Price
-• Availability
-• Dealer Information
-• Delivery Details
-
-Thank you.`;
-    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  const toggleWishlist = (slug) => {
+    setWishlist((prev) => {
+      const next = prev.includes(slug)
+        ? prev.filter((item) => item !== slug)
+        : [...prev, slug];
+      localStorage.setItem('vital_agro_wishlist', JSON.stringify(next));
+      return next;
+    });
   };
+
+  const videoRef = useRef(null);
+  useVideoAutoplay(videoRef);
 
   const isRTL = lang === 'ur';
 
@@ -77,60 +311,12 @@ Thank you.`;
     special_product: t.categories.special_product,
   };
 
-  const { data: dbProducts = [], isLoading: isDbLoading } = useQuery({
-    queryKey: ['all-products'],
-    queryFn: async () => {
-      if (!db.entities?.Product) return [];
-      try {
-        return await db.entities.Product.list();
-      } catch (e) {
-        return [];
-      }
-    },
-  });
+  // Static high-fidelity products with updated sizes pricing database
+  const products = useMemo(() => {
+    return Object.values(PRODUCTS_DATA).filter(p => p.id);
+  }, []);
 
-  // Merge static high-fidelity products with database records
-  const products = React.useMemo(() => {
-    const staticList = Object.values(PRODUCTS_DATA).filter(p => p.id);
-    
-    // Map static products to merge with database counterparts if they exist
-    const mergedList = staticList.map(sp => {
-      const dbMatch = dbProducts.find(dp => dp.name.toLowerCase().replace(/[^a-z0-9]/g, '') === sp.name.en.toLowerCase().replace(/[^a-z0-9]/g, ''));
-      return {
-        ...sp,
-        dbId: dbMatch ? dbMatch.id : sp.id, // Fallback to slug if no DB ID exists
-        featured: dbMatch ? dbMatch.featured : sp.id === 'fatty' || sp.id === 'conference-gold'
-      };
-    });
-
-    // Add any database products that are NOT in our static list
-    dbProducts.forEach(dp => {
-      const isAlreadyAdded = staticList.some(sp => sp.name.en.toLowerCase().replace(/[^a-z0-9]/g, '') === dp.name.toLowerCase().replace(/[^a-z0-9]/g, ''));
-      if (!isAlreadyAdded) {
-        mergedList.push({
-          id: dp.id,
-          dbId: dp.id,
-          slug: dp.id,
-          name: { en: dp.name, ur: dp.name },
-          category: dp.category || 'special_product',
-          imageUrl: dp.image_url || 'https://images.unsplash.com/photo-1592982537447-6f2a6a0c7c18?auto=format&fit=crop&q=80&w=300',
-          description: { en: dp.description || '', ur: dp.description || '' },
-          formulation: dp.formulation || '',
-          activeIngredient: dp.active_ingredient || '',
-          packaging: dp.packaging || '',
-          crops: dp.recommended_crops?.map(c => ({ name: { en: c, ur: c }, icon: '🌱' })) || [],
-          dosageTable: [],
-          specs: {},
-          safety: { en: [], ur: [] },
-          faqs: { en: [], ur: [] }
-        });
-      }
-    });
-
-    return mergedList;
-  }, [dbProducts]);
-
-  // Localized search and crop filtering
+  // Filtering calculations
   const filtered = products.filter(p => {
     const matchCat = category === 'all' || p.category === category;
     
@@ -151,215 +337,129 @@ Thank you.`;
   });
 
   return (
-    <div className="min-h-screen pt-24">
-      {/* Header Banner */}
-      <section className="bg-[#0A2E1F] py-20 relative overflow-hidden">
-        <video
-          ref={videoRef1}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata"
-          className="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay"
-          style={{ transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
-        >
-          <source src={vitalBg} type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-[#0A2E1F]/90" />
+    <div className="min-h-screen pt-20 bg-[#F4F7F5]">
+      
+      {/* 1. Page Header: Apple Minimal light backdrop */}
+      <section className="relative py-20 overflow-hidden bg-white border-b border-[#0A2E1F]/5">
+        
+        {/* Subtle decorative background gradient */}
+        <div className="absolute inset-0 z-0 pointer-events-none select-none">
+          <div className="absolute w-[350px] h-[350px] top-[-10%] left-[-10%] bg-[#76C945]/5 rounded-full filter blur-[100px]" />
+          <div className="absolute w-[350px] h-[350px] bottom-[-10%] right-[-10%] bg-[#C5A059]/3 rounded-full filter blur-[100px]" />
+        </div>
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            {/* Vital Agro Logo inside Page Header */}
-            <div className="inline-block bg-white/15 backdrop-blur-md rounded-xl px-4 py-2 mb-4 shadow-lg shadow-white/5">
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }} 
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            {/* Logo cluster */}
+            <div className="inline-block bg-[#0A2E1F]/5 backdrop-blur-md rounded-2xl px-5 py-2 mb-4 border border-[#0A2E1F]/5">
               <img
                 src={vitalAgroLogo}
                 alt="Vital Agro Logo"
-                className="h-11 w-auto mx-auto object-contain drop-shadow-[0_0_12px_rgba(255,255,255,0.3)]"
+                className="h-10 sm:h-12 w-auto mx-auto object-contain"
               />
             </div>
-            <span className="text-sm font-black tracking-widest uppercase text-[#76C945]">
-              {lang === 'en' ? 'Our Premium Range' : 'ہماری بہترین پروڈکٹس'}
+            <span className="text-xs font-black tracking-widest uppercase text-[#76C945] block mt-2">
+              {lang === 'en' ? 'Apple Store Premium Catalog' : 'پریمیئم پراڈکٹ کیٹلاگ'}
             </span>
-            <h1 className="text-4xl sm:text-5xl font-black text-white mt-2 mb-4">
-              {lang === 'en' ? 'Products & Solutions' : 'زرعی مصنوعات اور حل'}
+            <h1 className="text-4xl sm:text-5xl font-black text-[#0A2E1F] mt-2 mb-4 tracking-tight leading-none">
+              {lang === 'en' ? 'Agricultural Products' : 'زرعی مصنوعات اور حل'}
             </h1>
-            <p className="text-white/30 text-xs">{t.footer.tagline}</p>
-            <p className="text-center text-white/70 mt-2">Raman Urdu</p>
-            <p className="text-white/60 text-lg max-w-2xl mx-auto">
+            <p className="text-[#0A2E1F]/60 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
               {lang === 'en' 
-                ? 'Explore our premium crop protection, plant nutrition, and growth promoter formulas.'
+                ? 'Discover our high-efficacy formulas utilizing imported formulations for maximum crop yields.'
                 : 'ہماری بہترین کوالٹی کی کیڑے مار ادویات، فنگس کش، اور پلانٹ نیوٹریشن دیکھیں۔'}
             </p>
           </motion.div>
         </div>
       </section>
-{/* Mobile Video Section */}
-<section className="block md:hidden py-8 mobile-video-section">
-  <video
-    ref={videoRef2}
-    autoPlay
-    loop
-    muted
-    playsInline
-    preload="metadata"
-    className="w-full h-auto object-cover"
-    style={{ transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
-  >
-    <source src={vitalBg} type="video/mp4" />
-  </video>
-</section>
 
-      {/* Filters & Sticky bar */}
-      <section className="py-8 border-b border-border sticky top-20 z-30 bg-background/95 backdrop-blur-xl">
+      {/* 2. Sticky Filtering Bar: Apple Store Navigation Pills */}
+      <section className="py-6 border-b border-[#0A2E1F]/5 sticky top-20 z-30 bg-white/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
+            {/* Category selection pills */}
             <div className="flex gap-2 flex-wrap w-full lg:w-auto">
               {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
                 <button
                   key={key}
                   onClick={() => setCategory(key)}
-                  className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all ${
+                  className={`px-4.5 py-2.5 rounded-full text-xs font-black transition-all ${
                     category === key
-                      ? 'bg-[#0A2E1F] text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      ? 'bg-[#0A2E1F] text-white shadow-md shadow-[#0A2E1F]/15'
+                      : 'bg-[#0A2E1F]/5 text-[#0A2E1F]/70 hover:bg-[#0A2E1F]/10 hover:text-[#0A2E1F]'
                   }`}
                 >
                   {label}
                 </button>
               ))}
             </div>
-            <div className="relative w-full lg:w-72">
-              <Search className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground`} />
+
+            {/* Keyword Search Input */}
+            <div className="relative w-full lg:w-80">
+              <Search className={`absolute ${isRTL ? 'right-3.5' : 'left-3.5'} top-1/2 -translate-y-1/2 w-4 h-4 text-[#0A2E1F]/40`} />
               <Input
-                placeholder={lang === 'en' ? "Search products..." : "پروڈکٹ تلاش کریں..."}
+                placeholder={lang === 'en' ? "Search premium products..." : "پروڈکٹ تلاش کریں..."}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className={isRTL ? "pr-10 pl-4 text-right" : "pl-10 pr-4"}
+                className={`h-11 border-[#0A2E1F]/15 focus:border-[#76C945] rounded-full focus:ring-2 focus:ring-[#76C945]/20 bg-[#F4F7F5]/50 ${isRTL ? "pr-11 pl-4 text-right" : "pl-11 pr-4"}`}
               />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Products Grid */}
-      <section className="py-16">
+      {/* 3. Products Catalog Grid Section */}
+      <section className="py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Crop Filter Box */}
-          <CropFilter onCropSelect={setActiveCrop} activeCrop={activeCrop} />
+          {/* Crop Filter Selection */}
+          <div className="mb-10 bg-white p-6 rounded-3xl border border-[#0A2E1F]/5 shadow-sm">
+            <CropFilter onCropSelect={setActiveCrop} activeCrop={activeCrop} />
+          </div>
           
-          {isDbLoading && products.length === 0 ? (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="bg-card rounded-2xl border border-border p-6 animate-pulse">
-                  <div className="aspect-square bg-muted rounded-xl mb-4" />
-                  <div className="h-5 bg-muted rounded w-2/3 mb-2" />
-                  <div className="h-4 bg-muted rounded w-full" />
-                </div>
+          {/* Animated Products Grid */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={category + search + lang + (activeCrop ? activeCrop.name : '')}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 justify-items-center"
+            >
+              {filtered.map((product, i) => (
+                <motion.div
+                  key={product.slug}
+                  initial={{ opacity: 0, y: 25 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.03, duration: 0.5 }}
+                >
+                  <ProductCard
+                    product={product}
+                    index={i}
+                    lang={lang}
+                    wishlist={wishlist}
+                    toggleWishlist={toggleWishlist}
+                    addToCart={addToCart}
+                  />
+                </motion.div>
               ))}
-            </div>
-          ) : (
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={category + search + lang + (activeCrop ? activeCrop.name : '')}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-              >
-                {filtered.map((product, i) => {
-                  const catLabel = CATEGORY_LABELS[product.category] || product.category;
-                  return (
-                    <motion.div
-                      key={product.slug}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.04 }}
-                      className="group bg-card rounded-3xl border border-border overflow-hidden hover:border-[#76C945]/30 hover:shadow-2xl transition-all duration-500 relative flex flex-col justify-between h-full premium-card-3d premium-card-3d-reflection"
-                    >
-                      <Link
-                        to={`/products/${product.slug}`}
-                        className="flex-grow flex flex-col justify-between"
-                      >
-                        {/* Packaging Container */}
-                        <div className="relative aspect-square p-6 flex items-center justify-center bg-gradient-to-b from-muted/50 to-transparent">
-                          <img
-                            src={product.imageUrl}
-                            alt={product.name[lang]}
-                            className="max-h-48 w-auto object-contain group-hover:scale-105 transition-transform duration-500"
-                            loading="lazy"
-                          />
-                          <div className="absolute top-3 left-3">
-                            <span className="px-3 py-1 bg-[#C5A059]/10 text-[#C5A059] text-[10px] font-black rounded-full border border-[#C5A059]/20 uppercase">
-                              {catLabel}
-                            </span>
-                          </div>
-                          {/* Vital Agro Corporate Logo Badge inside each card */}
-                          <div className="absolute top-3 right-3 bg-white/60 backdrop-blur-sm px-2 py-1 rounded-md border border-white/20">
-                            <img
-                              src={vitalAgroLogo}
-                              alt="Vital Agro Badge"
-                              className="h-3 w-auto object-contain"
-                            />
-                          </div>
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
-                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-[#76C945] text-[#0A2E1F] text-sm font-black rounded-full shadow-lg">
-                              <Eye className="w-4 h-4" />
-                              {lang === 'en' ? 'View Details' : 'تفصیلات دیکھیں'}
-                            </span>
-                          </div>
-                        </div>
+            </motion.div>
+          </AnimatePresence>
 
-                        {/* Description Section */}
-                        <div className="p-5 pb-0 flex-grow">
-                          <h3 className="font-black text-foreground text-lg group-hover:text-[#76C945] transition-colors">
-                            {product.name[lang]}
-                          </h3>
-                          <p className="text-muted-foreground text-xs mt-2 line-clamp-2 leading-relaxed">
-                            {product.description[lang]}
-                          </p>
-                          <div className="flex justify-between items-center mt-4 pt-3 border-t border-border/60">
-                            {product.formulation && (
-                              <span className="px-2.5 py-0.5 bg-muted text-muted-foreground text-[10px] font-bold rounded-full border border-border">
-                                {product.formulation}
-                              </span>
-                            )}
-                            <span className="text-[10px] font-bold text-primary tracking-widest uppercase">
-                              {product.productCode}
-                            </span>
-                          </div>
-                        </div>
-                      </Link>
-
-                      {/* WhatsApp Purchase CTA */}
-                      <div className="p-5 pt-3">
-                        <a
-                          href={getWhatsAppLinkForProduct(product, lang)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full inline-flex items-center justify-center gap-2 py-3 btn-premium-whatsapp rounded-2xl text-xs font-black shadow-sm uppercase tracking-wider min-h-[48px]"
-                        >
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                          </svg>
-                          <span>{lang === 'en' ? 'Buy on WhatsApp' : 'واٹس ایپ پر خریدیں'}</span>
-                        </a>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
-            </AnimatePresence>
-          )}
-
-          {!isDbLoading && filtered.length === 0 && (
-            <div className="text-center py-20">
-              <p className="text-muted-foreground text-lg">
-                {lang === 'en' ? 'No products found matching your criteria.' : 'آپ کے معیار کے مطابق کوئی مصنوعات نہیں ملیں۔'}
+          {/* Empty state details */}
+          {filtered.length === 0 && (
+            <div className="text-center py-20 bg-white rounded-3xl border border-[#0A2E1F]/5 p-8 max-w-xl mx-auto shadow-sm">
+              <p className="text-muted-foreground text-sm font-bold">
+                {lang === 'en' ? 'No premium products found matching your filters.' : 'آپ کے معیار کے مطابق کوئی مصنوعات نہیں ملیں۔'}
               </p>
             </div>
           )}
         </div>
       </section>
+
     </div>
   );
 }

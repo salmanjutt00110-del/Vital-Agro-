@@ -5,6 +5,8 @@ import useVideoAutoplay from '@/hooks/useVideoAutoplay';
 
 // Import Assets
 import vitalBg from '@/assets/vital bg.mp4';
+import vitalBgWebm from '@/assets/vital_bg.webm';
+import vitalBgPoster from '@/assets/vital_bg_poster.webp';
 import vitalAgroLogo from '@/assets/vital agro logo.webp';
 import tagLogo from '@/assets/tag logo.webp';
 
@@ -25,9 +27,11 @@ export default function About() {
           muted
           playsInline
           preload="metadata"
+          poster={vitalBgPoster}
           className="absolute inset-0 w-full h-full object-cover opacity-20"
           style={{ transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
         >
+          <source src={vitalBgWebm} type="video/webm" />
           <source src={vitalBg} type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-[#0A2E1F]/90" />
@@ -60,9 +64,11 @@ export default function About() {
                   muted
                   playsInline
                   preload="metadata"
+                  poster={vitalBgPoster}
                   className="w-full h-full object-cover"
                   style={{ objectFit: 'cover', transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
                 >
+                  <source src={vitalBgWebm} type="video/webm" />
                   <source src={vitalBg} type="video/mp4" />
                 </video>
               </div>

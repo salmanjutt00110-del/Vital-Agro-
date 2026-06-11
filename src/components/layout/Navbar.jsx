@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Phone, MessageCircle, MapPin, Home, Info, ShoppingBag, Award, PhoneCall } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/lib/LanguageContext';
+import { useCart } from '@/lib/CartContext';
 import vitalAgroLogo from '@/assets/vital agro logo.webp';
 import vitalGroupLogo from '@/assets/vital group.webp';
 import tagLogo from '@/assets/tag logo.webp';
@@ -12,6 +13,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const { lang, setLang, t } = useLanguage();
+  const { cartCount, setIsCartOpen } = useCart();
 
   const NAV_LINKS = [
     { label: t.nav.home, path: '/', icon: Home },
@@ -22,8 +24,11 @@ export default function Navbar() {
   ];
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 40);
-    window.addEventListener('scroll', handleScroll);
+    const handleScroll = () => {
+      const nextScrolled = window.scrollY > 40;
+      setScrolled((prev) => (prev !== nextScrolled ? nextScrolled : prev));
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -72,6 +77,8 @@ Thank you.`;
               <img
                 src={vitalAgroLogo}
                 alt="Vital Agro Logo"
+                width="112"
+                height="48"
                 className={`h-10 sm:h-12 w-auto object-contain transition-all duration-300 ${!isLight ? 'drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]' : 'drop-shadow-md'}`}
               />
             </div>
@@ -81,6 +88,8 @@ Thank you.`;
               <img
                 src={vitalGroupLogo}
                 alt="Vital Group Logo"
+                width="88"
+                height="36"
                 className={`h-8 sm:h-9 w-auto object-contain transition-all duration-300 ${!isLight ? 'drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]' : 'drop-shadow-sm'}`}
               />
             </div>
@@ -90,6 +99,8 @@ Thank you.`;
               <img
                 src={tagLogo}
                 alt="Tag Logo"
+                width="64"
+                height="28"
                 className={`h-6 sm:h-7 w-auto object-contain transition-all duration-300 ${!isLight ? 'drop-shadow-[0_0_6px_rgba(255,255,255,0.3)]' : 'opacity-70'}`}
               />
             </div>
@@ -128,6 +139,23 @@ Thank you.`;
               <Phone className="w-4 h-4" />
               <span>{t.nav.phone}</span>
             </a>
+
+            {/* Cart Icon Toggle */}
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className={`relative p-2 rounded-full border transition-all duration-300 hover:scale-105 active:scale-95
+                ${isLight
+                  ? 'border-[#0A2E1F]/20 text-[#0A2E1F] bg-[#0A2E1F]/5 hover:bg-[#0A2E1F]/10'
+                  : 'border-white/30 text-white bg-white/10 hover:bg-white/20'
+                }`}
+            >
+              <ShoppingBag className="w-4.5 h-4.5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-[#76C945] text-[#0A2E1F] text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center border border-[#0A2E1F]/20 animate-pulse">
+                  {cartCount}
+                </span>
+              )}
+            </button>
 
             {/* Language Switcher */}
             <motion.button
@@ -168,8 +196,20 @@ Thank you.`;
             </a>
           </div>
 
-          {/* Mobile: Lang + Toggle */}
+          {/* Mobile: Lang + Cart + Toggle */}
           <div className="lg:hidden flex items-center gap-2">
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className={`relative p-2 rounded-full border transition-all
+                ${isLight ? 'border-[#0A2E1F]/20 text-[#0A2E1F] bg-[#0A2E1F]/5' : 'border-white/30 text-white bg-white/10'}`}
+            >
+              <ShoppingBag className="w-4 h-4" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[#76C945] text-[#0A2E1F] text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+            </button>
             <motion.button
               onClick={() => setLang(lang === 'en' ? 'ur' : 'en')}
               className={`px-2.5 py-1 rounded-full text-xs font-bold border transition-all

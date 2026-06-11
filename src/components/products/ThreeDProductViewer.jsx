@@ -10,7 +10,7 @@ import * as THREE from 'three';
  */
 export default function ThreeDProductViewer({ imageUrl, name }) {
   const mountRef = useRef(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const isDraggingRef = useRef(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -63,6 +63,14 @@ export default function ThreeDProductViewer({ imageUrl, name }) {
     const bottleGroup = new THREE.Group();
     scene.add(bottleGroup);
 
+    // Keep references to geometries and materials for proper GPU cleanup
+    let bodyGeom = null;
+    let neckGeom = null;
+    let capGeom = null;
+    let glassMaterial = null;
+    let neckMaterial = null;
+    let capMaterial = null;
+
     textureLoader.load(
       imageUrl,
       (texture) => {
@@ -77,7 +85,7 @@ export default function ThreeDProductViewer({ imageUrl, name }) {
 
         // 5. Materials
         // Realistic clearcoat physical glass cylinder
-        const glassMaterial = new THREE.MeshPhysicalMaterial({
+        glassMaterial = new THREE.MeshPhysicalMaterial({
           color: 0xffffff,
           transparent: true,
           opacity: 0.95,
@@ -92,7 +100,7 @@ export default function ThreeDProductViewer({ imageUrl, name }) {
           side: THREE.DoubleSide,
         });
 
-        const capMaterial = new THREE.MeshStandardMaterial({
+        capMaterial = new THREE.MeshStandardMaterial({
           color: 0x072519, // Corporate Dark Green Cap
           roughness: 0.3,
           metalness: 0.8,
@@ -100,25 +108,26 @@ export default function ThreeDProductViewer({ imageUrl, name }) {
 
         // 6. Bottle Geometry
         // Main bottle body (cylinder)
-        const bodyGeom = new THREE.CylinderGeometry(1.2, 1.2, 3.2, 64, 1, false);
+        bodyGeom = new THREE.CylinderGeometry(1.2, 1.2, 3.2, 64, 1, false);
         const bodyMesh = new THREE.Mesh(bodyGeom, glassMaterial);
         bodyMesh.position.y = -0.3;
         bottleGroup.add(bodyMesh);
 
         // Bottle neck (tapered)
-        const neckGeom = new THREE.CylinderGeometry(0.8, 1.2, 0.6, 64);
-        const neckMesh = new THREE.Mesh(neckGeom, new THREE.MeshPhysicalMaterial({
+        neckGeom = new THREE.CylinderGeometry(0.8, 1.2, 0.6, 64);
+        neckMaterial = new THREE.MeshPhysicalMaterial({
           color: 0xffffff,
           roughness: 0.1,
           transmission: 0.9,
           thickness: 0.5,
           ior: 1.5
-        }));
+        });
+        const neckMesh = new THREE.Mesh(neckGeom, neckMaterial);
         neckMesh.position.y = 1.6;
         bottleGroup.add(neckMesh);
 
         // Bottle cap
-        const capGeom = new THREE.CylinderGeometry(0.45, 0.45, 0.45, 32);
+        capGeom = new THREE.CylinderGeometry(0.45, 0.45, 0.45, 32);
         const capMesh = new THREE.Mesh(capGeom, capMaterial);
         capMesh.position.y = 2.12;
         bottleGroup.add(capMesh);
@@ -142,13 +151,13 @@ export default function ThreeDProductViewer({ imageUrl, name }) {
     let targetRotationY = 0;
 
     const handlePointerDown = (e) => {
-      setIsDragging(true);
+      isDraggingRef.current = true;
       pointerX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
       pointerY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
     };
 
     const handlePointerMove = (e) => {
-      if (!isDragging) return;
+      if (!isDraggingRef.current) return;
       const currentX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
       const currentY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
       
@@ -164,7 +173,7 @@ export default function ThreeDProductViewer({ imageUrl, name }) {
     };
 
     const handlePointerUp = () => {
-      setIsDragging(false);
+      isDraggingRef.current = false;
     };
 
     // Attach listeners
@@ -195,7 +204,7 @@ export default function ThreeDProductViewer({ imageUrl, name }) {
       bottleGroup.rotation.x = Math.max(-Math.PI / 6, Math.min(Math.PI / 6, bottleGroup.rotation.x));
 
       // Slow automatic floating and idle rotation when NOT dragging
-      if (!isDragging) {
+      if (!isDraggingRef.current) {
         // Slow float
         bottleGroup.position.y = Math.sin(elapsedTime * 1.5) * 0.15;
         // Slow rotation
@@ -231,12 +240,22 @@ export default function ThreeDProductViewer({ imageUrl, name }) {
       window.removeEventListener('touchend', handlePointerUp);
 
       cancelAnimationFrame(animationId);
+
+      // Dispose Three.js geometries, materials, and textures to avoid GPU memory leaks
+      if (bodyGeom) bodyGeom.dispose();
+      if (neckGeom) neckGeom.dispose();
+      if (capGeom) capGeom.dispose();
+      if (glassMaterial) glassMaterial.dispose();
+      if (neckMaterial) neckMaterial.dispose();
+      if (capMaterial) capMaterial.dispose();
+      if (productTexture) productTexture.dispose();
+
       renderer.dispose();
       if (currentMount.contains(renderer.domElement)) {
         currentMount.removeChild(renderer.domElement);
       }
     };
-  }, [imageUrl, isDragging]);
+  }, [imageUrl]);
 
   return (
     <div className="relative w-full h-full flex items-center justify-center select-none">

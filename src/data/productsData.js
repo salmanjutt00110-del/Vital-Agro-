@@ -10,6 +10,19 @@ import sectorImg from '@/assets/sector.webp';
 import outputImg from '@/assets/output.webp';
 import super4gImg from '@/assets/super-4g.webp';
 import farbasinImg from '@/assets/FARBASIN.webp';
+// Premium PNG Images for Glass Showcase System
+import fattyPng from '@/vital product/Fatty.png';
+import conferencePng from '@/vital product/Conference Gold.png';
+import easyGrowPng from '@/vital product/Easy Grow.png';
+import purifizinPng from '@/vital product/Purifizin.png';
+import aaqaabPng from '@/vital product/Aaqaab.png';
+import drPpPng from '@/vital product/Dr.pp.png';
+import vacZincPng from '@/vital product/Vac Zinc.png';
+import sectorPng from '@/vital product/sECTOR.png';
+import outputPng from '@/vital product/Output.png';
+import super4gPng from '@/vital product/4g.png';
+import farbasinPng from '@/vital product/Farbasin.png';
+
 
 export const PRODUCTS_DATA = {
   "fatty": {
@@ -28,6 +41,23 @@ export const PRODUCTS_DATA = {
     },
     category: "plant_nutrition",
     imageUrl: fattyImg,
+    pngUrl: fattyPng,
+    rating: 4.9,
+    importedFormulaBadge: true,
+    premiumProductBadge: true,
+    researchBasedBadge: true,
+    shortDesc: {
+      en: "Fatty is an organic plant nutrition bio-stimulant that enhances vegetative growth and crop tolerance to stress.",
+      ur: "فیٹی ایک نامیاتی بائیو اسٹیمولینٹ ہے جو فصل کی بڑھوتری اور شدید موسمی حالات کا مقابلہ کرنے کی صلاحیت کو بڑھاتا ہے۔"
+    },
+    seoTitle: "Fatty Bio-Stimulant & Plant Nutrition | Vital Agro",
+    seoDescription: "Buy Fatty Bio-Stimulant online. Promotes crop growth, cell division, and drought tolerance using organic fatty acids. Available in multiple pack sizes.",
+    sizes: [
+      { size: "250 ML", price: 999, oldPrice: 1299, stockStatus: "In Stock", sku: "VA-FAT-250", weight: "250g" },
+      { size: "500 ML", price: 1499, oldPrice: 1999, stockStatus: "In Stock", sku: "VA-FAT-500", weight: "500g" },
+      { size: "1 Litre", price: 2499, oldPrice: 3299, stockStatus: "In Stock", sku: "VA-FAT-1L", weight: "1kg" },
+      { size: "5 Litre", price: 9999, oldPrice: 12999, stockStatus: "Low Stock", sku: "VA-FAT-5L", weight: "5kg" }
+    ],
     formulation: "10% SL",
     activeIngredient: "Organic Fatty Acids & Micronutrients",
     packaging: "250ml, 500ml, 1L",
@@ -183,6 +213,22 @@ export const PRODUCTS_DATA = {
     },
     category: "insecticide",
     imageUrl: conferenceImg,
+    pngUrl: conferencePng,
+    rating: 4.8,
+    importedFormulaBadge: true,
+    premiumProductBadge: true,
+    researchBasedBadge: true,
+    shortDesc: {
+      en: "Conference Gold provides dual-action systemic protection against a wide spectrum of chewing and sucking pests.",
+      ur: "کانفرنس گولڈ فصلوں کو چوسنے اور چبانے والے کیڑوں کے خلاف دوہرے عمل کے ساتھ دیرپا تحفظ فراہم کرتا ہے۔"
+    },
+    seoTitle: "Conference Gold Dual-Action Insecticide | Vital Agro",
+    seoDescription: "Buy Conference Gold premium insecticide. Dual systemic and contact protection against aphid, thrips, jassid, and whiteflies. Order on WhatsApp or checkout.",
+    sizes: [
+      { size: "100 ML", price: 799, oldPrice: 999, stockStatus: "In Stock", sku: "VA-CG-100", weight: "100g" },
+      { size: "250 ML", price: 1499, oldPrice: 1999, stockStatus: "In Stock", sku: "VA-CG-250", weight: "250g" },
+      { size: "500 ML", price: 2499, oldPrice: 3299, stockStatus: "In Stock", sku: "VA-CG-500", weight: "500g" }
+    ],
     formulation: "15% SC",
     activeIngredient: "Imidacloprid 10% + Beta-Cyfluthrin 5%",
     packaging: "100ml, 250ml, 500ml",
@@ -331,6 +377,22 @@ export const PRODUCTS_DATA = {
     },
     category: "growth_promoter",
     imageUrl: easyGrowImg,
+    pngUrl: easyGrowPng,
+    rating: 4.9,
+    importedFormulaBadge: true,
+    premiumProductBadge: true,
+    researchBasedBadge: true,
+    shortDesc: {
+      en: "Easy Grow is an elite organic growth promoter containing GA3, Potassium Humate, and Fulvic Acid for stem elongation.",
+      ur: "ایزی گرو پودوں کی نشوونما، قد بڑھانے اور جڑوں کے پھیلاؤ کے لیے ایک بہترین آرگینک گروتھ پروموٹر ہے۔"
+    },
+    seoTitle: "Easy Grow Growth Promoter & Humic Acid | Vital Agro",
+    seoDescription: "Enrich crop soil with Easy Grow. Plant growth regulator containing highly active Gibberellic Acid and Potassium Humate for root expansion and grain filling.",
+    sizes: [
+      { size: "200 ML", price: 999, oldPrice: 1299, stockStatus: "In Stock", sku: "VA-EG-200", weight: "200g" },
+      { size: "500 ML", price: 1499, oldPrice: 1999, stockStatus: "In Stock", sku: "VA-EG-500", weight: "500g" },
+      { size: "1 Litre", price: 2499, oldPrice: 3299, stockStatus: "In Stock", sku: "VA-EG-1L", weight: "1kg" }
+    ],
     formulation: "Liquid SL",
     activeIngredient: "Gibberellic Acid + Humic Acid + Fulvic Acid",
     packaging: "200ml, 500ml, 1L",
@@ -475,6 +537,22 @@ export const PRODUCTS_DATA = {
     },
     category: "fungicide",
     imageUrl: purifizinImg,
+    pngUrl: purifizinPng,
+    rating: 4.7,
+    importedFormulaBadge: true,
+    premiumProductBadge: true,
+    researchBasedBadge: true,
+    shortDesc: {
+      en: "Purifizin Extra is a premium broad-spectrum fungicide with systemic and curative action against blights and rusts.",
+      ur: "پیوریفیزن ایکسٹرا جھلساؤ، کنگی اور فنگس کی دوسری بیماریوں کے خلاف سسٹمک اور حفاظتی اثر رکھنے والی دوا ہے۔"
+    },
+    seoTitle: "Purifizin Extra Systemic Fungicide | Vital Agro",
+    seoDescription: "Protect crops from potato blight, wheat rust, and powdery mildew using Purifizin Extra. Premium broad-spectrum systemic fungicide with diffenoconazole.",
+    sizes: [
+      { size: "250 ML", price: 1299, oldPrice: 1699, stockStatus: "In Stock", sku: "VA-PE-250", weight: "250g" },
+      { size: "500 ML", price: 2199, oldPrice: 2899, stockStatus: "In Stock", sku: "VA-PE-500", weight: "500g" },
+      { size: "1 Litre", price: 3999, oldPrice: 4999, stockStatus: "Low Stock", sku: "VA-PE-1L", weight: "1kg" }
+    ],
     formulation: "32.5% SC",
     activeIngredient: "Azoxystrobin 20% + Difenoconazole 12.5%",
     packaging: "100ml, 200ml, 400ml",
@@ -620,6 +698,22 @@ export const PRODUCTS_DATA = {
     },
     category: "insecticide",
     imageUrl: aaqaabImg,
+    pngUrl: aaqaabPng,
+    rating: 4.8,
+    importedFormulaBadge: true,
+    premiumProductBadge: true,
+    researchBasedBadge: true,
+    shortDesc: {
+      en: "Aaqaab is a premium acaricide/insecticide that provides long-lasting control of red mites and thrips.",
+      ur: "عقاب فصلوں پر سرخ جوئیں (مائٹس) اور تھرپس کے مکمل خاتمے کے لیے ایک انتہائی موثر اور جدید کیڑے مار دوا ہے۔"
+    },
+    seoTitle: "Aaqaab Premium Acaricide & Mite Control | Vital Agro",
+    seoDescription: "Eradicate red spider mites and thrips on cotton, wheat, and vegetables with Aaqaab. Highly concentrated liquid formula for quick knockdown and control.",
+    sizes: [
+      { size: "250 ML", price: 1499, oldPrice: 1999, stockStatus: "In Stock", sku: "VA-AAQ-250", weight: "250g" },
+      { size: "500 ML", price: 2499, oldPrice: 3299, stockStatus: "In Stock", sku: "VA-AAQ-500", weight: "500g" },
+      { size: "1 Litre", price: 4499, oldPrice: 5999, stockStatus: "In Stock", sku: "VA-AAQ-1L", weight: "1kg" }
+    ],
     formulation: "45% WDG",
     activeIngredient: "Emamectin Benzoate 5% + Lufenuron 40%",
     packaging: "100g, 200g, 500g",
@@ -765,6 +859,22 @@ export const PRODUCTS_DATA = {
     },
     category: "plant_nutrition",
     imageUrl: drPpImg,
+    pngUrl: drPpPng,
+    rating: 4.9,
+    importedFormulaBadge: true,
+    premiumProductBadge: true,
+    researchBasedBadge: true,
+    shortDesc: {
+      en: "Dr. pp offers ultimate protection against armyworms and lepidopteran pests in cotton, maize, and vegetables.",
+      ur: "ڈاکٹر پی پی فصلوں پر لشکر سنڈی، چتکبری سنڈی اور دیگر سنڈیوں کے خلاف موثر اور فوری اثر دکھاتا ہے۔"
+    },
+    seoTitle: "Dr. pp Lepidopteran Insecticide | Vital Agro",
+    seoDescription: "Control fall armyworm and fruit borer infestation in field crops and vegetables with Dr. pp. Dual systemic contact action formula. Shop or request quote.",
+    sizes: [
+      { size: "200 ML", price: 999, oldPrice: 1299, stockStatus: "In Stock", sku: "VA-DPP-200", weight: "200g" },
+      { size: "400 ML", price: 1899, oldPrice: 2499, stockStatus: "In Stock", sku: "VA-DPP-400", weight: "400g" },
+      { size: "1 Litre", price: 3999, oldPrice: 4999, stockStatus: "Low Stock", sku: "VA-DPP-1L", weight: "1kg" }
+    ],
     formulation: "Chelated Liquid",
     activeIngredient: "Amino Acids + Multi-Chelated Trace Elements + Plant Hormones",
     packaging: "250ml, 500ml, 1L",
@@ -910,6 +1020,22 @@ export const PRODUCTS_DATA = {
     },
     category: "plant_nutrition",
     imageUrl: vacZincImg,
+    pngUrl: vacZincPng,
+    rating: 4.8,
+    importedFormulaBadge: false,
+    premiumProductBadge: true,
+    researchBasedBadge: true,
+    shortDesc: {
+      en: "Vac Zinc is a highly concentrated zinc supplement to resolve zinc deficiencies and boost grain filling.",
+      ur: "ویک زنک پودوں میں زنک کی کمی کو پورا کرنے اور دانوں کی بھرائی کو یقینی بنانے کے لیے بہترین مائع زنک ہے۔"
+    },
+    seoTitle: "Vac Zinc Highly Concentrated Supplement | Vital Agro",
+    seoDescription: "Boost crop yield, enzymatic activity, and root health with Vac Zinc liquid supplement. Formulated for paddy rice, maize, and wheat. Shop local or buy online.",
+    sizes: [
+      { size: "5 Litre", price: 4999, oldPrice: 6499, stockStatus: "In Stock", sku: "VA-VZ-5L", weight: "5kg" },
+      { size: "10 Litre", price: 8999, oldPrice: 11999, stockStatus: "In Stock", sku: "VA-VZ-10L", weight: "10kg" },
+      { size: "20 Litre", price: 16999, oldPrice: 21999, stockStatus: "Low Stock", sku: "VA-VZ-20L", weight: "20kg" }
+    ],
     formulation: "12% Powder",
     activeIngredient: "Chelated Zinc (Zn-EDTA 12%)",
     packaging: "250g, 500g, 1kg",
@@ -1054,6 +1180,21 @@ export const PRODUCTS_DATA = {
     },
     category: "herbicide",
     imageUrl: sectorImg,
+    pngUrl: sectorPng,
+    rating: 4.7,
+    importedFormulaBadge: false,
+    premiumProductBadge: true,
+    researchBasedBadge: true,
+    shortDesc: {
+      en: "Sector is a premium soil supplement rich in essential minerals for vegetative growth and soil health.",
+      ur: "سیکٹر زمین کی زرخیزی بڑھانے اور فصل کو بنیادی معدنیات فراہم کرنے کے لیے ایک شاندار زمینی سپلیمنٹ ہے۔"
+    },
+    seoTitle: "Sector Soil Mineral Supplement | Vital Agro",
+    seoDescription: "Improve soil texture, crop vigor, and nutrient uptake with Sector soil granules. Packed with rich chelated secondary and trace elements. 4KG and 8KG packs.",
+    sizes: [
+      { size: "4 KG", price: 1499, oldPrice: 1999, stockStatus: "In Stock", sku: "VA-SEC-4K", weight: "4kg" },
+      { size: "8 KG", price: 2799, oldPrice: 3599, stockStatus: "In Stock", sku: "VA-SEC-8K", weight: "8kg" }
+    ],
     formulation: "16% WP",
     activeIngredient: "Acetochlor 14% + Bensulfuron Methyl 2%",
     packaging: "100g, 150g, 250g",
@@ -1189,6 +1330,22 @@ export const PRODUCTS_DATA = {
     },
     category: "plant_nutrition",
     imageUrl: outputImg,
+    pngUrl: outputPng,
+    rating: 4.8,
+    importedFormulaBadge: false,
+    premiumProductBadge: true,
+    researchBasedBadge: true,
+    shortDesc: {
+      en: "Output Humic Acid stimulates soil biological activity, improves root mass, and enhances fertilizer efficiency.",
+      ur: "آؤٹ پٹ ہیومک ایسڈ زمین کے نامیاتی مادے کو بڑھاتا ہے، جڑوں کو وسعت دیتا ہے اور کھادوں کی کارکردگی کو بہتر بناتا ہے۔"
+    },
+    seoTitle: "Output Humic Acid Soil Granules | Vital Agro",
+    seoDescription: "Increase root volume and NPK absorption efficiency. Output organic humic acid stimulates soil microbes, unlocks phosphate, and builds crop resilience.",
+    sizes: [
+      { size: "1 KG", price: 799, oldPrice: 999, stockStatus: "In Stock", sku: "VA-OUT-1K", weight: "1kg" },
+      { size: "8 KG", price: 4499, oldPrice: 5799, stockStatus: "In Stock", sku: "VA-OUT-8K", weight: "8kg" },
+      { size: "25 KG", price: 12999, oldPrice: 16999, stockStatus: "Out of Stock", sku: "VA-OUT-25K", weight: "25kg" }
+    ],
     formulation: "PK Liquid Concentrate",
     activeIngredient: "Phosphorus + Potassium + Boron",
     packaging: "250ml, 500ml, 1L",
@@ -1333,6 +1490,21 @@ export const PRODUCTS_DATA = {
     },
     category: "insecticide",
     imageUrl: super4gImg,
+    pngUrl: super4gPng,
+    rating: 4.9,
+    importedFormulaBadge: true,
+    premiumProductBadge: true,
+    researchBasedBadge: true,
+    shortDesc: {
+      en: "Super 4G is a soil-applied systemic granular insecticide for controlling stem borers in rice and sugarcane.",
+      ur: "سوپر فور جی دھان اور کماد میں تنے کی سنڈی اور ڈیڈ ہارٹ کی روک تھام کے لیے ایک دانے دار سسٹمک دوا ہے۔"
+    },
+    seoTitle: "Super 4G Granular Stem Borer Control | Vital Agro",
+    seoDescription: "Stop stem borer attack and dead hearts in rice paddy and sugarcane. Super 4G granular systemic insecticide. Safe for earthworms. Broadcast with urea.",
+    sizes: [
+      { size: "4 KG", price: 1999, oldPrice: 2499, stockStatus: "In Stock", sku: "VA-S4G-4K", weight: "4kg" },
+      { size: "8 KG", price: 3499, oldPrice: 4499, stockStatus: "In Stock", sku: "VA-S4G-8K", weight: "8kg" }
+    ],
     formulation: "4% Granular",
     activeIngredient: "Cartap Hydrochloride 4%",
     packaging: "4kg, 8kg Bags",
@@ -1475,6 +1647,22 @@ export const PRODUCTS_DATA = {
     },
     category: "fungicide",
     imageUrl: farbasinImg,
+    pngUrl: farbasinPng,
+    rating: 4.8,
+    importedFormulaBadge: true,
+    premiumProductBadge: true,
+    researchBasedBadge: true,
+    shortDesc: {
+      en: "Farbasin is a systemic fungicide powder designed to cure powdery mildew, leaf spot, and rice blast.",
+      ur: "فار بیسن پاؤڈر فصلوں کو سفوفی پھپھوند، پتوں کے دھبے اور بلاسٹ کی بیماریوں سے طویل تحفظ فراہم کرتا ہے۔"
+    },
+    seoTitle: "Farbasin Carbendazim Systemic Fungicide | Vital Agro",
+    seoDescription: "Cure mango anthracnose, powdery mildew, and paddy rice blast. Farbasin 50% WP systemic fungicide powder dissolves completely. Highly cost effective.",
+    sizes: [
+      { size: "250 G", price: 999, oldPrice: 1299, stockStatus: "In Stock", sku: "VA-FAR-250", weight: "250g" },
+      { size: "500 G", price: 1799, oldPrice: 2299, stockStatus: "In Stock", sku: "VA-FAR-500", weight: "500g" },
+      { size: "1 KG", price: 3299, oldPrice: 4299, stockStatus: "Low Stock", sku: "VA-FAR-1K", weight: "1kg" }
+    ],
     formulation: "50% WP",
     activeIngredient: "Carbendazim 50%",
     packaging: "250g, 500g",

@@ -27,9 +27,17 @@ export default function CropFilter({ onCropSelect, activeCrop }) {
           activeCrop ? 'border-[#76C945]/50 bg-[#76C945]/5' : 'border-border bg-card'
         }`}
       >
-        <button
+        <div
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center justify-between px-6 py-4 hover:bg-muted/30 transition-colors"
+          className="w-full flex items-center justify-between px-6 py-4 hover:bg-muted/30 cursor-pointer select-none transition-colors"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setIsOpen(!isOpen);
+            }
+          }}
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#76C945]/15 flex items-center justify-center">
@@ -59,7 +67,7 @@ export default function CropFilter({ onCropSelect, activeCrop }) {
               </svg>
             </motion.div>
           </div>
-        </button>
+        </div>
 
         <AnimatePresence>
           {isOpen && (

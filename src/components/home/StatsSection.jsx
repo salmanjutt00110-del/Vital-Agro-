@@ -1,35 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
+import React from 'react';
+import { motion } from 'framer-motion';
 import { Award, Package, Users, Tractor, ThumbsUp } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
-
-function Counter({ target, suffix }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
-
-  useEffect(() => {
-    if (!isInView) return;
-    let start = 0;
-    const step = Math.ceil(target / 60);
-    const timer = setInterval(() => {
-      start += step;
-      if (start >= target) {
-        setCount(target);
-        clearInterval(timer);
-      } else {
-        setCount(start);
-      }
-    }, 30);
-    return () => clearInterval(timer);
-  }, [isInView, target]);
-
-  return (
-    <span ref={ref} className="text-3xl sm:text-4xl font-extrabold text-foreground tabular-nums">
-      {count.toLocaleString()}{suffix}
-    </span>
-  );
-}
+import GlassCard from '@/components/ui/GlassCard';
+import CountUp from '@/components/ui/CountUp';
 
 const statColors = [
   { bg: 'bg-[#76C945]/10', icon: 'text-[#76C945]', glow: 'hover:shadow-[#76C945]/5' },
@@ -57,31 +31,41 @@ export default function StatsSection() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
+          transition={{ duration: 0.8 }}
           className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/5 border border-border/60 p-8 sm:p-12 relative overflow-hidden"
         >
           {/* Subtle gradient shine */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#76C945]/[0.03] via-transparent to-[#C5A059]/[0.03] rounded-3xl" />
 
-          <div className="relative grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
+          <div className="relative grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
             {STATS.map((stat, i) => (
               <motion.div
                 key={stat.label}
                 initial={{ opacity: 0, y: 25 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.6 }}
-                className={`text-center group cursor-default p-4 rounded-2xl transition-all duration-300 hover:bg-card ${statColors[i].glow} hover:shadow-xl`}
+                transition={{ delay: i * 0.08, duration: 0.6 }}
+                className="w-full flex"
               >
-                <motion.div
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ type: 'spring', stiffness: 300 }}
-                  className={`w-14 h-14 rounded-2xl ${statColors[i].bg} flex items-center justify-center mx-auto mb-4`}
+                <GlassCard
+                  tilt={true}
+                  maxTilt={6}
+                  glow={true}
+                  lift={true}
+                  className="w-full p-5 text-center flex flex-col justify-between items-center bg-white/40 hover:bg-white/75"
                 >
-                  <stat.icon className={`w-6 h-6 ${statColors[i].icon}`} />
-                </motion.div>
-                <Counter target={stat.value} suffix={stat.suffix} />
-                <p className="text-sm text-muted-foreground mt-2 font-medium">{stat.label}</p>
+                  <motion.div
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    transition={{ type: 'spring', stiffness: 300 }}
+                    className={`w-14 h-14 rounded-2xl ${statColors[i % statColors.length].bg} flex items-center justify-center mb-4`}
+                  >
+                    <stat.icon className={`w-6 h-6 ${statColors[i % statColors.length].icon}`} />
+                  </motion.div>
+                  <div className="text-3xl sm:text-4xl font-extrabold text-[#0A2E1F] tracking-tight">
+                    <CountUp from={0} to={stat.value} suffix={stat.suffix} />
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2 font-medium leading-tight">{stat.label}</p>
+                </GlassCard>
               </motion.div>
             ))}
           </div>

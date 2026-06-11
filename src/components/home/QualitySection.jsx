@@ -2,6 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, FlaskConical, Microscope, ShieldCheck, Atom } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
+import GlassCard from '@/components/ui/GlassCard';
+import AnimatedText from '@/components/ui/AnimatedText';
 import researchLab from '@/assets/research_lab.webp';
 
 export default function QualitySection() {
@@ -17,8 +19,9 @@ export default function QualitySection() {
   return (
     <section className="py-24 relative overflow-hidden">
       {/* Premium gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#76C945]/[0.03] via-background to-[#C5A059]/[0.03]" />
-      {/* Subtle floating elements */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#76C945]/[0.03] via-background to-[#C5A059]/[0.03] pointer-events-none" />
+      
+      {/* Subtle floating background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(6)].map((_, i) => (
           <motion.div
@@ -39,121 +42,145 @@ export default function QualitySection() {
         ))}
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
+          
+          {/* Left Column: Copy & Process Steps */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
+            viewport={{ once: true, margin: "-10%" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
             <motion.span
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="inline-block text-sm font-black tracking-widest uppercase text-[#76C945] mb-4"
+              className="inline-block text-xs font-black tracking-widest uppercase text-[#76C945] mb-4"
             >
               {t.quality.badge}
             </motion.span>
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2, duration: 0.7 }}
-              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground mb-6 leading-tight"
-            >
-              {t.quality.title}
-            </motion.h2>
+            
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground mb-6 leading-tight">
+              <AnimatedText text={t.quality.title} />
+            </h2>
+            
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.3, duration: 0.7 }}
+              transition={{ delay: 0.2, duration: 0.7 }}
               className="text-muted-foreground text-lg leading-relaxed mb-10"
             >
               {t.quality.desc}
             </motion.p>
 
-            <div className="space-y-5">
+            <div className="space-y-4">
               {STEPS.map((step, i) => (
                 <motion.div
                   key={step.step}
                   initial={{ opacity: 0, x: -30 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: 0.3 + i * 0.12, duration: 0.6 }}
-                  className="flex gap-5 group p-4 rounded-2xl hover:bg-card hover:shadow-lg hover:shadow-[#76C945]/5 border border-transparent hover:border-border transition-all duration-400"
+                  transition={{ delay: 0.2 + i * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                  className="w-full"
                 >
-                  <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0A2E1F] to-[#0A2E1F]/80 text-white flex items-center justify-center font-black text-sm group-hover:from-[#76C945] group-hover:to-[#5BAD35] group-hover:text-[#0A2E1F] transition-all duration-400 shadow-lg">
-                    <step.icon className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-foreground mb-1 text-base">{step.title}</h4>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
-                  </div>
+                  <GlassCard
+                    tilt={true}
+                    maxTilt={3}
+                    glow={true}
+                    lift={true}
+                    className="flex gap-5 p-4 bg-white/40 hover:bg-white/90 border-[#0A2E1F]/5 hover:border-[#76C945]/20 hover:shadow-lg transition-all duration-300"
+                  >
+                    <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-[#0A2E1F] text-white flex items-center justify-center font-black text-sm group-hover:bg-[#76C945] group-hover:text-[#0A2E1F] transition-all duration-300 shadow-md">
+                      <step.icon className="w-6 h-6 text-[#76C945] group-hover:text-[#0A2E1F] transition-colors" />
+                    </div>
+                    <div>
+                      <h4 className="font-extrabold text-[#0A2E1F] mb-1 text-base">{step.title}</h4>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{step.desc}</p>
+                    </div>
+                  </GlassCard>
                 </motion.div>
               ))}
             </div>
           </motion.div>
 
+          {/* Right Column: Lab image with floating highlights */}
           <motion.div
             initial={{ opacity: 0, x: 40 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            viewport={{ once: true, margin: "-10%" }}
+            transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
             className="relative"
           >
-            {/* Glass image container */}
-            <div className="relative rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl border border-white/20">
+            {/* Laboratory Image wrapped in Glass */}
+            <GlassCard
+              tilt={true}
+              maxTilt={4}
+              glow={true}
+              lift={false}
+              className="relative rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl border border-white/20 bg-white"
+            >
               <img
                 src={researchLab}
                 alt="Research Laboratory"
+                width="600"
+                height="450"
                 className="w-full h-full object-cover"
                 loading="lazy"
               />
-              {/* Gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-[#0A2E1F]/40 via-transparent to-[#76C945]/10" />
-              {/* Glass reflection effect */}
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-                initial={{ x: '-100%' }}
-                whileInView={{ x: '200%' }}
-                viewport={{ once: true }}
-                transition={{ duration: 1.5, delay: 0.8, ease: 'easeInOut' }}
-              />
-            </div>
+              <div className="absolute inset-0 bg-gradient-to-tr from-[#0A2E1F]/30 via-transparent to-[#76C945]/5" />
+            </GlassCard>
 
-            {/* Floating chemistry icons */}
+            {/* Floating Science Badges */}
             <motion.div
-              animate={{ y: [-5, 10, -5], rotate: [0, 5, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute -top-4 -right-4 w-16 h-16 bg-white rounded-2xl shadow-xl flex items-center justify-center border border-border"
+              animate={{ y: [-6, 8, -6], rotate: [0, 4, 0] }}
+              transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+              className="absolute -top-4 -right-4 z-10"
             >
-              <FlaskConical className="w-7 h-7 text-[#76C945]" />
+              <GlassCard
+                tilt={true}
+                maxTilt={10}
+                className="w-16 h-16 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl flex items-center justify-center border border-white/40"
+              >
+                <FlaskConical className="w-7 h-7 text-[#76C945]" />
+              </GlassCard>
             </motion.div>
 
             <motion.div
-              animate={{ y: [5, -8, 5], rotate: [0, -3, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-              className="absolute -bottom-3 -left-3 w-14 h-14 bg-white rounded-2xl shadow-xl flex items-center justify-center border border-border"
+              animate={{ y: [6, -8, 6], rotate: [0, -3, 0] }}
+              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }}
+              className="absolute -bottom-3 -left-3 z-10"
             >
-              <Atom className="w-6 h-6 text-[#C5A059]" />
+              <GlassCard
+                tilt={true}
+                maxTilt={10}
+                className="w-14 h-14 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl flex items-center justify-center border border-white/40"
+              >
+                <Atom className="w-6 h-6 text-[#C5A059]" />
+              </GlassCard>
             </motion.div>
 
-            {/* Quality badge */}
+            {/* Quality Certification Card */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, scale: 0.85, y: 30 }}
+              whileInView={{ opacity: 1, scale: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.5 }}
-              className="absolute -bottom-6 -right-6 bg-gradient-to-br from-[#0A2E1F] to-[#0A2E1F]/90 text-white rounded-2xl p-6 shadow-2xl backdrop-blur-md border border-white/10"
+              transition={{ delay: 0.45, type: 'spring', stiffness: 90 }}
+              className="absolute -bottom-6 -right-6 z-10"
             >
-              <CheckCircle className="w-8 h-8 text-[#76C945] mb-2" />
-              <div className="font-black text-lg">{t.quality.iso}</div>
-              <div className="text-white/60 text-sm">{t.quality.isoDesc}</div>
+              <GlassCard
+                tilt={true}
+                maxTilt={6}
+                className="bg-gradient-to-br from-[#0A2E1F] to-[#0A2E1F]/90 text-white rounded-2xl p-5 shadow-2xl backdrop-blur-md border border-white/10 w-56"
+              >
+                <CheckCircle className="w-8 h-8 text-[#76C945] mb-2" />
+                <div className="font-extrabold text-base">{t.quality.iso}</div>
+                <div className="text-white/60 text-xs mt-0.5">{t.quality.isoDesc}</div>
+              </GlassCard>
             </motion.div>
           </motion.div>
+
         </div>
       </div>
     </section>

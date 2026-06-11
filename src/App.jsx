@@ -7,20 +7,30 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { LanguageProvider } from '@/lib/LanguageContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import { CartProvider } from '@/lib/CartContext';
+import CartDrawer from '@/components/cart/CartDrawer';
 
 import AppLayout from './components/layout/AppLayout';
-import Home from './pages/Home';
-import Products from './pages/Products';
-import ProductDetail from './pages/ProductDetail';
-import About from './pages/About';
-import WhyUs from './pages/WhyUs';
-import Contact from './pages/Contact';
-
-import Login from '@/pages/Login';
-import Register from '@/pages/Register';
-import ForgotPassword from '@/pages/ForgotPassword';
-import ResetPassword from '@/pages/ResetPassword';
 import Loader from '@/components/layout/Loader';
+import SmoothScroll from '@/components/layout/SmoothScroll';
+
+// Route-based Code Splitting using React.lazy
+const Home = React.lazy(() => import('./pages/Home'));
+const Products = React.lazy(() => import('./pages/Products'));
+const ProductDetail = React.lazy(() => import('./pages/ProductDetail'));
+const About = React.lazy(() => import('./pages/About'));
+const WhyUs = React.lazy(() => import('./pages/WhyUs'));
+const Contact = React.lazy(() => import('./pages/Contact'));
+const Login = React.lazy(() => import('@/pages/Login'));
+const Register = React.lazy(() => import('@/pages/Register'));
+const ForgotPassword = React.lazy(() => import('@/pages/ForgotPassword'));
+const ResetPassword = React.lazy(() => import('@/pages/ResetPassword'));
+
+const PageLoader = () => (
+  <div className="min-h-[60vh] flex items-center justify-center bg-[#F4F7F5] dark:bg-[#0A2E1F]">
+    <div className="w-10 h-10 rounded-full border-4 border-[#76C945] border-t-transparent animate-spin" />
+  </div>
+);
 import { AnimatePresence } from 'framer-motion';
 
 const AuthenticatedApp = () => {
@@ -50,18 +60,27 @@ function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
-        <AnimatePresence mode="wait">
-          {isAppLoading && (
-            <Loader onFinish={() => setIsAppLoading(false)} />
-          )}
-        </AnimatePresence>
-
-        <Router>
+        <CartProvider>
           <LanguageProvider>
-            {!isAppLoading && <AuthenticatedApp />}
+            <AnimatePresence mode="wait">
+              {isAppLoading && (
+                <Loader onFinish={() => setIsAppLoading(false)} />
+              )}
+            </AnimatePresence>
+
+            <SmoothScroll>
+              <Router>
+                {!isAppLoading && (
+                  <React.Suspense fallback={<PageLoader />}>
+                    <AuthenticatedApp />
+                  </React.Suspense>
+                )}
+              </Router>
+            </SmoothScroll>
+            <CartDrawer />
+            <Toaster />
           </LanguageProvider>
-        </Router>
-        <Toaster />
+        </CartProvider>
       </QueryClientProvider>
     </AuthProvider>
   )
