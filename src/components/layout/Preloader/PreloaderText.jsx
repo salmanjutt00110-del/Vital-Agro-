@@ -37,11 +37,17 @@ export default function PreloaderText({ isExiting }) {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="flex items-center justify-center text-[10px] font-black tracking-[0.3em] uppercase text-white/50"
+        className="flex items-center justify-center font-black uppercase text-white/50 w-full max-w-[90vw]"
+        style={{
+          fontSize: 'clamp(8px, 2.3vw, 11px)',
+          letterSpacing: '0.12em',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+        }}
       >
-        <Sparkles className="w-3.5 h-3.5 text-[#76C945] animate-pulse mr-2 flex-shrink-0" />
+        <Sparkles className="w-3 h-3 text-[#76C945] animate-pulse mr-1.5 flex-shrink-0" />
         
-        <div className="flex flex-wrap justify-center">
+        <div className="flex whitespace-nowrap overflow-hidden text-ellipsis">
           {textString.split('').map((char, index) => {
             if (char === ' ') {
               return <span key={index}>&nbsp;</span>;

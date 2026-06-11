@@ -37,8 +37,9 @@ export default function About() {
         <div className="absolute inset-0 bg-[#0A2E1F]/90" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <span className="text-sm font-bold tracking-widest uppercase text-[#76C945]">About Us</span>
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-white mt-4 mb-4">Our Story</h1>
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-white mt-4 mb-4">About Vital Agro Chemical Industries</h1>
+            <span className="text-sm font-bold tracking-widest uppercase text-[#76C945] block mt-2">About Us</span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white/80 mt-2 mb-4">Our Story</h2>
             <p className="text-white/60 text-lg max-w-2xl mx-auto">
               {"Pioneering agricultural excellence through premium formulations and unwavering commitment to farmer prosperity."}
             </p>

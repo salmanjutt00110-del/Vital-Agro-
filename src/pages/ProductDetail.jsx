@@ -10,8 +10,10 @@ import {
 import { useLanguage } from '@/lib/LanguageContext';
 import { getProductBySlug, PRODUCTS_DATA } from '@/data/productsData';
 import { useToast } from '@/components/ui/use-toast';
+import CODWhatsAppButton from '@/components/CODWhatsApp/CODWhatsAppButton';
 import { useCart } from '@/lib/CartContext';
 import useVideoAutoplay from '@/hooks/useVideoAutoplay';
+import SEOHead from '@/lib/seo/SEOHead';
 
 // Import local assets via standard React pipeline
 import vitalBg from '@/assets/vital bg.mp4';
@@ -422,10 +424,23 @@ Thank you.`;
   ];
 
   return (
-    <div className="min-h-screen bg-[#F4F7F5] overflow-x-hidden pt-20 select-none">
+    <div className="min-h-screen bg-[#F4F7F5] overflow-x-hidden pt-16 lg:pt-20 select-none">
+      <SEOHead
+        title={`${product.name[lang]} — Systemic Protection`}
+        description={product.shortDesc?.[lang] || product.description[lang]?.slice(0, 150) + "..."}
+        type="product"
+        product={{
+          name:         product.name.en || product.name,
+          price:        currentSize.price || 999,
+          currency:     'PKR',
+          sku:          currentSize.sku || product.productCode,
+          category:     product.category,
+          availability: currentSize.stockStatus === 'In Stock' ? 'InStock' : 'OutOfStock',
+        }}
+      />
       
       {/* 1. Large Product Hero Section with Background Video and Glass Cards */}
-      <section className="relative min-h-[90vh] flex items-center overflow-hidden py-12 px-4 sm:px-6 lg:px-8 bg-[#0A2E1F]">
+      <section className="relative min-h-[70vh] flex items-center overflow-hidden py-6 lg:py-12 px-4 sm:px-6 lg:px-8 bg-[#0A2E1F]">
         <video
           ref={videoRef}
           autoPlay
@@ -472,8 +487,10 @@ Thank you.`;
                     <div className="p-8 bg-white/10 rounded-2xl border border-white/20 backdrop-blur-md flex flex-col items-center justify-center gap-4 text-center w-full h-full">
                       <img
                         src={galleryImages[activeTab].url}
-                        alt="Logo View"
+                        alt={`${product.name.en} Logo View - Vital Agro Pakistan`}
                         className="max-h-24 w-auto object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.35)]"
+                        width="400"
+                        height="400"
                       />
                       <span className="text-white/80 font-bold text-xs uppercase tracking-widest">
                         {galleryImages[activeTab].label}
@@ -482,8 +499,10 @@ Thank you.`;
                   ) : (
                     <motion.img
                       src={galleryImages[activeTab].url}
-                      alt={product.name[lang]}
+                      alt={`${product.name.en} ${product.category} - ${product.activeIngredient || product.formulation || ''} - Vital Agro Pakistan`}
                       className="max-h-[280px] sm:max-h-[320px] w-auto object-contain drop-shadow-[0_25px_35px_rgba(0,0,0,0.5)]"
+                      width="400"
+                      height="400"
                       style={{
                         transform: showLens ? 'scale(2.2)' : 'scale(1)',
                         transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
@@ -505,26 +524,23 @@ Thank you.`;
               </div>
             </motion.div>
 
-            {/* Hint message */}
-            <p className="text-[10px] sm:text-xs text-white/40 mt-3 font-bold">
-              {tPage.zoomHint}
-            </p>
-
             {/* Thumbnail Gallery */}
-            <div className="flex gap-4 mt-6">
+            <div className="flex gap-3 mt-6">
               {galleryImages.map((img, i) => (
                 <button
                   key={i}
                   onClick={() => setActiveTab(i)}
-                  className={`w-16 h-16 rounded-xl border transition-all overflow-hidden p-2 flex items-center justify-center bg-white/5 backdrop-blur-sm ${
-                    activeTab === i ? 'border-[#76C945] bg-white/10 scale-105' : 'border-white/10 opacity-60 hover:opacity-100'
+                  className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl border transition-all overflow-hidden p-1 flex items-center justify-center bg-white/5 backdrop-blur-sm ${
+                    activeTab === i ? 'border-[#76C945] bg-white/10 scale-105 shadow-md shadow-[#76C945]/15' : 'border-white/10 opacity-60 hover:opacity-100'
                   }`}
                 >
                   <img
                     src={img.url}
-                    alt={img.label}
+                    alt={`${product.name.en} Thumbnail ${img.label} - Vital Agro`}
                     className={`max-h-full max-w-full object-contain ${img.isLogo ? 'drop-shadow-[0_0_6px_rgba(255,255,255,0.3)]' : ''}`}
                     loading="lazy"
+                    width="80"
+                    height="80"
                   />
                 </button>
               ))}
@@ -552,7 +568,7 @@ Thank you.`;
 
             {/* Product Name */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none mb-3">
-              {product.name[lang]}
+              {product.name[lang]} — {product.genericName[lang] || product.genericName.en || ''} {lang === 'en' ? 'Pakistan' : 'پاکستان'}
             </h1>
             {product.formulation && (
               <span className="px-4 py-1.5 bg-[#76C945]/15 border border-[#76C945]/30 text-[#8AD65A] font-bold rounded-full w-max text-sm mb-5">
@@ -644,33 +660,32 @@ Thank you.`;
                 </div>
               </div>
 
-              {/* Action Buttons Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-white/5 pt-5">
-                <button
-                  onClick={handleAddToCart}
-                  className="w-full px-4 py-3.5 bg-white/10 border border-white/10 hover:bg-white/15 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all hover:scale-102 active:scale-98"
-                >
-                  <ShoppingCart className="w-4.5 h-4.5 text-[#76C945]" />
-                  <span>{lang === 'en' ? 'Add to Cart' : 'کارٹ میں ڈالیں'}</span>
-                </button>
+              {/* Action Buttons Row - Refactored to 2 primary (top row) + 1 secondary (bottom row) arrangement */}
+              <div className="space-y-3 border-t border-white/5 pt-5">
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={handleAddToCart}
+                    className="w-full px-4 py-3.5 bg-white/10 border border-white/10 hover:bg-white/15 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all hover:scale-102 active:scale-98"
+                  >
+                    <ShoppingCart className="w-4.5 h-4.5 text-[#76C945]" />
+                    <span>{lang === 'en' ? 'Add to Cart' : 'کارٹ میں ڈالیں'}</span>
+                  </button>
 
-                <button
-                  onClick={handleDirectStripeCheckout}
-                  className="w-full px-4 py-3.5 bg-[#76C945] hover:bg-[#8AD65A] text-[#0A2E1F] rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-center gap-1.5 transition-all hover:scale-102 active:scale-98 shadow-lg shadow-[#76C945]/20"
-                >
-                  <CreditCard className="w-4.5 h-4.5" />
-                  <span>{lang === 'en' ? 'Stripe Pay' : 'اسٹرائپ ادا'}</span>
-                </button>
+                  <button
+                    onClick={handleDirectStripeCheckout}
+                    className="w-full px-4 py-3.5 bg-[#76C945] hover:bg-[#8AD65A] text-[#0A2E1F] rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-center gap-1.5 transition-all hover:scale-102 active:scale-98 shadow-lg shadow-[#76C945]/20"
+                  >
+                    <CreditCard className="w-4.5 h-4.5" />
+                    <span>{lang === 'en' ? 'Stripe Pay' : 'اسٹرائپ ادا'}</span>
+                  </button>
+                </div>
 
-                <a
-                  href={getWhatsAppLinkForProduct(product, lang, selectedSizeIdx, quantity)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full px-4 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-center gap-1.5 transition-all hover:scale-102 active:scale-98 shadow-md"
-                >
-                  <MessageCircle className="w-4.5 h-4.5" />
-                  <span>{lang === 'en' ? 'Buy WhatsApp' : 'واٹس ایپ خرید'}</span>
-                </a>
+                <CODWhatsAppButton
+                  product={product}
+                  defaultSize={currentSize.size}
+                  defaultQuantity={quantity}
+                  className="w-full py-3.5 bg-[#25d366] hover:bg-[#20ba59] text-white shadow-md rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-center gap-1.5 transition-all hover:scale-102 active:scale-98"
+                />
               </div>
 
               {/* Stripe simulated warning */}
@@ -1168,9 +1183,11 @@ Thank you.`;
             <div className="inline-block bg-white/15 backdrop-blur-md rounded-xl px-4 py-2 mb-4">
               <img
                 src={vitalAgroLogo}
-                alt="Vital Agro Logo"
+                alt="Vital Agro Logo - Premium Agricultural Solutions Pakistan"
                 className="max-h-14 mx-auto object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]"
                 loading="lazy"
+                width="120"
+                height="56"
               />
             </div>
             <h3 className="font-extrabold text-sm tracking-wider text-[#76C945] uppercase mb-1">Vital Agro Chemical Industries</h3>
@@ -1198,9 +1215,11 @@ Thank you.`;
                     <div className="relative aspect-square p-8 flex items-center justify-center bg-gradient-to-b from-muted/50 to-transparent">
                       <img
                         src={p.pngUrl || p.imageUrl}
-                        alt={p.name[lang]}
+                        alt={`${p.name.en} ${p.category} - ${p.activeIngredient || p.formulation || ''} - Vital Agro Pakistan`}
                         className="max-h-48 w-auto object-contain group-hover:scale-105 transition-transform duration-500"
                         loading="lazy"
+                        width="400"
+                        height="400"
                       />
                       <div className="absolute top-4 left-4">
                         <span className="px-3 py-1 bg-[#C5A059]/10 text-[#C5A059] text-xs font-black rounded-full border border-[#C5A059]/20 uppercase">

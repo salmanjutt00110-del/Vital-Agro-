@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import HeroCanvas from './HeroCanvas';
+import HeroParticles from './HeroParticles';
 import vitalBg from '@/assets/vital bg.mp4';
 import vitalBgWebm from '@/assets/vital_bg.webm';
 import vitalBgPoster from '@/assets/vital_bg_poster.webp';
@@ -24,9 +25,9 @@ export default function HeroBackground({ videoRef }) {
         <source src={vitalBg} type="video/mp4" />
       </video>
 
-      {/* Layer 2: Animated gradient overlay — slow 8s shift */}
+      {/* Layer 2: Animated gradient overlay — dark brand green for text readability */}
       <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-[#0A2E1F]/95 via-[#0A2E1F]/80 to-[#0A2E1F]/40 z-[1]"
+        className="absolute inset-0 bg-gradient-to-r from-[#031405]/95 via-[#031405]/80 to-[#031405]/20 lg:from-[#031405]/98 lg:via-[#031405]/85 lg:to-transparent z-[1]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1.2 }}
@@ -37,6 +38,9 @@ export default function HeroBackground({ videoRef }) {
 
       {/* Layer 4: Noise/grain texture overlay */}
       <div className="absolute inset-0 opacity-[0.03] z-[3] pointer-events-none noise-bg" />
+
+      {/* Layer 4.5: Ambient Canvas Particles */}
+      <HeroParticles />
 
       {/* Layer 5: Three.js canvas */}
       <div className="absolute inset-0 z-[4]">

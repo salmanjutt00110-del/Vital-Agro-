@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Trash2, Plus, Minus, ShoppingBag, CreditCard, Lock, ShieldCheck } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ShoppingBag, CreditCard, Lock, ShieldCheck, MessageCircle, Truck } from 'lucide-react';
 import { useCart } from '@/lib/CartContext';
 import { useLanguage } from '@/lib/LanguageContext';
 
@@ -101,12 +101,20 @@ export default function CartDrawer() {
                           <p className="text-base font-bold text-white/90">
                             {lang === 'en' ? 'Your cart is empty' : 'آپ کی کارٹ خالی ہے'}
                           </p>
-                          <p className="text-xs text-white/50 mt-1 max-w-xs">
+                          <p className="text-xs text-white/50 mt-1 max-w-xs font-medium leading-relaxed">
                             {lang === 'en'
                               ? 'Browse our premium agricultural products and add items to your cart.'
                               : 'ہماری بہترین زرعی مصنوعات دیکھیں اور انہیں کارٹ میں شامل کریں۔'}
                           </p>
                         </div>
+                        <button
+                          onClick={() => {
+                            setIsCartOpen(false);
+                          }}
+                          className="mt-4 px-6 h-[42px] bg-[#76C945] hover:bg-[#8AD65A] text-[#0A2E1F] text-xs font-black uppercase tracking-wider rounded-full transition-all active:scale-95 cursor-pointer shadow-lg shadow-[#76C945]/20 flex items-center justify-center"
+                        >
+                          {lang === 'en' ? 'Shop Our Products' : 'مصنوعات خریدیں'}
+                        </button>
                       </div>
                     ) : (
                       <div className="space-y-4">
@@ -165,6 +173,35 @@ export default function CartDrawer() {
                             </div>
                           </motion.div>
                         ))}
+                        {/* Trust Badges — Fills empty space when cart has items */}
+                        <div className="trust-badges mt-8 pt-6 border-t border-white/10 space-y-3">
+                          <div className="flex items-center gap-3 bg-white/5 rounded-xl p-3 border border-white/5 select-none">
+                            <Lock className="w-4 h-4 text-[#76C945]" />
+                            <span className="text-xs font-semibold text-white/70">
+                              {lang === 'en' ? 'Secure Checkout via Stripe' : 'اسٹرائپ کے ذریعے محفوظ ادائیگی'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3 bg-white/5 rounded-xl p-3 border border-white/5 select-none">
+                            <MessageCircle className="w-4 h-4 text-green-400" />
+                            <span className="text-xs font-semibold text-white/70">
+                              {lang === 'en' ? '24/7 WhatsApp Ordering & Support' : '24/7 واٹس ایپ سپورٹ'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3 bg-white/5 rounded-xl p-3 border border-white/5 select-none">
+                            <Truck className="w-4 h-4 text-[#C5A059]" />
+                            <span className="text-xs font-semibold text-white/70">
+                              {lang === 'en' ? 'Fast Delivery Across Pakistan' : 'پورے پاکستان میں تیز ڈیلیوری'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Continue Shopping button */}
+                        <button
+                          onClick={() => setIsCartOpen(false)}
+                          className="mt-6 text-sm text-white/50 hover:text-white/80 underline w-full text-center block cursor-pointer transition-colors"
+                        >
+                          {lang === 'en' ? '← Continue Shopping' : '← خریداری جاری رکھیں'}
+                        </button>
                       </div>
                     )}
                   </>

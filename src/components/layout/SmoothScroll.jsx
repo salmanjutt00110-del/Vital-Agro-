@@ -18,6 +18,10 @@ export default function SmoothScroll({ children }) {
       infinite: false,
     });
 
+    // Reset scroll on mount immediately
+    window.scrollTo(0, 0);
+    lenis.scrollTo(0, { immediate: true });
+
     let rafId;
     function raf(time) {
       lenis.raf(time);

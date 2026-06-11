@@ -13,6 +13,9 @@ import CartDrawer from '@/components/cart/CartDrawer';
 import AppLayout from './components/layout/AppLayout';
 import Loader from '@/components/layout/Loader';
 import SmoothScroll from '@/components/layout/SmoothScroll';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from '@/lib/firebase';
+import { HelmetProvider } from 'react-helmet-async';
 
 // Route-based Code Splitting using React.lazy
 const Home = React.lazy(() => import('./pages/Home'));
@@ -25,12 +28,28 @@ const Login = React.lazy(() => import('@/pages/Login'));
 const Register = React.lazy(() => import('@/pages/Register'));
 const ForgotPassword = React.lazy(() => import('@/pages/ForgotPassword'));
 const ResetPassword = React.lazy(() => import('@/pages/ResetPassword'));
+const AdminDashboard = React.lazy(() => import('./pages/admin'));
+const AdminLogin = React.lazy(() => import('./pages/admin/AdminLogin'));
 
 const PageLoader = () => (
   <div className="min-h-[60vh] flex items-center justify-center bg-[#F4F7F5] dark:bg-[#0A2E1F]">
     <div className="w-10 h-10 rounded-full border-4 border-[#76C945] border-t-transparent animate-spin" />
   </div>
 );
+
+const AdminLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-[#080f08]">
+    <div className="w-10 h-10 rounded-full border-4 border-[#76C945] border-t-transparent animate-spin" />
+  </div>
+);
+
+const AdminGuard = ({ children }) => {
+  const [user, loading] = useAuthState(auth);
+  if (loading) return <AdminLoader />;
+  if (!user)   return <AdminLogin />;
+  return children;
+};
+
 import { AnimatePresence } from 'framer-motion';
 
 const AuthenticatedApp = () => {
@@ -41,6 +60,7 @@ const AuthenticatedApp = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
       <Route element={<AppLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/products" element={<Products />} />
@@ -58,31 +78,33 @@ function App() {
   const [isAppLoading, setIsAppLoading] = useState(true);
 
   return (
-    <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <CartProvider>
-          <LanguageProvider>
-            <AnimatePresence mode="wait">
-              {isAppLoading && (
-                <Loader onFinish={() => setIsAppLoading(false)} />
-              )}
-            </AnimatePresence>
-
-            <SmoothScroll>
-              <Router>
-                {!isAppLoading && (
-                  <React.Suspense fallback={<PageLoader />}>
-                    <AuthenticatedApp />
-                  </React.Suspense>
+    <HelmetProvider>
+      <AuthProvider>
+        <QueryClientProvider client={queryClientInstance}>
+          <CartProvider>
+            <LanguageProvider>
+              <AnimatePresence mode="wait">
+                {isAppLoading && (
+                  <Loader onFinish={() => setIsAppLoading(false)} />
                 )}
-              </Router>
-            </SmoothScroll>
-            <CartDrawer />
-            <Toaster />
-          </LanguageProvider>
-        </CartProvider>
-      </QueryClientProvider>
-    </AuthProvider>
+              </AnimatePresence>
+
+              <SmoothScroll>
+                <Router>
+                  {!isAppLoading && (
+                    <React.Suspense fallback={<PageLoader />}>
+                      <AuthenticatedApp />
+                    </React.Suspense>
+                  )}
+                </Router>
+              </SmoothScroll>
+              <CartDrawer />
+              <Toaster />
+            </LanguageProvider>
+          </CartProvider>
+        </QueryClientProvider>
+      </AuthProvider>
+    </HelmetProvider>
   )
 }
 

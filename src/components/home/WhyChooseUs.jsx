@@ -31,12 +31,14 @@ export default function WhyChooseUs() {
   ];
 
   return (
-    <section className="py-24 relative overflow-hidden bg-white">
-      {/* Premium background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#F4F7F5]/50 via-white to-[#F4F7F5]/30 pointer-events-none" />
+    <section className="py-24 relative overflow-hidden bg-[#061406] text-white">
+      {/* Subtle top-right and bottom-left glow behind the section */}
+      <div className="absolute top-[-10%] right-[-10%] w-[350px] h-[350px] bg-[#76C945]/12 rounded-full filter blur-[100px] pointer-events-none select-none" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[300px] h-[300px] bg-[#C5A059]/5 rounded-full filter blur-[80px] pointer-events-none select-none" />
+
       {/* Decorative grid pattern */}
       <div
-        className="absolute inset-0 opacity-[0.02] pointer-events-none"
+        className="absolute inset-0 opacity-[0.015] pointer-events-none select-none"
         style={{
           backgroundImage: 'radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)',
           backgroundSize: '32px 32px'
@@ -55,7 +57,7 @@ export default function WhyChooseUs() {
           >
             {t.whyUs.badge}
           </motion.span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground mb-4">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-4">
             <AnimatedText text={t.whyUs.title} />
           </h2>
           <motion.p
@@ -63,7 +65,7 @@ export default function WhyChooseUs() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2, duration: 0.7 }}
-            className="text-muted-foreground text-lg max-w-2xl mx-auto"
+            className="text-white/60 text-lg max-w-2xl mx-auto"
           >
             {t.whyUs.desc}
           </motion.p>
@@ -72,14 +74,13 @@ export default function WhyChooseUs() {
         {/* Reason Cards Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {REASONS.map((reason, i) => {
-            const colors = cardColors[i % cardColors.length];
             return (
               <motion.div
                 key={reason.title}
-                initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                initial={{ opacity: 0, y: 45, scale: 0.95 }}
                 whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.06, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ delay: i * 0.08, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full flex"
               >
                 <GlassCard
@@ -87,18 +88,19 @@ export default function WhyChooseUs() {
                   maxTilt={8}
                   glow={true}
                   lift={true}
-                  className="w-full p-6 bg-white/45 hover:bg-white/90 border-[#0A2E1F]/5 cursor-default hover:border-[#76C945]/30 shadow-md hover:shadow-xl transition-all duration-300"
+                  className="w-full p-6 bg-white/[0.03] hover:bg-white/[0.08] border-white/10 cursor-default hover:border-[#76C945]/30 shadow-2xl transition-all duration-300"
                 >
                   {/* Subtle color highlight glow on hover */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${colors.bg} opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`} />
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#76C945]/8 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
                   <div className="relative z-10 flex flex-col h-full justify-between">
                     <div>
-                      <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${colors.bg} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300`}>
-                        <reason.icon className={`w-6 h-6 ${colors.icon}`} />
+                      {/* Icon wrapper with brand green gradient circle */}
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#76C945]/20 to-[#76C945]/5 border border-[#76C945]/25 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
+                        <reason.icon className="w-6 h-6 text-[#8AD65A]" />
                       </div>
-                      <h3 className="font-extrabold text-[#0A2E1F] mb-2 text-base">{reason.title}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{reason.desc}</p>
+                      <h3 className="font-extrabold text-white mb-2 text-base">{reason.title}</h3>
+                      <p className="text-sm text-white/60 leading-relaxed">{reason.desc}</p>
                     </div>
                   </div>
                 </GlassCard>

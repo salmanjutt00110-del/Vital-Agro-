@@ -7,10 +7,10 @@ import CountUp from '@/components/ui/CountUp';
 
 const statColors = [
   { bg: 'bg-[#76C945]/10', icon: 'text-[#76C945]', glow: 'hover:shadow-[#76C945]/5' },
-  { bg: 'bg-[#C5A059]/10', icon: 'text-[#C5A059]', glow: 'hover:shadow-[#C5A059]/5' },
-  { bg: 'bg-blue-500/10', icon: 'text-blue-500', glow: 'hover:shadow-blue-500/5' },
-  { bg: 'bg-emerald-500/10', icon: 'text-emerald-500', glow: 'hover:shadow-emerald-500/5' },
-  { bg: 'bg-purple-500/10', icon: 'text-purple-500', glow: 'hover:shadow-purple-500/5' },
+  { bg: 'bg-[#5cb85c]/10', icon: 'text-[#5cb85c]', glow: 'hover:shadow-[#5cb85c]/5' },
+  { bg: 'bg-[#2d6a2d]/10', icon: 'text-[#2d6a2d]', glow: 'hover:shadow-[#2d6a2d]/5' },
+  { bg: 'bg-[#3d8c3d]/10', icon: 'text-[#3d8c3d]', glow: 'hover:shadow-[#3d8c3d]/5' },
+  { bg: 'bg-[#4a9a4a]/10', icon: 'text-[#4a9a4a]', glow: 'hover:shadow-[#4a9a4a]/5' },
 ];
 
 export default function StatsSection() {
@@ -37,7 +37,7 @@ export default function StatsSection() {
           {/* Subtle gradient shine */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#76C945]/[0.03] via-transparent to-[#C5A059]/[0.03] rounded-3xl" />
 
-          <div className="relative grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+          <div className="relative grid grid-cols-2 lg:grid-cols-5 gap-6 [&>*:last-child:nth-child(odd)]:col-span-2 lg:[&>*:last-child:nth-child(odd)]:col-span-1 [&>*:last-child:nth-child(odd)]:max-w-[50%] lg:[&>*:last-child:nth-child(odd)]:max-w-none [&>*:last-child:nth-child(odd)]:mx-auto lg:[&>*:last-child:nth-child(odd)]:mx-0 w-full">
             {STATS.map((stat, i) => (
               <motion.div
                 key={stat.label}
@@ -61,7 +61,7 @@ export default function StatsSection() {
                   >
                     <stat.icon className={`w-6 h-6 ${statColors[i % statColors.length].icon}`} />
                   </motion.div>
-                  <div className="text-3xl sm:text-4xl font-extrabold text-[#0A2E1F] tracking-tight">
+                  <div className="text-4xl sm:text-5xl font-black text-[#0A2E1F] tracking-tight font-mono">
                     <CountUp from={0} to={stat.value} suffix={stat.suffix} />
                   </div>
                   <p className="text-sm text-muted-foreground mt-2 font-medium leading-tight">{stat.label}</p>

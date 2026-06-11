@@ -6,6 +6,7 @@ import { useLanguage } from '@/lib/LanguageContext';
 import PremiumButton from '@/components/ui/PremiumButton';
 import CountUp from '@/components/ui/CountUp';
 import AnimatedText from '@/components/ui/AnimatedText';
+import useParallax from '@/hooks/useParallax';
 
 import vitalAgroLogo from '@/assets/vital agro logo.webp';
 import fatty from '@/assets/fatty.webp';
@@ -14,6 +15,10 @@ import aaqaab from '@/assets/Aaqaab.webp';
 
 export default function HeroContent() {
   const { t } = useLanguage();
+
+  const parallaxCentral = useParallax(0.02);
+  const parallaxRight = useParallax(0.04);
+  const parallaxLeft = useParallax(-0.035);
 
   const whatsappText = encodeURIComponent("Hello Vital Agro,\n\nI am interested in your agricultural products and solutions. Please provide more details.\n\nThank you.");
   const whatsappUrl = `https://wa.me/923011837160?text=${whatsappText}`;
@@ -37,7 +42,7 @@ export default function HeroContent() {
   };
 
   return (
-    <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20 w-full">
+    <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12 lg:pt-32 lg:pb-24 w-full">
       <div className="grid lg:grid-cols-2 gap-12 items-center">
         
         {/* Left Typography & Actions */}
@@ -49,7 +54,7 @@ export default function HeroContent() {
           {/* Tagline Badge */}
           <motion.div
             variants={itemReveal}
-            className="inline-flex items-center gap-3.5 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/80 text-sm mb-8"
+            className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/80 text-xs sm:text-sm mb-4 lg:mb-8"
           >
             <div className="bg-white/20 rounded-md px-1.5 py-0.5">
               <img
@@ -71,9 +76,9 @@ export default function HeroContent() {
             </motion.div>
             <span>{t.hero.badge}</span>
           </motion.div>
-
+ 
           {/* Large Clip Reveal Heading */}
-          <h1 className="mb-6 tracking-tight">
+          <h1 className="mb-4 lg:mb-6 tracking-tight">
             <AnimatedText
               text={t.hero.heading1}
               className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white leading-tight block"
@@ -84,15 +89,15 @@ export default function HeroContent() {
               delay={0.2}
             />
           </h1>
-
+ 
           {/* Subheading */}
           <motion.p
             variants={itemReveal}
-            className="text-lg sm:text-xl text-white/70 max-w-lg mb-10 leading-relaxed"
+            className="text-base sm:text-lg lg:text-xl text-white/70 max-w-lg mb-6 lg:mb-10 leading-relaxed"
           >
             {t.hero.sub}
           </motion.p>
-
+ 
           {/* Buttons CTA Group */}
           <motion.div variants={itemReveal} className="flex flex-wrap gap-4 items-center">
             <PremiumButton variant="primary" href="/products" isMagnetic={true}>
@@ -108,11 +113,11 @@ export default function HeroContent() {
               {t.hero.whatsapp}
             </PremiumButton>
           </motion.div>
-
+ 
           {/* Staggered Stats Counters */}
           <motion.div
             variants={itemReveal}
-            className="flex gap-8 mt-12 pt-8 border-t border-white/10"
+            className="flex gap-6 mt-8 pt-6 lg:mt-12 lg:pt-8 border-t border-white/10"
           >
             {[
               { to: 15, suffix: '+', label: t.hero.years },
@@ -120,10 +125,10 @@ export default function HeroContent() {
               { to: 50000, suffix: '+', label: t.hero.farmers }
             ].map((stat, i) => (
               <div key={i}>
-                <div className="text-2xl font-extrabold text-[#76C945]">
+                <div className="text-2xl sm:text-3xl font-black text-[#8AD65A]">
                   <CountUp from={0} to={stat.to} suffix={stat.suffix} />
                 </div>
-                <div className="text-xs text-white/50 mt-0.5">{stat.label}</div>
+                <div className="text-white/50 mt-1 font-semibold tracking-wide" style={{ fontSize: 'clamp(11px, 3vw, 13px)' }}>{stat.label}</div>
               </div>
             ))}
           </motion.div>
@@ -144,73 +149,85 @@ export default function HeroContent() {
             />
 
             {/* Central Product card */}
-            <motion.div
-              className="relative z-10 bg-white/95 backdrop-blur-md rounded-3xl p-5 border border-white/20 shadow-2xl flex flex-col items-center w-[210px] h-[310px] justify-between cursor-pointer hover:shadow-[#76C945]/15 hover:border-[#76C945]/30 transition-all duration-300"
-              animate={{ y: [-6, 6, -6] }}
-              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-              whileHover={{ scale: 1.03 }}
-            >
-              <Link to="/products/fatty" className="flex-1 flex flex-col items-center justify-between w-full h-full">
-                <div className="flex-1 flex items-center justify-center p-2">
-                  <img
-                    src={fatty}
-                    alt="Fatty Product"
-                    width="150"
-                    height="208"
-                    loading="eager"
-                    className="h-52 w-auto object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.08)]"
-                  />
-                </div>
-                <span className="text-[#0A2E1F] font-bold text-xs bg-[#76C945]/20 px-3 py-1 rounded-full border border-[#76C945]/30 mt-2">
-                  Fatty
-                </span>
-              </Link>
+            <motion.div style={{ x: parallaxCentral.x, y: parallaxCentral.y }} className="relative z-10">
+              <motion.div
+                className="bg-white/95 backdrop-blur-md rounded-3xl p-5 border border-white/20 shadow-2xl flex flex-col items-center w-[210px] h-[310px] justify-between cursor-pointer hover:shadow-[#76C945]/15 hover:border-[#76C945]/30 transition-all duration-300"
+                animate={{ y: [-6, 6, -6] }}
+                transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                whileHover={{ scale: 1.03 }}
+              >
+                <Link to="/products/fatty" className="flex-1 flex flex-col items-center justify-between w-full h-full">
+                  <div className="flex-1 flex items-center justify-center p-2">
+                    <img
+                      src={fatty}
+                      alt="Fatty Product"
+                      width="150"
+                      height="208"
+                      loading="eager"
+                      className="h-52 w-auto object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.08)]"
+                    />
+                  </div>
+                  <span className="text-[#0A2E1F] font-bold text-xs bg-[#76C945]/20 px-3 py-1 rounded-full border border-[#76C945]/30 mt-2">
+                    Fatty
+                  </span>
+                </Link>
+              </motion.div>
             </motion.div>
 
             {/* Floating Secondary Card (Right) */}
             <motion.div
-              className="absolute -right-10 -top-4 z-0 bg-white/90 backdrop-blur-sm rounded-2xl p-3 border border-white/10 shadow-xl flex flex-col items-center w-[120px] h-[170px] justify-between cursor-pointer hover:shadow-[#76C945]/10 hover:border-[#76C945]/30 transition-all duration-300"
-              animate={{ y: [4, -8, 4] }}
-              transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
-              whileHover={{ scale: 1.05 }}
+              style={{ x: parallaxRight.x, y: parallaxRight.y }}
+              className="absolute -right-10 -top-4 z-0"
             >
-              <Link to="/products/super-4g" className="flex-1 flex flex-col items-center justify-between w-full h-full">
-                <div className="flex-1 flex items-center justify-center p-1">
-                  <img
-                    src={super4g}
-                    alt="Super 4G"
-                    width="80"
-                    height="112"
-                    className="h-28 w-auto object-contain drop-shadow-[0_6px_12px_rgba(0,0,0,0.06)]"
-                  />
-                </div>
-                <span className="text-[#0A2E1F] font-bold text-[10px] bg-[#C5A059]/20 px-2.5 py-0.5 rounded-full mt-1">
-                  Super 4G
-                </span>
-              </Link>
+              <motion.div
+                className="bg-white/90 backdrop-blur-sm rounded-2xl p-3 border border-white/10 shadow-xl flex flex-col items-center w-[120px] h-[170px] justify-between cursor-pointer hover:shadow-[#76C945]/10 hover:border-[#76C945]/30 transition-all duration-300"
+                animate={{ y: [4, -8, 4] }}
+                transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
+                whileHover={{ scale: 1.05 }}
+              >
+                <Link to="/products/super-4g" className="flex-1 flex flex-col items-center justify-between w-full h-full">
+                  <div className="flex-1 flex items-center justify-center p-1">
+                    <img
+                      src={super4g}
+                      alt="Super 4G"
+                      width="80"
+                      height="112"
+                      className="h-28 w-auto object-contain drop-shadow-[0_6px_12px_rgba(0,0,0,0.06)]"
+                    />
+                  </div>
+                  <span className="text-[#0A2E1F] font-bold text-[10px] bg-[#C5A059]/20 px-2.5 py-0.5 rounded-full mt-1">
+                    Super 4G
+                  </span>
+                </Link>
+              </motion.div>
             </motion.div>
 
             {/* Floating Tertiary Card (Left) */}
             <motion.div
-              className="absolute -left-10 bottom-4 z-20 bg-white/90 backdrop-blur-sm rounded-2xl p-3 border border-white/10 shadow-xl flex flex-col items-center w-[120px] h-[170px] justify-between cursor-pointer hover:shadow-[#76C945]/10 hover:border-[#76C945]/30 transition-all duration-300"
-              animate={{ y: [-6, 10, -6] }}
-              transition={{ duration: 4.6, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
-              whileHover={{ scale: 1.05 }}
+              style={{ x: parallaxLeft.x, y: parallaxLeft.y }}
+              className="absolute -left-10 bottom-4 z-20"
             >
-              <Link to="/products/aaqaab" className="flex-1 flex flex-col items-center justify-between w-full h-full">
-                <div className="flex-1 flex items-center justify-center p-1">
-                  <img
-                    src={aaqaab}
-                    alt="AAQAAB"
-                    width="80"
-                    height="112"
-                    className="h-28 w-auto object-contain drop-shadow-[0_6px_12px_rgba(0,0,0,0.06)]"
-                  />
-                </div>
-                <span className="text-[#0A2E1F] font-bold text-[10px] bg-[#C5A059]/20 px-2.5 py-0.5 rounded-full mt-1">
-                  AAQAAB
-                </span>
-              </Link>
+              <motion.div
+                className="bg-white/90 backdrop-blur-sm rounded-2xl p-3 border border-white/10 shadow-xl flex flex-col items-center w-[120px] h-[170px] justify-between cursor-pointer hover:shadow-[#76C945]/10 hover:border-[#76C945]/30 transition-all duration-300"
+                animate={{ y: [-6, 10, -6] }}
+                transition={{ duration: 4.6, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+                whileHover={{ scale: 1.05 }}
+              >
+                <Link to="/products/aaqaab" className="flex-1 flex flex-col items-center justify-between w-full h-full">
+                  <div className="flex-1 flex items-center justify-center p-1">
+                    <img
+                      src={aaqaab}
+                      alt="AAQAAB"
+                      width="80"
+                      height="112"
+                      className="h-28 w-auto object-contain drop-shadow-[0_6px_12px_rgba(0,0,0,0.06)]"
+                    />
+                  </div>
+                  <span className="text-[#0A2E1F] font-bold text-[10px] bg-[#C5A059]/20 px-2.5 py-0.5 rounded-full mt-1">
+                    AAQAAB
+                  </span>
+                </Link>
+              </motion.div>
             </motion.div>
           </div>
         </motion.div>

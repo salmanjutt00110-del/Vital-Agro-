@@ -39,14 +39,14 @@ export default function PreloaderProgress({ value, statusMsg, isExiting }) {
           color: '#ffffff',
           textShadow: '0 0 20px rgba(118, 201, 69, 0.3)',
         }}
-        className="font-black font-mono tracking-widest text-[2.5rem] sm:text-[3rem] tabular-nums leading-none select-none"
+        className="font-black font-mono tracking-tight text-[3rem] sm:text-[4rem] tabular-nums leading-none select-none"
+        style={{ fontVariantNumeric: 'tabular-nums', fontFeatureSettings: '"tnum"', letterSpacing: '-0.02em' }}
       >
-        {displayPercent}
-        <span className="text-sm font-bold text-white/30 ml-0.5">%</span>
+        {displayPercent}%
       </motion.span>
 
       {/* Progress track */}
-      <div className="w-full h-[2px] bg-white/10 rounded-full overflow-hidden relative mt-4 mb-6 shadow-inner">
+      <div className="w-full h-[3px] bg-white/10 rounded-full overflow-hidden relative mt-4 mb-6 shadow-inner">
         <motion.div
           className="h-full bg-gradient-to-r from-[#2d6a2d] via-[#5cb85c] to-[#2d6a2d] rounded-full relative"
           style={{ width: `${displayPercent}%` }}

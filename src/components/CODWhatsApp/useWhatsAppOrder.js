@@ -1,0 +1,149 @@
+import { useState } from 'react';
+import { createOrder } from '@/lib/firestore/orders';
+import { buildWhatsAppURL } from './orderMessage';
+
+/**
+ * Custom React hook to orchestrate bottom-sheet order form state,
+ * input validations, quantity calculation, database creation, and WhatsApp dispatch URLs.
+ * 
+ * @param {object} product - Full product details object.
+ * @param {string} [defaultSize] - Initial pack size parameter.
+ * @param {number} [defaultQuantity] - Initial quantity parameter.
+ */
+export const useWhatsAppOrder = (product, defaultSize = null, defaultQuantity = 1) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderId, setOrderId] = useState(null);
+
+  // Helper to extract the first available size name
+  const getInitialSize = () => {
+    if (defaultSize) return defaultSize;
+    if (!product || !product.sizes || product.sizes.length === 0) {
+      return product?.packaging || '100ML';
+    }
+    const first = product.sizes[0];
+    return typeof first === 'object' ? first.size : first;
+  };
+
+  const [form, setForm] = useState({
+    customerName: '',
+    phone: '',
+    city: '',
+    address: '',
+    quantity: defaultQuantity || 1,
+    selectedSize: getInitialSize(),
+  });
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const e = {};
+    if (!form.customerName.trim())    e.customerName = 'Name is required';
+    if (!form.phone.trim())           e.phone = 'Phone is required';
+    if (form.phone && !/^0\d{10}$/.test(form.phone.replace(/[-\s]/g, '')))
+                                      e.phone = 'Enter valid Pakistani number (0XXXXXXXXXX)';
+    if (!form.city.trim())            e.city = 'City is required';
+    if (!form.address.trim())         e.address = 'Address is required';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  // Resolves the correct price number matching the selected packing size
+  const getPriceForSize = (selectedSizeName) => {
+    if (!product) return 999;
+    
+    if (product.sizes && product.sizes.length > 0) {
+      const match = product.sizes.find(s => {
+        const sizeVal = typeof s === 'object' ? s.size : s;
+        return sizeVal === selectedSizeName;
+      });
+      if (match && typeof match === 'object') {
+        return match.price || match.rate || 999;
+      }
+    }
+    
+    if (product.pricing && product.pricing.length > 0) {
+      const match = product.pricing.find(p => p.size === selectedSizeName);
+      if (match) {
+        return Number(match.rate) || 999;
+      }
+    }
+
+    return product.price || 999;
+  };
+
+  const submitOrder = async () => {
+    const price = getPriceForSize(form.selectedSize);
+    const prodName = typeof product.name === 'object' ? (product.name.en || product.name) : product.name;
+    const imageSrc = product.pngUrl || product.imageUrl || product.image || "";
+
+    const orderPayload = {
+      item: {
+        productId:    product.id || product.slug,
+        productName:  prodName,
+        category:     product.category,
+        packSize:     form.selectedSize,
+        quantity:     form.quantity,
+        pricePerUnit: price,
+        totalPrice:   price * form.quantity,
+        productImage: imageSrc,
+      },
+      customer: {
+        name:    form.customerName,
+        phone:   form.phone,
+        city:    form.city,
+        address: form.address,
+      },
+      totalAmount:   price * form.quantity,
+      paymentMethod: 'COD',
+      source:        'website',
+      whatsappSent:  true,
+    };
+
+    try {
+      const newOrderId = await createOrder(orderPayload);
+      setOrderId(newOrderId);
+    } catch (err) {
+      console.error('Order Firestore save failed:', err);
+    }
+
+    const url = buildWhatsAppURL({
+      ...form,
+      productName:  prodName,
+      packSize:     form.selectedSize,
+      pricePerUnit: price,
+    });
+    window.open(url, '_blank');
+  };
+
+  const resetForm = () => {
+    setIsOpen(false);
+    setForm(prev => ({
+      ...prev,
+      customerName: '',
+      phone: '',
+      city: '',
+      address: '',
+      quantity: 1,
+    }));
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    setIsSubmitting(true);
+
+    try {
+      await submitOrder();
+      resetForm();
+    } catch (err) {
+      console.error('Legacy submit error:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return {
+    isOpen, setIsOpen, form, setForm,
+    errors, isSubmitting, setIsSubmitting, orderId, handleSubmit,
+    validate, submitOrder, resetForm,
+  };
+};

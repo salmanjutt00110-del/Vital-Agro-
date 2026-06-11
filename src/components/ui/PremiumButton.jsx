@@ -34,7 +34,8 @@ export default function PremiumButton({
     </motion.span>
   );
 
-  const baseStyles = "relative px-8 py-4 rounded-full text-sm font-extrabold flex items-center justify-center group overflow-hidden transition-all duration-300 shadow-lg select-none cursor-pointer active:scale-[0.97]";
+  const hasHeight = className.split(' ').some(c => c.startsWith('h-') || c.startsWith('py-'));
+  const baseStyles = `relative px-8 ${hasHeight ? '' : 'h-[52px]'} rounded-full text-sm font-extrabold flex items-center justify-center group overflow-hidden transition-all duration-300 shadow-lg select-none cursor-pointer active:scale-[0.97]`;
 
   const variantStyles = {
     primary: "bg-[#0A2E1F] text-white border border-[#76C945]/30 hover:border-[#76C945] hover:shadow-[#76C945]/20",

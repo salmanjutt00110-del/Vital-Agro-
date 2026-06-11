@@ -59,12 +59,11 @@ Thank you.`;
 
   const whatsappUrl = getWhatsAppGeneralLink();
 
-  const isHome = location.pathname === '/';
-  const isLight = scrolled || !isHome;
-  const navBg = isLight
-    ? 'bg-white/95 backdrop-blur-xl shadow-lg shadow-black/5 border-b border-border'
-    : 'bg-gradient-to-b from-black/30 to-transparent backdrop-blur-sm';
-  const textColor = isLight ? 'text-foreground' : 'text-white';
+  const isLight = false; // Always dark themed navbar for consistent premium branding
+  const navBg = scrolled
+    ? 'bg-[#02120a]/85 backdrop-blur-[20px] border-b border-white/10 shadow-lg shadow-black/20'
+    : 'bg-transparent';
+  const textColor = 'text-white';
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${navBg}`}>
@@ -73,36 +72,40 @@ Thank you.`;
           {/* Logo cluster — Vital Agro + Vital Group + Tag */}
           <Link to="/" className="flex items-center gap-3 group">
             {/* Vital Agro Logo — always show original colors with enhanced visibility */}
-            <div className={`relative flex items-center justify-center rounded-lg px-1 py-0.5 ${!isLight ? 'bg-white/15 backdrop-blur-md shadow-lg shadow-white/5' : ''}`}>
+            <div className="relative flex items-center justify-center rounded-lg px-1 py-0.5 bg-white/15 backdrop-blur-md shadow-lg shadow-white/5">
               <img
                 src={vitalAgroLogo}
                 alt="Vital Agro Logo"
                 width="112"
                 height="48"
-                className={`h-10 sm:h-12 w-auto object-contain transition-all duration-300 ${!isLight ? 'drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]' : 'drop-shadow-md'}`}
+                className="h-10 sm:h-12 w-auto object-contain transition-all duration-300 drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]"
               />
             </div>
-            <span className={`h-8 w-px transition-colors duration-300 ${isLight ? 'bg-border' : 'bg-white/30'}`} />
-            {/* Vital Group Logo */}
-            <div className={`relative flex items-center justify-center rounded-lg px-1 py-0.5 ${!isLight ? 'bg-white/10 backdrop-blur-md' : ''}`}>
-              <img
-                src={vitalGroupLogo}
-                alt="Vital Group Logo"
-                width="88"
-                height="36"
-                className={`h-8 sm:h-9 w-auto object-contain transition-all duration-300 ${!isLight ? 'drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]' : 'drop-shadow-sm'}`}
-              />
-            </div>
-            <span className={`h-6 w-px transition-colors duration-300 hidden sm:block ${isLight ? 'bg-border/50' : 'bg-white/20'}`} />
-            {/* Tag Logo */}
-            <div className={`hidden sm:flex relative items-center justify-center rounded-lg px-1 py-0.5 ${!isLight ? 'bg-white/10 backdrop-blur-md' : ''}`}>
-              <img
-                src={tagLogo}
-                alt="Tag Logo"
-                width="64"
-                height="28"
-                className={`h-6 sm:h-7 w-auto object-contain transition-all duration-300 ${!isLight ? 'drop-shadow-[0_0_6px_rgba(255,255,255,0.3)]' : 'opacity-70'}`}
-              />
+            
+            {/* Desktop only logos */}
+            <div className="hidden md:flex items-center gap-3">
+              <span className="h-8 w-px transition-colors duration-300 bg-white/30" />
+              {/* Vital Group Logo */}
+              <div className="relative flex items-center justify-center rounded-lg px-1 py-0.5 bg-white/10 backdrop-blur-md">
+                <img
+                  src={vitalGroupLogo}
+                  alt="Vital Group Logo"
+                  width="88"
+                  height="36"
+                  className="h-8 sm:h-9 w-auto object-contain transition-all duration-300 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]"
+                />
+              </div>
+              <span className="h-6 w-px transition-colors duration-300 bg-white/20" />
+              {/* Tag Logo */}
+              <div className="relative flex items-center justify-center rounded-lg px-1 py-0.5 bg-white/10 backdrop-blur-md">
+                <img
+                  src={tagLogo}
+                  alt="Tag Logo"
+                  width="64"
+                  height="28"
+                  className="h-6 sm:h-7 w-auto object-contain transition-all duration-300 drop-shadow-[0_0_6px_rgba(255,255,255,0.3)]"
+                />
+              </div>
             </div>
           </Link>
 
