@@ -32,6 +32,11 @@ export const useWhatsAppOrder = (product, defaultSize = null, defaultQuantity = 
     address: '',
     quantity: defaultQuantity || 1,
     selectedSize: getInitialSize(),
+    paymentMethod: 'COD',
+    paymentRefId: '',
+    paymentAmount: 0,
+    paymentTimestamp: '',
+    receiptBase64: '',
   });
   const [errors, setErrors] = useState({});
 
@@ -94,14 +99,22 @@ export const useWhatsAppOrder = (product, defaultSize = null, defaultQuantity = 
         address: form.address,
       },
       totalAmount:   price * form.quantity,
-      paymentMethod: 'COD',
+      paymentMethod: form.paymentMethod || 'COD',
+      paymentDetails: form.paymentMethod !== 'COD' ? {
+        refId: form.paymentRefId || '',
+        amountPaid: Number(form.paymentAmount) || 0,
+        timestamp: form.paymentTimestamp || '',
+        receiptBase64: form.receiptBase64 || '',
+        status: 'pending_approval',
+      } : null,
       source:        'website',
       whatsappSent:  true,
     };
 
+    let createdId = null;
     try {
-      const newOrderId = await createOrder(orderPayload);
-      setOrderId(newOrderId);
+      createdId = await createOrder(orderPayload);
+      setOrderId(createdId);
     } catch (err) {
       console.error('Order Firestore save failed:', err);
     }
@@ -113,6 +126,7 @@ export const useWhatsAppOrder = (product, defaultSize = null, defaultQuantity = 
       pricePerUnit: price,
     });
     window.open(url, '_blank');
+    return createdId;
   };
 
   const resetForm = () => {
@@ -124,6 +138,11 @@ export const useWhatsAppOrder = (product, defaultSize = null, defaultQuantity = 
       city: '',
       address: '',
       quantity: 1,
+      paymentMethod: 'COD',
+      paymentRefId: '',
+      paymentAmount: 0,
+      paymentTimestamp: '',
+      receiptBase64: '',
     }));
   };
 

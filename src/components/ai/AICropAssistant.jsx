@@ -1,0 +1,219 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MessageSquare, X, Send, Bot, User, Sparkles, Sprout } from 'lucide-react';
+import { askGemini } from '@/lib/gemini';
+import { useLanguage } from '@/lib/LanguageContext';
+
+const PRESETS = [
+  { en: "Recommend protection for Wheat rust", ur: "گندم کی کنگی کا علاج بتائیں" },
+  { en: "Best pesticide for Cotton whitefly", ur: "کپاس کی سفید مکھی کا تدارک" },
+  { en: "Schedule leaf feeding for Rice crops", ur: "دھان کی فصل کے لیے سپرے کا شیڈول" }
+];
+
+export default function AICropAssistant() {
+  const { lang } = useLanguage();
+  const [isOpen, setIsOpen] = useState(false);
+  const [input, setInput] = useState('');
+  const [messages, setMessages] = useState([
+    {
+      role: 'model',
+      text: lang === 'en' 
+        ? "Hello! I am your Vital Agro AI Farming Advisor. How can I help you grow healthier crops today?" 
+        : "سلام! میں آپ کا وائٹل ایگرو اے آئی فارمنگ ایڈوائزر ہوں۔ آج میں آپ کی فصلوں کے لیے کیا مدد کر سکتا ہوں؟"
+    }
+  ]);
+  const [isLoading, setIsLoading] = useState(false);
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isLoading]);
+
+  const handleSendMessage = async (textToSend) => {
+    const query = textToSend || input;
+    if (!query.trim() || isLoading) return;
+
+    if (!textToSend) setInput('');
+    setMessages(prev => [...prev, { role: 'user', text: query }]);
+    setIsLoading(true);
+
+    const systemContext = `
+      You are "Vital Agro's Agricultural AI Advisor". 
+      You are a professional agronomist specializing in crop protection, plant nutrition, and progressive farming in Pakistan.
+      You recommend modern, highly effective treatments, citing Vital Agro products (such as Conference Gold systemic insecticide, leaf feeds, growth promoters) where applicable.
+      Provide detailed but concise, practical advice tailored to Pakistani regional agriculture (Punjab, Sindh, KPK).
+      Reply in both Urdu and English clearly.
+      User query: ${query}
+    `;
+
+    try {
+      const reply = await askGemini(systemContext);
+      setMessages(prev => [...prev, { role: 'model', text: reply }]);
+    } catch (err) {
+      setMessages(prev => [
+        ...prev, 
+        { 
+          role: 'model', 
+          text: lang === 'en'
+            ? "Apologies, I encountered a temporary connection issue. Please verify your internet and try again."
+            : "معذرت، رابطہ قائم کرنے میں عارضی مسئلہ پیش آیا ہے۔ براہ کرم انٹرنیٹ چیک کر کے دوبارہ کوشش کریں۔"
+        }
+      ]);
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed bottom-6 right-6 z-50 font-sans select-none">
+      {/* Floating Action Button */}
+      <motion.button
+        onClick={() => setIsOpen(!isOpen)}
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.95 }}
+        className="w-14 h-14 bg-gradient-to-tr from-[#1e5c1e] to-[#76C945] text-white rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(118,201,69,0.35)] border border-[#76C945]/40 relative overflow-hidden"
+        style={{ touchAction: 'manipulation' }}
+      >
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
+          animate={{ x: ['-200%', '200%'] }}
+          transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
+        />
+        <AnimatePresence mode="wait">
+          {isOpen ? (
+            <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}>
+              <X size={24} />
+            </motion.div>
+          ) : (
+            <motion.div key="chat" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} className="relative">
+              <MessageSquare size={24} />
+              <span className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.button>
+
+      {/* Chat Conversation Overlay */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 40, scale: 0.92 }}
+            transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+            className="absolute bottom-20 right-0 w-[90vw] max-w-[380px] h-[520px] rounded-3xl overflow-hidden border border-white/10 shadow-[0_30px_70px_rgba(0,0,0,0.5)] flex flex-col"
+            style={{
+              background: 'rgba(10, 26, 15, 0.96)',
+              backdropFilter: 'blur(30px)'
+            }}
+          >
+            {/* Header */}
+            <div className="p-4 border-b border-white/8 bg-gradient-to-r from-white/[0.04] to-transparent flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 bg-[#76C945]/15 border border-[#76C945]/30 rounded-xl flex items-center justify-center text-[#8AD65A]">
+                  <Sprout size={18} className="animate-pulse" />
+                </div>
+                <div>
+                  <h4 className="text-white font-bold text-sm tracking-wide flex items-center gap-1.5">
+                    Vital Agro Advisor
+                    <span className="flex items-center px-1.5 py-0.5 rounded-full bg-[#76C945]/15 text-[#8AD65A] text-[8px] font-black uppercase">
+                      24/7 AI
+                    </span>
+                  </h4>
+                  <p className="text-white/40 text-[10px] font-medium">
+                    {lang === 'en' ? 'Online • Crop & Soil Specialist' : 'آن لائن • زرعی ماہر'}
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => setIsOpen(false)} className="text-white/40 hover:text-white transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Conversation Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
+              {messages.map((m, idx) => (
+                <div key={idx} className={`flex gap-2.5 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${
+                    m.role === 'user' 
+                      ? 'bg-white/8 border-white/10 text-white' 
+                      : 'bg-[#76C945]/10 border-[#76C945]/30 text-[#8AD65A]'
+                  }`}>
+                    {m.role === 'user' ? <User size={14} /> : <Bot size={14} />}
+                  </div>
+                  <div className={`max-w-[75%] rounded-2xl p-3.5 text-xs sm:text-[13px] leading-relaxed whitespace-pre-line ${
+                    m.role === 'user'
+                      ? 'bg-gradient-to-r from-[#225c22] to-[#2d7a2d] text-white border border-[#76C945]/20 rounded-tr-none'
+                      : 'bg-white/5 text-white/95 border border-white/8 rounded-tl-none'
+                  }`}>
+                    {m.text}
+                  </div>
+                </div>
+              ))}
+
+              {isLoading && (
+                <div className="flex gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-[#76C945]/10 border-[#76C945]/30 text-[#8AD65A] flex items-center justify-center shrink-0">
+                    <Bot size={14} className="animate-spin" />
+                  </div>
+                  <div className="bg-white/5 border border-white/8 rounded-2xl rounded-tl-none p-4 flex gap-1.5 items-center">
+                    <span className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" />
+                    <span className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    <span className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+                  </div>
+                </div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Presets and Input */}
+            <div className="p-3 border-t border-white/8 bg-white/[0.01] space-y-3">
+              {/* Prompt Suggestion Chips */}
+              {messages.length === 1 && !isLoading && (
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[9px] font-black text-white/30 uppercase tracking-widest pl-1">
+                    {lang === 'en' ? 'SUGGESTED TOPICS:' : 'تجویز کردہ موضوعات:'}
+                  </span>
+                  <div className="flex flex-col gap-1.5">
+                    {PRESETS.map((p, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleSendMessage(p[lang])}
+                        className="w-full text-left p-2.5 bg-white/5 border border-white/8 hover:border-[#76C945]/40 hover:bg-white/8 rounded-xl text-[10px] sm:text-xs text-white/70 hover:text-white transition-all flex items-center gap-1.5"
+                      >
+                        <Sparkles size={10} className="text-[#8AD65A] shrink-0" />
+                        <span className="truncate">{p[lang]}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* TextInput Form */}
+              <div className="flex items-center gap-2 bg-white/5 rounded-2xl border border-white/8 p-1.5 focus-within:border-[#76C945]/40 transition-colors">
+                <input
+                  type="text"
+                  placeholder={lang === 'en' ? 'Ask about crops, diseases...' : 'فصلوں یا بیماریوں کے بارے میں پوچھیں...'}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                  className="flex-1 bg-transparent border-none outline-none pl-3 text-xs sm:text-sm text-white placeholder:text-white/30"
+                />
+                <button
+                  onClick={() => handleSendMessage()}
+                  disabled={!input.trim() || isLoading}
+                  className="w-9 h-9 bg-[#76C945] hover:bg-[#8AD65A] disabled:bg-white/10 text-[#0A2E1F] disabled:text-white/30 rounded-xl flex items-center justify-center transition-colors shrink-0"
+                >
+                  <Send size={14} />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

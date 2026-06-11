@@ -1,8 +1,10 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, Loader2, CheckCircle2, Image, AlertTriangle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/lib/LanguageContext';
 import OrderConfirmButton from './OrderConfirmButton';
+import { verifyReceipt } from '@/lib/ai/receiptVerifier';
 
 const InputField = ({ label, error, ...props }) => (
   <div className="w-full">
@@ -35,6 +37,43 @@ export default function CODBottomSheet({
   validate, submitOrder, resetForm,
 }) {
   const { lang } = useLanguage();
+  const navigate = useNavigate();
+  const [createdOrderId, setCreatedOrderId] = React.useState(null);
+  const [isVerifyingReceipt, setIsVerifyingReceipt] = React.useState(false);
+  const [receiptError, setReceiptError] = React.useState(null);
+  const [receiptSuccess, setReceiptSuccess] = React.useState(false);
+
+  const handleReceiptUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsVerifyingReceipt(true);
+    setReceiptError(null);
+    setReceiptSuccess(false);
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64Data = reader.result.substring(reader.result.indexOf(',') + 1);
+      const mimeType = file.type || 'image/jpeg';
+
+      try {
+        const parsed = await verifyReceipt(base64Data, mimeType);
+        setForm(prev => ({
+          ...prev,
+          paymentRefId: parsed.refId,
+          paymentAmount: parsed.amount,
+          paymentTimestamp: parsed.timestamp,
+          receiptBase64: reader.result,
+        }));
+        setReceiptSuccess(true);
+      } catch (err) {
+        setReceiptError(lang === 'en' ? 'Failed to read receipt details. Please upload a clear receipt.' : 'رسید کی تفصیلات پڑھنے میں ناکامی۔ براہ کرم واضح رسید اپ لوڈ کریں۔');
+      } finally {
+        setIsVerifyingReceipt(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   if (!product) return null;
 
@@ -270,19 +309,187 @@ export default function CODBottomSheet({
               </div>
             </div>
 
-            {/* COD Note */}
-            <div className="mx-6 mt-5 p-4 rounded-2xl
-              bg-[rgba(45,106,45,0.12)] border border-[rgba(92,184,92,0.2)]"
-            >
-              <p className="text-[#5cb85c] text-xs font-semibold mb-1">
-                {lang === 'en' ? '✅ Cash on Delivery (COD)' : '✅ کیش آن ڈیلیوری (COD)'}
+            {/* Payment Method Selector */}
+            <div className="px-6 mt-5 space-y-3">
+              <p className="text-white/50 text-xs tracking-[0.12em] uppercase font-semibold">
+                {lang === 'en' ? 'Payment Method' : 'طریقہ ادائیگی'}
               </p>
-              <p className="text-white/40 text-[11px] leading-relaxed font-medium">
-                {lang === 'en'
-                  ? "Pay when your order arrives. No advance payment required. Our team will confirm your order via WhatsApp."
-                  : "آرڈر پہنچنے پر رقم ادا کریں۔ کوئی پیشگی ادائیگی درکار نہیں۔ ہماری ٹیم واٹس ایپ کے ذریعے آپ کے آرڈر کی تصدیق کرے گی۔"}
-              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  { id: 'COD', name: lang === 'en' ? 'COD' : 'کیش آن ڈیلیوری' },
+                  { id: 'Easypaisa', name: lang === 'en' ? 'Easypaisa' : 'ایزی پیسہ' },
+                  { id: 'JazzCash', name: lang === 'en' ? 'JazzCash' : 'جاز کیش' },
+                  { id: 'Bank', name: lang === 'en' ? 'Bank Transfer' : 'بینک ٹرانسفر' },
+                ].map(method => (
+                  <button
+                    key={method.id}
+                    type="button"
+                    onClick={() => updateForm('paymentMethod', method.id)}
+                    className={`
+                      px-3 py-2.5 rounded-xl text-xs font-bold border transition-all duration-300
+                      ${form.paymentMethod === method.id
+                        ? 'bg-[#2d6a2d]/20 border-[#5cb85c] text-[#8AD65A] scale-102'
+                        : 'bg-white/5 border-white/10 text-white/55 hover:bg-white/10 hover:text-white'
+                      }
+                    `}
+                  >
+                    {method.name}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            {/* Conditional Mobile Payments OCR Verification Area */}
+            {form.paymentMethod !== 'COD' && (
+              <div className="mx-6 mt-5 p-5 bg-white/[0.02] border border-white/10 rounded-2xl space-y-4">
+                <h4 className="text-white font-extrabold text-sm border-b border-white/8 pb-2">
+                  {lang === 'en' ? 'Payment Instructions' : 'ادائیگی کی ہدایات'}
+                </h4>
+                <div className="text-xs text-white/70 space-y-1">
+                  <p>
+                    <span className="font-bold text-[#8AD65A]">{lang === 'en' ? 'Account Name: ' : 'اکاؤنٹ کا نام: '}</span>
+                    Vital Agro Chemical Industries
+                  </p>
+                  {form.paymentMethod === 'Easypaisa' && (
+                    <p>
+                      <span className="font-bold text-[#8AD65A]">{lang === 'en' ? 'Easypaisa Number: ' : 'ایزی پیسہ نمبر: '}</span>
+                      0301-1837160
+                    </p>
+                  )}
+                  {form.paymentMethod === 'JazzCash' && (
+                    <p>
+                      <span className="font-bold text-[#8AD65A]">{lang === 'en' ? 'JazzCash Number: ' : 'جاز کیش نمبر: '}</span>
+                      0300-1234567
+                    </p>
+                  )}
+                  {form.paymentMethod === 'Bank' && (
+                    <>
+                      <p>
+                        <span className="font-bold text-[#8AD65A]">{lang === 'en' ? 'Bank: ' : 'بینک: '}</span>
+                        Meezan Bank Ltd
+                      </p>
+                      <p>
+                        <span className="font-bold text-[#8AD65A]">{lang === 'en' ? 'Account No: ' : 'اکاؤنٹ نمبر: '}</span>
+                        1234-5678-9012-3456
+                      </p>
+                    </>
+                  )}
+                  <p className="text-[10px] text-white/40 pt-1">
+                    {lang === 'en'
+                      ? 'Please transfer the exact total amount and upload the screenshot below for AI verification.'
+                      : 'براہ کرم کل رقم منتقل کریں اور اے آئی تصدیق کے لیے نیچے سکرین شاٹ اپ لوڈ کریں۔'}
+                  </p>
+                </div>
+
+                {/* Screenshot Uploader */}
+                <div className="space-y-2">
+                  <span className="text-[10px] font-black text-white/40 uppercase tracking-wider block">
+                    {lang === 'en' ? 'UPLOAD TRANSACTION RECEIPT *' : 'ٹرانزیکشن رسید کا سکرین شاٹ *'}
+                  </span>
+                  
+                  {form.receiptBase64 ? (
+                    <div className="relative rounded-xl border border-white/10 overflow-hidden aspect-[16/9] bg-black/40 flex items-center justify-center">
+                      <img src={form.receiptBase64} alt="Receipt Preview" className="w-full h-full object-contain" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateForm('receiptBase64', '');
+                          updateForm('paymentRefId', '');
+                          updateForm('paymentAmount', 0);
+                          updateForm('paymentTimestamp', '');
+                          setReceiptSuccess(false);
+                          setReceiptError(null);
+                        }}
+                        className="absolute top-2 right-2 p-1.5 bg-black/60 rounded-full text-white/80 hover:text-white border border-white/10 transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="border border-dashed border-white/10 hover:border-[#5cb85c]/40 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer bg-white/[0.01] hover:bg-white/[0.03] transition-all">
+                      <Image size={24} className="text-white/40 mb-1.5" />
+                      <span className="text-xs font-bold text-white/80 mb-0.5">
+                        {isVerifyingReceipt ? 'AI Reading Receipt...' : (lang === 'en' ? 'Select Screenshot' : 'سکرین شاٹ منتخب کریں')}
+                      </span>
+                      <span className="text-[10px] text-white/30">
+                        {lang === 'en' ? 'Ref details parsed automatically' : 'رسید کی تفصیلات خودکار طور پر پڑھی جائیں گی'}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleReceiptUpload}
+                        disabled={isVerifyingReceipt}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+
+                {/* OCR Parsed details card */}
+                {isVerifyingReceipt && (
+                  <div className="p-3 bg-white/5 border border-white/8 rounded-xl flex items-center justify-center gap-2">
+                    <Loader2 className="w-4 h-4 text-[#8AD65A] animate-spin" />
+                    <span className="text-xs text-white/70 font-semibold">
+                      {lang === 'en' ? 'AI Vision reading transaction details...' : 'اے آئی وژن تفصیلات پڑھ رہا ہے...'}
+                    </span>
+                  </div>
+                )}
+
+                {receiptError && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-2 text-red-400">
+                    <AlertTriangle size={14} className="shrink-0" />
+                    <span className="text-[11px] font-semibold leading-relaxed">{receiptError}</span>
+                  </div>
+                )}
+
+                {receiptSuccess && (
+                  <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl space-y-3">
+                    <div className="flex items-center gap-2 text-emerald-400 border-b border-emerald-500/10 pb-1.5">
+                      <CheckCircle2 size={14} />
+                      <span className="text-[10px] font-black uppercase tracking-widest">
+                        {lang === 'en' ? 'Extracted via Gemini AI Vision' : 'جیمنی اے آئی وژن سے حاصل کردہ'}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] text-white/40 block font-bold uppercase">{lang === 'en' ? 'REF TRANSACTION ID' : 'ٹرانزیکشن آئی ڈی'}</label>
+                        <input
+                          type="text"
+                          value={form.paymentRefId}
+                          onChange={(e) => updateForm('paymentRefId', e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-lg p-1.5 text-xs text-white outline-none focus:border-[#5cb85c]/40 font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-white/40 block font-bold uppercase">{lang === 'en' ? 'VERIFIED AMOUNT' : 'تصدیق شدہ رقم'}</label>
+                        <input
+                          type="number"
+                          value={form.paymentAmount}
+                          onChange={(e) => updateForm('paymentAmount', Number(e.target.value))}
+                          className="w-full bg-white/5 border border-white/10 rounded-lg p-1.5 text-xs text-white outline-none focus:border-[#5cb85c]/40 font-mono"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* COD Note */}
+            {form.paymentMethod === 'COD' && (
+              <div className="mx-6 mt-5 p-4 rounded-2xl
+                bg-[rgba(45,106,45,0.12)] border border-[rgba(92,184,92,0.2)]"
+              >
+                <p className="text-[#5cb85c] text-xs font-semibold mb-1">
+                  {lang === 'en' ? '✅ Cash on Delivery (COD)' : '✅ کیش آن ڈیلیوری (COD)'}
+                </p>
+                <p className="text-white/40 text-[11px] leading-relaxed font-medium">
+                  {lang === 'en'
+                    ? "Pay when your order arrives. No advance payment required. Our team will confirm your order via WhatsApp."
+                    : "آرڈر پہنچنے پر رقم ادا کریں۔ کوئی پیشگی ادائیگی درکار نہیں۔ ہماری ٹیم واٹس ایپ کے ذریعے آپ کے آرڈر کی تصدیق کرے گی۔"}
+                </p>
+              </div>
+            )}
 
             {/* Submit Button */}
             <div className="px-6 pb-10 mt-5">
@@ -292,14 +499,22 @@ export default function CODBottomSheet({
                 onConfirm={async () => {
                   setIsSubmitting(true);
                   try {
-                    await submitOrder();
+                    const newId = await submitOrder();
+                    if (newId) {
+                      setCreatedOrderId(newId);
+                    }
                   } catch (e) {
                     console.error("Order submission failed:", e);
                   }
                 }}
                 onComplete={() => {
+                  const targetId = createdOrderId;
                   resetForm();
                   setIsSubmitting(false);
+                  setCreatedOrderId(null);
+                  if (targetId) {
+                    navigate(`/track/${targetId}`);
+                  }
                 }}
               />
 

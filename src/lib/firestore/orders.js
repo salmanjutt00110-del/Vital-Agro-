@@ -48,12 +48,13 @@ export const createOrder = async (orderData) => {
  * @param {string} [notes] 
  * @returns {Promise<void>}
  */
-export const updateOrderStatus = async (orderId, status, notes = "") => {
+export const updateOrderStatus = async (orderId, status, notes = "", paymentDetails = null) => {
   const docRef = doc(db, ORDERS_COLLECTION, orderId);
   await updateDoc(docRef, {
     status,
     notes:      notes,
     updatedAt:  serverTimestamp(),
+    ...(paymentDetails && { paymentDetails }),
     ...(status === 'confirmed'  && { confirmedAt: serverTimestamp() }),
     ...(status === 'delivered'  && { deliveredAt: serverTimestamp() }),
   });

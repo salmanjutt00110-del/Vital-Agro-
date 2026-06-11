@@ -12,11 +12,12 @@ const STATUS_COLORS = {
 
 function OrderRow({ order }) {
   const [updating, setUpdating] = useState(false);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
 
-  const handleStatusChange = async (newStatus) => {
+  const handleStatusChange = async (newStatus, paymentDetails = null) => {
     setUpdating(true);
     try {
-      await updateOrderStatus(order.id, newStatus);
+      await updateOrderStatus(order.id, newStatus, "", paymentDetails);
     } catch (err) {
       console.error("Failed to update status:", err);
     } finally {
@@ -71,7 +72,21 @@ function OrderRow({ order }) {
       {/* Amount */}
       <td className="px-4 py-4">
         <p className="text-white font-bold font-mono">PKR {order.totalAmount.toLocaleString()}</p>
-        <p className="text-white/30 text-xs font-semibold">COD</p>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className="text-white/30 text-xs font-semibold">{order.paymentMethod || 'COD'}</span>
+          {order.paymentDetails && (
+            <button
+              onClick={() => setShowReceiptModal(true)}
+              className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase transition-all
+                ${order.paymentDetails.status === 'approved'
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25'
+                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/35 hover:bg-amber-500/30'
+                }`}
+            >
+              {order.paymentDetails.status === 'approved' ? 'Verified ✓' : 'Verify AI'}
+            </button>
+          )}
+        </div>
       </td>
 
       {/* Status */}
@@ -106,6 +121,79 @@ function OrderRow({ order }) {
         >
           WhatsApp
         </button>
+
+        {showReceiptModal && order.paymentDetails && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4">
+            <div className="bg-[#0c1611] border border-white/10 rounded-3xl p-6 max-w-lg w-full space-y-4 text-white shadow-2xl">
+              <div className="flex justify-between items-center border-b border-white/8 pb-2">
+                <h3 className="font-extrabold text-sm text-[#8AD65A] uppercase tracking-wider">
+                  AI Receipt Verification
+                </h3>
+                <button 
+                  onClick={() => setShowReceiptModal(false)}
+                  className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="flex gap-5">
+                <div className="w-1/2 aspect-[9/16] rounded-xl border border-white/10 overflow-hidden bg-black/40 flex items-center justify-center">
+                  <img 
+                    src={order.paymentDetails.receiptBase64} 
+                    alt="Receipt Screenshot" 
+                    className="w-full h-full object-contain cursor-zoom-in"
+                    onClick={() => window.open(order.paymentDetails.receiptBase64, '_blank')}
+                  />
+                </div>
+                <div className="w-1/2 space-y-3.5 text-xs text-left leading-relaxed">
+                  <div>
+                    <span className="text-white/40 block uppercase font-bold text-[8px] tracking-wider mb-0.5">Method</span>
+                    <span className="font-bold text-white bg-white/5 px-2 py-1 rounded border border-white/8 text-[10px]">{order.paymentMethod}</span>
+                  </div>
+                  <div>
+                    <span className="text-white/40 block font-bold text-[8px] tracking-wider">Extracted Ref ID:</span>
+                    <span className="font-mono text-white text-xs font-black block mt-0.5 break-all">{order.paymentDetails.refId}</span>
+                  </div>
+                  <div>
+                    <span className="text-white/40 block font-bold text-[8px] tracking-wider">Extracted Amount:</span>
+                    <span className="font-mono text-white text-xs font-black block mt-0.5">PKR {order.paymentDetails.amountPaid?.toLocaleString()}</span>
+                  </div>
+                  <div>
+                    <span className="text-white/40 block font-bold text-[8px] tracking-wider">Timestamp:</span>
+                    <span className="text-white font-semibold block mt-0.5">{order.paymentDetails.timestamp}</span>
+                  </div>
+                  <div>
+                    <span className="text-white/40 block font-bold text-[8px] tracking-wider">Verification Status:</span>
+                    <span className={`inline-block mt-0.5 px-2 py-0.5 rounded text-[9px] font-black uppercase ${
+                      order.paymentDetails.status === 'approved' 
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse'
+                    }`}>
+                      {order.paymentDetails.status || 'pending_approval'}
+                    </span>
+                  </div>
+                  
+                  {order.paymentDetails.status !== 'approved' && (
+                    <button
+                      onClick={async () => {
+                        const updatedDetails = {
+                          ...order.paymentDetails,
+                          status: 'approved'
+                        };
+                        await handleStatusChange('confirmed', updatedDetails);
+                        setShowReceiptModal(false);
+                      }}
+                      className="w-full py-2.5 bg-[#76C945] hover:bg-[#8AD65A] text-[#0A2E1F] rounded-xl font-black text-xs transition-colors mt-4 shadow-md shadow-[#76C945]/10"
+                    >
+                      Approve Payment
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </td>
     </tr>
   );

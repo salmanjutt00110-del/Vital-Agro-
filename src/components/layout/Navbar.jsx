@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Phone, MessageCircle, MapPin, Home, Info, ShoppingBag, Award, PhoneCall } from 'lucide-react';
+import { Menu, X, Phone, MessageCircle, MapPin, Home, Info, ShoppingBag, Award, PhoneCall, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useCart } from '@/lib/CartContext';
@@ -21,6 +21,7 @@ export default function Navbar() {
     { label: t.nav.products, path: '/products', icon: ShoppingBag },
     { label: t.nav.whyUs, path: '/why-us', icon: Award },
     { label: t.nav.contact, path: '/contact', icon: MapPin },
+    { label: t.nav.aiScanner, path: '/ai-scanner', icon: Sparkles },
   ];
 
   useEffect(() => {

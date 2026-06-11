@@ -4,6 +4,7 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import FloatingButtons from './FloatingButtons';
 import ScrollToTop from '../ScrollToTop';
+import AICropAssistant from '../ai/AICropAssistant';
 
 export default function AppLayout() {
   return (
@@ -15,6 +16,7 @@ export default function AppLayout() {
       </main>
       <Footer />
       <FloatingButtons />
+      <AICropAssistant />
     </div>
   );
 }
