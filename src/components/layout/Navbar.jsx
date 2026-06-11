@@ -60,11 +60,11 @@ Thank you.`;
 
   const whatsappUrl = getWhatsAppGeneralLink();
 
-  const isLight = false; // Always dark themed navbar for consistent premium branding
+  const isLight = false;
   const navBg = scrolled
-    ? 'bg-[#02120a]/85 backdrop-blur-[20px] border-b border-white/10 shadow-lg shadow-black/20'
-    : 'bg-transparent';
-  const textColor = 'text-white';
+    ? 'bg-black/85 backdrop-blur-[24px] border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.5),0_0_15px_rgba(92,184,92,0.15)]'
+    : 'bg-black/40 backdrop-blur-[16px] border-b border-white/5 shadow-md shadow-black/15';
+  const textColor = 'text-white/90';
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${navBg}`}>
@@ -118,15 +118,15 @@ Thank you.`;
                 to={link.path}
                 className={`relative px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-300 rounded-lg
                   ${location.pathname === link.path
-                    ? (isLight ? 'text-[#0A2E1F] bg-[#76C945]/10' : 'text-white bg-white/15')
-                    : `${textColor} hover:text-[#76C945]`
+                    ? 'text-white bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.08)]'
+                    : 'text-white/80 hover:text-[#8AD65A] hover:drop-shadow-[0_0_8px_rgba(138,214,90,0.5)]'
                   }`}
               >
                 {link.label}
                 {location.pathname === link.path && (
                   <motion.div
                     layoutId="nav-indicator"
-                    className="absolute bottom-0 left-4 right-4 h-0.5 bg-[#76C945] rounded-full"
+                    className="absolute bottom-0 left-4 right-4 h-0.5 bg-[#76C945] rounded-full shadow-[0_0_8px_#76C945]"
                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   />
                 )}

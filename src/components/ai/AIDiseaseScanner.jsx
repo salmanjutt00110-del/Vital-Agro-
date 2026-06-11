@@ -79,7 +79,7 @@ export default function AIDiseaseScanner() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6 sm:p-8 md:p-10 bg-white/70 dark:bg-white/[0.03] backdrop-blur-2xl rounded-[32px] border border-black/5 dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_30px_70px_rgba(0,0,0,0.5)] text-gray-900 dark:text-white transition-all duration-300">
+    <div className="w-full max-w-4xl mx-auto p-6 sm:p-8 md:p-10 bg-white/95 dark:bg-[#04120a]/80 backdrop-blur-3xl rounded-[32px] border border-black/10 dark:border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.08)] dark:shadow-[0_30px_70px_rgba(0,0,0,0.6)] text-gray-900 dark:text-white transition-all duration-300">
       {/* Title Header */}
       <div className="text-center mb-10">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#76C945]/10 dark:bg-[#76C945]/15 border border-[#76C945]/30 text-[#2d6a2d] dark:text-[#8AD65A] text-[11px] font-black uppercase tracking-widest mb-4">
@@ -153,7 +153,7 @@ export default function AIDiseaseScanner() {
         </div>
 
         {/* Results Panel */}
-        <div className="h-full min-h-[340px] rounded-3xl border border-black/5 dark:border-white/10 bg-black/[0.01] dark:bg-white/[0.01] p-6 sm:p-8 relative overflow-hidden flex flex-col shadow-inner">
+        <div className="h-full min-h-[340px] rounded-3xl border border-black/10 dark:border-white/15 bg-white/40 dark:bg-black/30 p-6 sm:p-8 relative overflow-hidden flex flex-col shadow-[inset_0_1px_3px_rgba(0,0,0,0.05)] dark:shadow-inner">
           <AnimatePresence mode="wait">
             {isAnalyzing && (
               <motion.div

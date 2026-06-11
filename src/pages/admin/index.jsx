@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { subscribeToOrders } from '@/lib/firestore/orders';
 import StatsCards from './StatsCards';
 import OrdersTable from './OrdersTable';
-import { auth, signOut } from '@/lib/supabase';
+import { auth, signOut } from '@/lib/api';
 import vitalAgroLogo from '@/assets/vital agro logo.webp';
 
 export default function AdminDashboard() {

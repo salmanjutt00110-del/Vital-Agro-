@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { auth, signInWithEmailAndPassword } from '@/lib/supabase';
+import { auth, signInWithEmailAndPassword } from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Mail, Loader2, AlertTriangle } from 'lucide-react';
 import vitalAgroLogo from '@/assets/vital agro logo.webp';

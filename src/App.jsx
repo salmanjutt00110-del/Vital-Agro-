@@ -13,8 +13,8 @@ import CartDrawer from '@/components/cart/CartDrawer';
 import AppLayout from './components/layout/AppLayout';
 import Loader from '@/components/layout/Loader';
 import SmoothScroll from '@/components/layout/SmoothScroll';
-import { useAuthState } from '@/lib/supabase';
-import { auth } from '@/lib/supabase';
+import { useAuthState } from '@/lib/api';
+import { auth } from '@/lib/api';
 import { HelmetProvider } from 'react-helmet-async';
 
 // Route-based Code Splitting using React.lazy

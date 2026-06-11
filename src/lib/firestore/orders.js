@@ -3,7 +3,7 @@ import {
   collection, addDoc, doc, updateDoc,
   serverTimestamp, query, orderBy,
   onSnapshot, where, getCountFromServer,
-} from '@/lib/supabase';
+} from '@/lib/api';
 
 const ORDERS_COLLECTION = 'orders';
 

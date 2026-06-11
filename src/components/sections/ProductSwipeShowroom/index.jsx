@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSwipeable } from 'react-swipeable';
-import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, ArrowRight, ShoppingCart } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { PRODUCTS_DATA } from '@/data/productsData';
+import { useCart } from '@/lib/CartContext';
 import PremiumButton from '@/components/ui/PremiumButton';
 
 const FEATURED_SLUGS = [
@@ -20,208 +21,434 @@ const FEATURED_SLUGS = [
   "super-4g"
 ];
 
-const formatPsychologicalPrice = (price) => {
+// Aesthetic backgrounds mapped to each product's branding
+const AMBIENT_THEMES = {
+  "fatty": {
+    bg: "radial-gradient(circle at center, #0a2d1d 0%, #030e08 100%)",
+    glow: "rgba(118, 201, 69, 0.4)",
+    particleColor: "#76C945"
+  },
+  "conference-gold": {
+    bg: "radial-gradient(circle at center, #2e240a 0%, #0e0b03 100%)",
+    glow: "rgba(197, 160, 89, 0.4)",
+    particleColor: "#C5A059"
+  },
+  "easy-grow": {
+    bg: "radial-gradient(circle at center, #0a242d 0%, #030c0e 100%)",
+    glow: "rgba(56, 189, 248, 0.4)",
+    particleColor: "#38bdf8"
+  },
+  "output": {
+    bg: "radial-gradient(circle at center, #240a2d 0%, #0c030e 100%)",
+    glow: "rgba(192, 132, 252, 0.4)",
+    particleColor: "#c084fc"
+  },
+  "aaqaab": {
+    bg: "radial-gradient(circle at center, #2d0a0a 0%, #0e0303 100%)",
+    glow: "rgba(248, 113, 113, 0.4)",
+    particleColor: "#f87171"
+  },
+  "vac-zinc": {
+    bg: "radial-gradient(circle at center, #0e1e2d 0%, #04090e 100%)",
+    glow: "rgba(96, 165, 250, 0.4)",
+    particleColor: "#60a5fa"
+  },
+  "sector": {
+    bg: "radial-gradient(circle at center, #222d0a 0%, #0b0e03 100%)",
+    glow: "rgba(163, 230, 53, 0.4)",
+    particleColor: "#a3e635"
+  },
+  "purifizin": {
+    bg: "radial-gradient(circle at center, #0a2d24 0%, #030e0b 100%)",
+    glow: "rgba(45, 212, 191, 0.4)",
+    particleColor: "#2dd4bf"
+  },
+  "dr-pp": {
+    bg: "radial-gradient(circle at center, #2d1d0a 0%, #0e0a03 100%)",
+    glow: "rgba(251, 146, 60, 0.4)",
+    particleColor: "#fb923c"
+  },
+  "farbasin": {
+    bg: "radial-gradient(circle at center, #1b0a2d 0%, #08030e 100%)",
+    glow: "rgba(167, 139, 250, 0.4)",
+    particleColor: "#a78bfa"
+  },
+  "super-4g": {
+    bg: "radial-gradient(circle at center, #2d0a21 0%, #0e030a 100%)",
+    glow: "rgba(244, 63, 94, 0.4)",
+    particleColor: "#f43f5e"
+  }
+};
+
+const formatPrice = (price) => {
   const val = Math.round(price);
-  if (isNaN(val) || val <= 0) return 99;
-  if (val % 100 === 99) return val;
+  if (isNaN(val) || val <= 0) return 999;
   if (val % 100 === 0) return val + 99;
-  return Math.ceil(val / 100) * 100 - 1;
+  return val;
 };
 
 export default function ProductSwipeShowroom() {
   const { lang } = useLanguage();
+  const { addToCart, setIsCartOpen } = useCart();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [direction, setDirection] = useState(0); // -1 for left, 1 for right
+  const [direction, setDirection] = useState(0);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [progress, setProgress] = useState(0);
+
+  const containerRef = useRef(null);
+  const scrollTimeout = useRef(null);
 
   const products = useMemo(() => {
     return FEATURED_SLUGS.map(slug => PRODUCTS_DATA[slug]).filter(Boolean);
   }, []);
 
   const activeProduct = products[currentIndex];
+  const theme = AMBIENT_THEMES[activeProduct?.slug] || AMBIENT_THEMES["fatty"];
 
   const goNext = () => {
     setDirection(1);
+    setProgress(0);
     setCurrentIndex((prev) => (prev + 1) % products.length);
   };
 
   const goPrev = () => {
     setDirection(-1);
+    setProgress(0);
     setCurrentIndex((prev) => (prev - 1 + products.length) % products.length);
   };
 
-  const handlers = useSwipeable({
+  // 1. Auto-slide sequence every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          goNext();
+          return 0;
+        }
+        return prev + 1;
+      });
+    }, 50); // 100 steps of 50ms = 5 seconds
+    return () => clearInterval(interval);
+  }, [currentIndex]);
+
+  // 2. Keyboard control bindings
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "ArrowLeft") goPrev();
+      if (e.key === "ArrowRight") goNext();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // 3. Mouse Wheel controller (throttled to avoid double slide)
+  const handleWheel = (e) => {
+    if (scrollTimeout.current) return;
+    scrollTimeout.current = setTimeout(() => {
+      scrollTimeout.current = null;
+    }, 1200);
+
+    if (e.deltaY > 50) {
+      goNext();
+    } else if (e.deltaY < -50) {
+      goPrev();
+    }
+  };
+
+  // 4. Cursor parallax interaction
+  const handleMouseMove = (e) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setMousePosition({ x, y });
+  };
+
+  // 5. Swipe gesture support
+  const swipeHandlers = useSwipeable({
     onSwipedLeft: () => goNext(),
     onSwipedRight: () => goPrev(),
-    trackMouse: true,
-    preventScrollOnSwipe: true,
+    trackMouse: false,
+    preventScrollOnSwipe: true
   });
 
   if (!activeProduct) return null;
 
-  const currentSize = activeProduct.sizes?.[0] || activeProduct.pricing?.[0] || { price: 999, oldPrice: 1299, discount: 20 };
-  const price = formatPsychologicalPrice(currentSize.price || 999);
-  const oldPrice = currentSize.oldPrice ? formatPsychologicalPrice(currentSize.oldPrice) : null;
-  const discount = currentSize.discount || (oldPrice ? Math.round((1 - price / oldPrice) * 100) : 20);
+  const currentSize = activeProduct.sizes?.[0] || activeProduct.pricing?.[0] || { price: 999 };
+  const price = formatPrice(currentSize.price || 999);
+  const oldPrice = currentSize.oldPrice ? formatPrice(currentSize.oldPrice) : null;
 
-  const whatsappText = encodeURIComponent(`Hello Vital Agro,\n\nI am interested in ${activeProduct.name[lang]} (${activeProduct.activeIngredient}). Please share pricing and ordering info.\n\nThank you.`);
+  const whatsappText = encodeURIComponent(`Hello Vital Agro,\n\nI am interested in buying ${activeProduct.name[lang]}. Please share details.\n\nThank you.`);
   const whatsappUrl = `https://wa.me/923011837160?text=${whatsappText}`;
 
+  // Handle immediate purchase checkout setup
+  const handleQuickBuy = () => {
+    const sizeName = typeof currentSize === 'object' ? currentSize.size : 'Standard';
+    addToCart(activeProduct, 1, sizeName, price);
+    setIsCartOpen(true);
+  };
+
   return (
-    <section className="relative py-24 bg-[#02140c] text-white overflow-hidden flex flex-col items-center">
-      {/* Ambient background glows */}
-      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[radial-gradient(circle,rgba(118,201,69,0.15)_0%,transparent_70%)] pointer-events-none z-0" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[radial-gradient(circle,rgba(197,160,89,0.08)_0%,transparent_70%)] pointer-events-none z-0" />
-
-      {/* Section Header */}
-      <div className="text-center mb-12 px-4 z-10">
-        <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#76C945]/15 border border-[#76C945]/30 text-[#76C945] text-xs font-black uppercase tracking-wider mb-4">
-          <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-          {lang === 'en' ? 'OUR PRODUCTS' : 'ہماری مصنوعات'}
-        </span>
-        <h2 className="text-3xl sm:text-5xl font-black tracking-tight mb-2">
-          {lang === 'en' ? 'Premium Collection' : 'پریمیئم کلیکشن'}
-        </h2>
-        <p className="text-white/60 text-sm font-medium tracking-wide">
-          {lang === 'en' ? '← Swipe to explore →' : '← دیکھنے کے لیے سوائپ کریں →'}
-        </p>
-      </div>
-
-      {/* Card Stage area */}
-      <div className="relative w-full max-w-[400px] h-[540px] flex items-center justify-center z-10" {...handlers}>
-        {/* Background peek card */}
-        <div className="absolute w-[320px] h-[460px] bg-white/5 border border-white/10 rounded-[28px] pointer-events-none z-0 scale-[0.93] opacity-40 translate-y-3 filter blur-[1px] transition-all duration-500" />
-
-        {/* Active swiping card */}
-        <AnimatePresence mode="popLayout" initial={false}>
+    <div
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onWheel={handleWheel}
+      className="relative min-h-screen w-full flex items-center justify-center overflow-hidden transition-all duration-1000 select-none z-10 py-16 px-4 sm:px-6 lg:px-8"
+      style={{ background: theme.bg }}
+      {...swipeHandlers}
+    >
+      {/* Background Floating Particles */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        {[...Array(25)].map((_, i) => (
           <motion.div
-            key={currentIndex}
-            initial={{ x: direction > 0 ? 160 : -160, opacity: 0, scale: 0.95, rotate: direction > 0 ? 5 : -5 }}
-            animate={{ x: 0, opacity: 1, scale: 1, rotate: 0 }}
-            exit={{ x: direction > 0 ? -160 : 160, opacity: 0, scale: 0.95, rotate: direction > 0 ? -5 : 5 }}
-            transition={{ type: "spring", stiffness: 300, damping: 28 }}
-            className="absolute z-10 bg-white/[0.04] backdrop-blur-[24px] saturate-[150%] border border-white/10 rounded-[28px] shadow-[0_32px_80px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)] p-8 flex flex-col justify-between items-center w-[340px] max-w-[88vw] h-[500px]"
-          >
-            {/* Top row: Category badge */}
-            <div className="w-full flex justify-between items-center">
-              <span className="px-2.5 py-0.5 rounded bg-[#76C945]/15 border border-[#76C945]/30 text-[#76C945] text-[9px] font-black uppercase tracking-wider">
-                {activeProduct.category.toUpperCase().replace('_', ' ')}
-              </span>
-              <span className="text-[9px] font-black text-white/40 tracking-widest">
-                {activeProduct.productCode}
-              </span>
-            </div>
-
-            {/* Middle: Floating product image + Ground shadow */}
-            <div className="relative flex-1 flex flex-col items-center justify-center my-4 overflow-visible">
-              <motion.div
-                animate={{
-                  y: [0, -10, 0],
-                  rotateY: [0, 5, 0]
-                }}
-                transition={{
-                  duration: 4,
-                  ease: "easeInOut",
-                  repeat: Infinity
-                }}
-                className="relative z-10 flex items-center justify-center max-h-[160px]"
-              >
-                <img
-                  src={activeProduct.pngUrl || activeProduct.imageUrl}
-                  alt={activeProduct.name[lang]}
-                  className="max-h-[165px] w-auto object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.25)]"
-                />
-              </motion.div>
-              {/* Ground shadow beneath */}
-              <div className="absolute bottom-1 w-24 h-2 bg-black/40 rounded-full blur-[6px] opacity-60 z-0 animate-pulse" style={{ transform: 'scale(1.2)' }} />
-            </div>
-
-            {/* Bottom details block */}
-            <div className="w-full text-center space-y-2 mt-auto">
-              <div>
-                <h3 className="text-xl font-extrabold text-white leading-tight block truncate">
-                  {activeProduct.name[lang]}
-                </h3>
-                <p className="text-[10px] text-white/50 font-bold block truncate max-w-full mt-0.5">
-                  {activeProduct.genericName[lang] || activeProduct.genericName.en}
-                </p>
-              </div>
-
-              {/* Price row */}
-              <div className="flex items-center justify-center gap-2.5 py-1">
-                <span className="text-lg font-black text-[#76C945] font-mono">
-                  PKR {price}
-                </span>
-                {oldPrice && (
-                  <>
-                    <span className="text-xs text-white/40 font-mono line-through">
-                      PKR {oldPrice}
-                    </span>
-                    <span className="px-1.5 py-0.5 rounded-md bg-red-500/20 text-red-400 text-[8px] font-black uppercase tracking-wider">
-                      Save {discount}%
-                    </span>
-                  </>
-                )}
-              </div>
-
-              {/* Action buttons */}
-              <div className="grid grid-cols-2 gap-3.5 pt-2">
-                <PremiumButton
-                  variant="primary"
-                  href={`/products/${activeProduct.slug}`}
-                  isMagnetic={false}
-                  showArrow={false}
-                  className="px-4 py-2.5 text-xs h-[40px]"
-                >
-                  {lang === 'en' ? 'View Details' : 'تفصیلات دیکھیں'}
-                </PremiumButton>
-                <PremiumButton
-                  variant="whatsapp"
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  isMagnetic={false}
-                  showArrow={false}
-                  className="px-4 py-2.5 text-xs h-[40px]"
-                >
-                  {lang === 'en' ? 'WhatsApp' : 'واٹس ایپ'}
-                </PremiumButton>
-              </div>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Desktop Arrow navigators */}
-        <button
-          onClick={goPrev}
-          className="absolute left-[-60px] hidden md:flex w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 items-center justify-center text-white transition-all active:scale-95 z-20 cursor-pointer"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-        <button
-          onClick={goNext}
-          className="absolute right-[-60px] hidden md:flex w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 items-center justify-center text-white transition-all active:scale-95 z-20 cursor-pointer"
-        >
-          <ChevronRight className="w-6 h-6" />
-        </button>
-      </div>
-
-      {/* Dot Indicators */}
-      <div className="flex gap-2.5 mt-8 z-10">
-        {products.map((_, idx) => (
-          <button
-            key={idx}
-            onClick={() => {
-              setDirection(idx > currentIndex ? 1 : -1);
-              setCurrentIndex(idx);
+            key={i}
+            className="absolute rounded-full opacity-25"
+            style={{
+              width: Math.random() * 8 + 4 + 'px',
+              height: Math.random() * 8 + 4 + 'px',
+              backgroundColor: theme.particleColor,
+              left: Math.random() * 100 + '%',
+              top: Math.random() * 100 + '%',
+              boxShadow: `0 0 20px ${theme.particleColor}`
             }}
-            className={`h-2 rounded-full transition-all duration-300 ${
-              currentIndex === idx
-                ? 'w-6 bg-[#76C945]'
-                : 'w-2 bg-white/25 hover:bg-white/45'
-            }`}
+            animate={{
+              y: [0, Math.random() * -120 - 40],
+              x: [0, Math.random() * 40 - 20],
+              opacity: [0.15, 0.4, 0]
+            }}
+            transition={{
+              duration: Math.random() * 6 + 4,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: Math.random() * 5
+            }}
           />
         ))}
       </div>
-    </section>
+
+      {/* Ambient Glow Aura */}
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[140px] pointer-events-none transition-all duration-1000 z-0"
+        style={{ backgroundColor: theme.glow, filter: 'blur(120px)', opacity: 0.6 }}
+      />
+
+      {/* Fullscreen Grid Layout */}
+      <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-8 items-center relative z-10">
+        
+        {/* Left Column: Premium Reveal Details */}
+        <div className="text-left space-y-6 md:space-y-8 order-2 lg:order-1">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeProduct.id}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: { opacity: 1, transition: { staggerChildren: 0.15 } },
+                exit: { opacity: 0, transition: { duration: 0.3 } }
+              }}
+              className="space-y-5"
+            >
+              {/* Sparkle Badge */}
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: -20 },
+                  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100 } }
+                }}
+                className="inline-flex items-center gap-2 px-4.5 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md shadow-lg"
+              >
+                <Sparkles className="w-4 h-4 text-[#76C945] animate-pulse" />
+                <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-[#8AD65A]">
+                  {activeProduct.category.toUpperCase().replace('_', ' ')}
+                </span>
+              </motion.div>
+
+              {/* Reveal Name */}
+              <motion.h1
+                variants={{
+                  hidden: { opacity: 0, x: -50 },
+                  visible: { opacity: 1, x: 0, transition: { type: 'spring', damping: 12 } }
+                }}
+                className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white drop-shadow"
+              >
+                {activeProduct.name[lang]}
+              </motion.h1>
+
+              {/* Formula Formula */}
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0 },
+                  visible: { opacity: 1 }
+                }}
+                className="flex items-center gap-3 font-mono text-xs text-white/50"
+              >
+                <span className="px-2.5 py-1 rounded bg-[#76C945]/15 text-[#8AD65A] font-extrabold uppercase border border-[#76C945]/20">
+                  {activeProduct.formulation || 'SL Form'}
+                </span>
+                <span>•</span>
+                <span className="font-bold">{activeProduct.activeIngredient}</span>
+              </motion.div>
+
+              {/* Reveal Description */}
+              <motion.p
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                className="text-sm sm:text-base text-white/70 leading-relaxed max-w-xl font-medium"
+              >
+                {activeProduct.description[lang].length > 220 
+                  ? activeProduct.description[lang].substring(0, 220) + '...' 
+                  : activeProduct.description[lang]}
+              </motion.p>
+
+              {/* Reveal Price */}
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, scale: 0.9 },
+                  visible: { opacity: 1, scale: 1 }
+                }}
+                className="flex items-baseline gap-4 py-2"
+              >
+                <span className="text-3xl sm:text-4xl font-mono font-black text-[#8AD65A]">
+                  PKR {price.toLocaleString()}
+                </span>
+                {oldPrice && (
+                  <span className="text-sm sm:text-base text-white/30 line-through font-mono">
+                    PKR {oldPrice.toLocaleString()}
+                  </span>
+                )}
+              </motion.div>
+
+              {/* Buttons Row */}
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 30 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                className="flex flex-wrap gap-4 pt-4"
+              >
+                <button
+                  onClick={handleQuickBuy}
+                  className="px-8 py-4 bg-gradient-to-r from-[#76C945] to-[#5cb85c] hover:shadow-[0_0_30px_rgba(92,184,92,0.4)] text-[#0A2E1F] font-black text-sm rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center gap-2 group"
+                >
+                  <ShoppingCart size={18} className="group-hover:rotate-12 transition-transform" />
+                  <span>{lang === 'en' ? 'Quick Checkout' : 'فوری خریدیں'}</span>
+                </button>
+
+                <PremiumButton
+                  variant="secondary"
+                  href={`/products/${activeProduct.slug}`}
+                  className="px-8 py-4 text-sm font-extrabold rounded-full border border-white/20 bg-white/5 hover:bg-white/10"
+                >
+                  <span>{lang === 'en' ? 'Product Profile' : 'تفصیلات دیکھیں'}</span>
+                  <ArrowRight size={16} />
+                </PremiumButton>
+              </motion.div>
+
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Right Column: 3D Parallax floating Image */}
+        <div className="relative aspect-square w-full max-w-[420px] lg:max-w-[500px] mx-auto flex items-center justify-center order-1 lg:order-2">
+          
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeProduct.id}
+              initial={{ scale: 0.6, rotate: -45, opacity: 0 }}
+              animate={{ 
+                scale: 1, 
+                rotate: 0, 
+                opacity: 1,
+                x: mousePosition.x * 35,
+                y: mousePosition.y * 35,
+                rotateY: mousePosition.x * 25,
+                rotateX: -mousePosition.y * 25
+              }}
+              exit={{ scale: 0.6, rotate: 45, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 120, damping: 18 }}
+              className="relative w-[75%] sm:w-[80%] h-auto z-10 cursor-pointer overflow-visible flex items-center justify-center"
+            >
+              
+              {/* Product Bottle Shadow */}
+              <div 
+                className="absolute bottom-[-15px] w-[50%] h-[15px] bg-black/40 rounded-full blur-[10px] pointer-events-none transition-all duration-500 scale-x-[1.2] opacity-80" 
+              />
+
+              {/* Dynamic Sweep Glare Overlay */}
+              <div className="absolute inset-0 rounded-[28px] overflow-hidden pointer-events-none z-20">
+                <motion.div 
+                  className="w-[30%] h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 absolute left-0"
+                  animate={{ x: ['-100%', '300%'] }}
+                  transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut', repeatDelay: 3 }}
+                />
+              </div>
+
+              {/* Image Node */}
+              <img
+                src={activeProduct.pngUrl || activeProduct.imageUrl}
+                alt={activeProduct.name[lang]}
+                className="w-full h-auto object-contain max-h-[350px] sm:max-h-[440px] drop-shadow-[0_20px_45px_rgba(0,0,0,0.5)] select-none hover:scale-105 transition-all duration-700"
+              />
+
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Navigation Controls over stage */}
+          <button
+            onClick={goPrev}
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white flex items-center justify-center hover:scale-110 active:scale-90 transition-all z-20"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <button
+            onClick={goNext}
+            className="absolute right-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white flex items-center justify-center hover:scale-110 active:scale-90 transition-all z-20"
+          >
+            <ChevronRight size={20} />
+          </button>
+        </div>
+
+      </div>
+
+      {/* Bottom Interface: Progress indicator & Dots */}
+      <div className="absolute bottom-8 left-0 right-0 max-w-7xl mx-auto px-6 flex justify-between items-center z-20">
+        
+        {/* Carousel Dots */}
+        <div className="flex gap-2">
+          {products.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => {
+                setDirection(idx > currentIndex ? 1 : -1);
+                setCurrentIndex(idx);
+                setProgress(0);
+              }}
+              className={`h-1.5 rounded-full transition-all duration-500 ${
+                currentIndex === idx 
+                  ? 'w-8 bg-[#8AD65A] shadow-[0_0_8px_#76C945]' 
+                  : 'w-2.5 bg-white/20 hover:bg-white/40'
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* 5-second automatic Reveal Progress Bar */}
+        <div className="flex items-center gap-3.5 text-white/40 font-mono text-xs">
+          <span>0{currentIndex + 1}</span>
+          <div className="w-36 h-[2px] bg-white/10 rounded-full overflow-hidden relative">
+            <div 
+              className="h-full bg-[#8AD65A] transition-all duration-[50ms]"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <span>0{products.length}</span>
+        </div>
+
+      </div>
+
+    </div>
   );
 }

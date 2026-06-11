@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/lib/LanguageContext';
 import OrderConfirmButton from './OrderConfirmButton';
 import { verifyReceipt } from '@/lib/ai/receiptVerifier';
-import { db, collection, query, where, getDocs } from '@/lib/supabase';
+import { verifyReceiptUnique } from '@/lib/api';
 
 const InputField = ({ label, error, ...props }) => (
   <div className="w-full">
@@ -140,11 +140,8 @@ export default function CODBottomSheet({
         }
 
         // 2. Duplicate Check / Double Spend Verification
-        const ordersRef = collection(db, 'orders');
-        const q = query(ordersRef, where('paymentDetails.refId', '==', parsed.refId));
-        const snap = await getDocs(q);
-
-        if (!snap.empty) {
+        const checkResult = await verifyReceiptUnique(parsed.refId);
+        if (checkResult.duplicate) {
           clearInterval(stepInterval);
           setIsVerifyingReceipt(false);
           setForm(prev => ({ ...prev, paymentDuplicate: true }));

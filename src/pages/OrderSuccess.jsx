@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { db, doc, onSnapshot } from '@/lib/supabase';
+import { db, doc, onSnapshot } from '@/lib/api';
 import { motion } from 'framer-motion';
 import { Check, Calendar, FileDown, ArrowRight, ShoppingBag, Truck } from 'lucide-react';
 import { downloadInvoice } from '@/lib/pdf/InvoiceGenerator';
