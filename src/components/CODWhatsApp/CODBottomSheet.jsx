@@ -12,7 +12,7 @@ const InputField = ({ label, error, value, icon: Icon, ...props }) => {
   const isFilled = value && String(value).length > 0;
 
   return (
-    <div className="w-full relative">
+    <div className="w-full relative text-left">
       <div className="relative flex items-center">
         {Icon && (
           <div className={`absolute left-4 transition-colors duration-300 ${focused ? 'text-[#8AD65A]' : 'text-white/30'}`}>
@@ -118,7 +118,7 @@ const GlassCreditCard = ({ paymentMethod, customerName, phone, amount }) => {
     >
       <div className={`absolute -right-10 -top-10 w-28 h-28 rounded-full blur-[40px] pointer-events-none ${theme.glowClass}`} />
       
-      <div className="h-full flex flex-col justify-between relative z-10 font-mono">
+      <div className="h-full flex flex-col justify-between relative z-10 font-mono text-left">
         <div className="flex justify-between items-start">
           <div>
             <span className="text-[8px] text-white/40 block font-black">VITAL AGRO HYBRID GATEWAY</span>
@@ -161,13 +161,13 @@ export default function CODBottomSheet({
   const navigate = useNavigate();
   const [createdOrderId, setCreatedOrderId] = useState(null);
 
-  // Multi-step pagination states
+  // Multi-step wizard pagination states
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState(0);
   const [localErrors, setLocalErrors] = useState({});
 
   // Success Experience Timeline states
-  const [successPhase, setSuccessPhase] = useState('idle'); // 'idle' | 'packing' | 'shipping' | 'delivered' | 'confirmed'
+  const [successPhase, setSuccessPhase] = useState('idle'); // 'idle' | 'packing' | 'falling' | 'driving' | 'delivered' | 'confirmed'
   const [successProgress, setSuccessProgress] = useState(0);
 
   // OCR & Stripe Flow States
@@ -178,11 +178,11 @@ export default function CODBottomSheet({
   const [stripeSimulating, setStripeSimulating] = useState(false);
   const [stripeStep, setStripeStep] = useState(1);
 
-  // Clipboard feedbacks
+  // Clipboard copy feedback states
   const [copiedNumber, setCopiedNumber] = useState(false);
   const [copiedTitle, setCopiedTitle] = useState(false);
 
-  // Countdown timer for mobile wallets
+  // countdown timer for mobile wallets
   const [timeLeft, setTimeLeft] = useState(900);
 
   useEffect(() => {
@@ -318,7 +318,6 @@ export default function CODBottomSheet({
 
   const updateForm = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value }));
-    // Clear error dynamically as the user types
     if (localErrors[key]) {
       setLocalErrors(prev => {
         const copy = { ...prev };
@@ -350,12 +349,12 @@ export default function CODBottomSheet({
   const localizedName = typeof product.name === 'object' ? (product.name[lang] || product.name.en) : product.name;
   const imageSrc = product.pngUrl || product.imageUrl || product.image;
 
-  // Pricing calculations
+  // Billing math
   const itemsSubtotal = currentPrice * form.quantity;
   const deliveryCharges = itemsSubtotal > 3000 ? 0 : 250;
   const grandTotal = itemsSubtotal + deliveryCharges;
 
-  // Estimated Delivery window calculations
+  // Delivery limits dates
   const today = new Date();
   const deliveryMinDate = new Date(today);
   deliveryMinDate.setDate(deliveryMinDate.getDate() + 2);
@@ -382,7 +381,7 @@ export default function CODBottomSheet({
     setReceiptSuccess(true);
   };
 
-  // Step Validations
+  // Step Validator logic
   const validateStep2 = () => {
     const e = {};
     if (!form.customerName || !form.customerName.trim()) {
@@ -433,20 +432,26 @@ export default function CODBottomSheet({
     setCurrentStep(prev => prev - 1);
   };
 
+  // Cinematic timeline triggers
   const handlePlaceOrderTimeline = async () => {
+    // 1. Box packing & flaps closing state
     setSuccessPhase('packing');
     
-    // Asynchronously submit to Firestore database
+    // Submit order payload to firestore database asynchronously
     const orderSavePromise = submitOrder();
 
-    // Packing phase timer
-    await new Promise(r => setTimeout(r, 2000));
+    // Box closing animation duration
+    await new Promise(r => setTimeout(r, 1600));
     
-    // Transit/Shipping Phase
-    setSuccessPhase('shipping');
+    // 2. Box falling down into the truck bed
+    setSuccessPhase('falling');
+    await new Promise(r => setTimeout(r, 1600));
+
+    // 3. Truck accelerating and driving off
+    setSuccessPhase('driving');
     setSuccessProgress(0);
 
-    const duration = 2400;
+    const duration = 2500;
     const intervalTime = 40;
     const steps = duration / intervalTime;
     let currentStepTick = 0;
@@ -462,7 +467,7 @@ export default function CODBottomSheet({
 
     await new Promise(r => setTimeout(r, duration));
 
-    // Await database creation completion
+    // Await database write resolution
     let finalOrderId = null;
     try {
       finalOrderId = await orderSavePromise;
@@ -473,28 +478,28 @@ export default function CODBottomSheet({
       console.error("Firebase submit error:", e);
     }
 
-    // Delivered Phase
+    // 4. Destination reached / Delivered
     setSuccessPhase('delivered');
     await new Promise(r => setTimeout(r, 1600));
 
-    // Confirm state
+    // 5. Final order confirmation dashboard
     setSuccessPhase('confirmed');
 
-    // Trigger premium organic celebration checkmark burst
+    // Trigger premium green decoration confetti celebration
     confetti({
       particleCount: 80,
       spread: 70,
-      origin: { y: 0.75 },
+      origin: { y: 0.6 },
       colors: ['#76C945', '#8AD65A', '#2d6a2d', '#ffffff']
     });
   };
 
-  // Sliding transitions values
+  // Sliding Framer Motion Step Transitions
   const stepVariants = {
     enter: (dir) => ({
-      x: dir > 0 ? '60%' : '-60%',
+      x: dir > 0 ? '50%' : '-50%',
       opacity: 0,
-      filter: 'blur(4px)'
+      filter: 'blur(3px)'
     }),
     center: {
       x: 0,
@@ -503,9 +508,9 @@ export default function CODBottomSheet({
       transition: { type: 'spring', stiffness: 260, damping: 26 }
     },
     exit: (dir) => ({
-      x: dir < 0 ? '60%' : '-60%',
+      x: dir < 0 ? '50%' : '-50%',
       opacity: 0,
-      filter: 'blur(4px)',
+      filter: 'blur(3px)',
       transition: { duration: 0.2 }
     })
   };
@@ -529,7 +534,7 @@ export default function CODBottomSheet({
             <div className="flex items-center justify-between px-6 py-5 border-b border-white/5 backdrop-blur-md sticky top-0 bg-black/60 z-30">
               <div className="flex items-center gap-2.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#76C945] animate-pulse" />
-                <h2 className="text-sm font-black tracking-widest uppercase font-mono text-white/80">
+                <h2 className="text-xs font-black tracking-widest uppercase font-mono text-white/70">
                   {lang === 'en' ? 'Vital Agro Premium Checkout' : 'وائٹل ایگرو پریمیم چیک آؤٹ'}
                 </h2>
               </div>
@@ -606,7 +611,7 @@ export default function CODBottomSheet({
                   
                   {/* STEP 1: PRODUCT SUMMARY */}
                   {currentStep === 1 && (
-                    <div className="space-y-6 w-full">
+                    <div className="space-y-6 w-full text-left">
                       <div className="border-b border-white/5 pb-3">
                         <h3 className="text-base font-black tracking-tight text-[#8AD65A] uppercase">{lang === 'en' ? 'Product Summary' : 'آرڈر کا خلاصہ'}</h3>
                         <p className="text-white/40 text-[11px] font-semibold mt-0.5">{lang === 'en' ? 'Inspect pack size specifications and adjust quantities.' : 'پیک سائز کی تفصیلات دیکھیں اور مقدار کو تبدیل کریں۔'}</p>
@@ -693,7 +698,7 @@ export default function CODBottomSheet({
 
                   {/* STEP 2: CUSTOMER DETAILS */}
                   {currentStep === 2 && (
-                    <div className="space-y-6 w-full">
+                    <div className="space-y-6 w-full text-left">
                       <div className="border-b border-white/5 pb-3">
                         <h3 className="text-base font-black tracking-tight text-[#8AD65A] uppercase">{lang === 'en' ? 'Customer Profile' : 'ذاتی معلومات'}</h3>
                         <p className="text-white/40 text-[11px] font-semibold mt-0.5">{lang === 'en' ? 'Provide contact registry details to link database node.' : 'ڈیٹا بیس سے منسلک کرنے کے لیے رابطے کی معلومات درج کریں۔'}</p>
@@ -734,7 +739,7 @@ export default function CODBottomSheet({
 
                   {/* STEP 3: SHIPPING ADDRESS */}
                   {currentStep === 3 && (
-                    <div className="space-y-6 w-full">
+                    <div className="space-y-6 w-full text-left">
                       <div className="border-b border-white/5 pb-3">
                         <h3 className="text-base font-black tracking-tight text-[#8AD65A] uppercase">{lang === 'en' ? 'Shipping Destination' : 'ڈیلیوری کا پتہ'}</h3>
                         <p className="text-white/40 text-[11px] font-semibold mt-0.5">{lang === 'en' ? 'Specify geographic delivery details.' : 'ڈیلیوری کے لیے جغرافیائی تفصیلات درج کریں۔'}</p>
@@ -768,7 +773,7 @@ export default function CODBottomSheet({
                           onChange={(e) => updateForm('postalCode', e.target.value)}
                         />
 
-                        {/* Complete address textarea box */}
+                        {/* Complete address text area */}
                         <div className="space-y-2">
                           <label className="block text-white/50 text-[10px] font-black uppercase tracking-widest">
                             {lang === 'en' ? 'Complete Street Address *' : 'مکمل پتہ *'}
@@ -808,13 +813,13 @@ export default function CODBottomSheet({
 
                   {/* STEP 4: DELIVERY & PAYMENT GATEWAY */}
                   {currentStep === 4 && (
-                    <div className="space-y-6 w-full">
+                    <div className="space-y-6 w-full text-left">
                       <div className="border-b border-white/5 pb-3">
                         <h3 className="text-base font-black tracking-tight text-[#8AD65A] uppercase">{lang === 'en' ? 'Delivery & Payment' : 'ڈیلیوری اور ادائیگی'}</h3>
                         <p className="text-white/40 text-[11px] font-semibold mt-0.5">{lang === 'en' ? 'Select payment node and finalize shipping logistics charges.' : 'ادائیگی کا طریقہ منتخب کریں اور ڈیلیوری چارجز کی تصدیق کریں۔'}</p>
                       </div>
 
-                      {/* Billing Breakdown */}
+                      {/* Billing breakdown panel */}
                       <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-5 space-y-3 font-mono text-xs backdrop-blur-md">
                         <div className="flex justify-between text-white/50">
                           <span>{lang === 'en' ? 'Subtotal:' : 'مصنوعات کی قیمت:'}</span>
@@ -830,7 +835,7 @@ export default function CODBottomSheet({
                         </div>
                       </div>
 
-                      {/* Payment Method Selector Grid */}
+                      {/* Payment Method selectors */}
                       <div className="space-y-3">
                         <h4 className="text-white/50 text-[10px] font-black uppercase tracking-widest">
                           {lang === 'en' ? 'Select Payment Mode' : 'ادائیگی کا طریقہ منتخب کریں'}
@@ -876,7 +881,7 @@ export default function CODBottomSheet({
                         </div>
                       </div>
 
-                      {/* Display validation warning for optional payments */}
+                      {/* Step validation alerts */}
                       {localErrors.payment && (
                         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-2 text-red-400">
                           <AlertCircle size={14} className="shrink-0 mt-0.5" />
@@ -884,7 +889,7 @@ export default function CODBottomSheet({
                         </div>
                       )}
 
-                      {/* Payment Interactive Card Visual */}
+                      {/* NFC Credit card visualization */}
                       {(form.paymentMethod === 'Stripe' || form.paymentMethod === 'JazzCash' || form.paymentMethod === 'Easypaisa') && (
                         <GlassCreditCard
                           paymentMethod={form.paymentMethod}
@@ -894,20 +899,20 @@ export default function CODBottomSheet({
                         />
                       )}
 
-                      {/* Stripe Secure Simulation */}
+                      {/* Stripe trigger payment buttons */}
                       {form.paymentMethod === 'Stripe' && !receiptSuccess && (
                         <button
                           type="button"
                           onClick={startStripeFlow}
                           disabled={stripeSimulating}
-                          className="w-full py-4.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs uppercase tracking-widest border border-indigo-400/20 shadow-lg transition-colors flex items-center justify-center gap-2"
+                          className="w-full py-4.5 rounded-2xl bg-[#5cb85c] hover:bg-[#8AD65A] text-[#0A2E1F] font-black text-xs uppercase tracking-widest border border-white/10 shadow-lg transition-colors flex items-center justify-center gap-2"
                         >
                           <CreditCard size={14} />
                           <span>{stripeSimulating ? 'Processing Stripe Gateway...' : 'Initialize Secure Card Payment'}</span>
                         </button>
                       )}
 
-                      {/* JazzCash / Easypaisa Workflow */}
+                      {/* JazzCash / Easypaisa Workflow details */}
                       {(form.paymentMethod === 'JazzCash' || form.paymentMethod === 'Easypaisa') && (
                         <div className="p-5 bg-white/[0.02] border border-white/5 rounded-3xl space-y-4 font-mono text-xs">
                           <div className="flex items-center justify-between border-b border-white/5 pb-3">
@@ -949,7 +954,7 @@ export default function CODBottomSheet({
                               </button>
                             </div>
 
-                            {/* SCAN QR SECTION */}
+                            {/* SCAN WALLET QR CODE */}
                             <div className="flex flex-col items-center justify-center p-3 border border-white/5 bg-white/[0.01] rounded-2xl gap-2 mt-2">
                               <span className="text-[8px] text-white/40 uppercase tracking-widest font-black">Scan Wallet QR Code</span>
                               <svg className="w-24 h-24 text-[#8AD65A]" viewBox="0 0 100 100" fill="currentColor">
@@ -968,8 +973,8 @@ export default function CODBottomSheet({
                               </svg>
                             </div>
 
-                            {/* UPLOAD SCREENSHOT */}
-                            <div className="space-y-3 pt-2">
+                            {/* UPLOAD RECEIPT */}
+                            <div className="space-y-3 pt-2 text-left">
                               <span className="text-[9px] font-black text-white/40 uppercase tracking-widest block">
                                 Upload Receipt Screenshot
                               </span>
@@ -1009,7 +1014,7 @@ export default function CODBottomSheet({
                               )}
 
                               {isVerifyingReceipt && (
-                                <div className="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-2">
+                                <div className="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-2 text-left">
                                   <div className="flex items-center gap-2 text-[#8AD65A]">
                                     <span className="w-4 h-4 border-2 border-current border-t-transparent animate-spin rounded-full shrink-0" />
                                     <span className="text-xs font-bold tracking-wide uppercase">AI Verification Running</span>
@@ -1043,7 +1048,7 @@ export default function CODBottomSheet({
                         </div>
                       )}
 
-                      {/* Bank Meezan Details */}
+                      {/* Bank Details */}
                       {form.paymentMethod === 'Bank' && (
                         <div className="p-5 bg-white/[0.02] border border-white/5 rounded-3xl space-y-3 text-xs leading-relaxed font-mono backdrop-blur-md">
                           <h5 className="font-extrabold text-[10px] text-[#8AD65A] border-b border-white/5 pb-2 uppercase">
@@ -1055,7 +1060,7 @@ export default function CODBottomSheet({
                         </div>
                       )}
 
-                      {/* COD default confirmation */}
+                      {/* COD details */}
                       {form.paymentMethod === 'COD' && (
                         <div className="p-4.5 bg-emerald-500/5 border border-emerald-500/15 rounded-3xl text-xs text-white/70 leading-relaxed flex items-start gap-2.5">
                           <Truck size={18} className="text-[#8AD65A] shrink-0 mt-0.5" />
@@ -1066,7 +1071,7 @@ export default function CODBottomSheet({
                         </div>
                       )}
 
-                      {/* Success Payment Scan message */}
+                      {/* Success scan badge details */}
                       {receiptSuccess && (
                         <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-start gap-2.5 text-emerald-400">
                           <ShieldCheck size={18} className="shrink-0 mt-0.5" />
@@ -1081,12 +1086,10 @@ export default function CODBottomSheet({
 
                   {/* STEP 5: REVIEW ORDER */}
                   {currentStep === 5 && (
-                    <div className="space-y-6 w-full">
-                      <div className="border-b border-white/5 pb-3 flex justify-between items-center">
-                        <div>
-                          <h3 className="text-base font-black tracking-tight text-[#8AD65A] uppercase">{lang === 'en' ? 'Review Ledger' : 'آرڈر چیک کریں'}</h3>
-                          <p className="text-white/40 text-[11px] font-semibold mt-0.5">{lang === 'en' ? 'Double check all metrics before dispatch registration.' : 'آرڈر روانہ کرنے سے پہلے تمام معلومات کی تصدیق کریں۔'}</p>
-                        </div>
+                    <div className="space-y-6 w-full text-left">
+                      <div className="border-b border-white/5 pb-3">
+                        <h3 className="text-base font-black tracking-tight text-[#8AD65A] uppercase">{lang === 'en' ? 'Review Ledger' : 'آرڈر چیک کریں'}</h3>
+                        <p className="text-white/40 text-[11px] font-semibold mt-0.5">{lang === 'en' ? 'Double check all metrics before dispatch registration.' : 'آرڈر روانہ کرنے سے پہلے تمام معلومات کی تصدیق کریں۔'}</p>
                       </div>
 
                       <div className="grid gap-5">
@@ -1120,7 +1123,7 @@ export default function CODBottomSheet({
                           </div>
                         </div>
 
-                        {/* 2. Customer Credentials card */}
+                        {/* 2. Customer Profile Details */}
                         <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-5 space-y-3">
                           <div className="flex justify-between items-center border-b border-white/5 pb-2">
                             <span className="text-[10px] font-black text-[#8AD65A] uppercase tracking-widest">{lang === 'en' ? 'Customer Profile' : 'ذاتی معلومات'}</span>
@@ -1140,7 +1143,7 @@ export default function CODBottomSheet({
                           </div>
                         </div>
 
-                        {/* 3. Address card */}
+                        {/* 3. Address Destinations */}
                         <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-5 space-y-3">
                           <div className="flex justify-between items-center border-b border-white/5 pb-2">
                             <span className="text-[10px] font-black text-[#8AD65A] uppercase tracking-widest">{lang === 'en' ? 'Shipping Destination' : 'ڈیلیوری ایڈریس'}</span>
@@ -1159,7 +1162,7 @@ export default function CODBottomSheet({
                           </div>
                         </div>
 
-                        {/* 4. Payment method Details card */}
+                        {/* 4. Payment Modes Review */}
                         <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-5 space-y-3">
                           <div className="flex justify-between items-center border-b border-white/5 pb-2">
                             <span className="text-[10px] font-black text-[#8AD65A] uppercase tracking-widest">{lang === 'en' ? 'Payment Details' : 'ادائیگی کی تفصیلات'}</span>
@@ -1181,7 +1184,7 @@ export default function CODBottomSheet({
                     </div>
                   )}
 
-                  {/* STEP 6: PLACE ORDER */}
+                  {/* STEP 6: CONFIRM & PLACE */}
                   {currentStep === 6 && (
                     <div className="space-y-6 w-full flex-1 flex flex-col justify-center text-center">
                       <div className="relative w-20 h-20 mx-auto bg-[#76C945]/10 rounded-full flex items-center justify-center border border-[#76C945]/30">
@@ -1202,7 +1205,7 @@ export default function CODBottomSheet({
                         </p>
                       </div>
 
-                      {/* Display final price highlight summary block */}
+                      {/* Summary prices info block */}
                       <div className="bg-white/[0.01] border border-white/5 rounded-3xl p-5 max-w-sm mx-auto w-full font-mono space-y-2 text-xs text-left">
                         <div className="flex justify-between text-white/50">
                           <span>{lang === 'en' ? 'Grand Total:' : 'کل لاگت:'}</span>
@@ -1220,9 +1223,12 @@ export default function CODBottomSheet({
               </AnimatePresence>
             </div>
 
-            {/* Bottom Wizard Navigation Controls */}
+            {/* Bottom Navigation controls */}
             {successPhase === 'idle' && (
-              <div className="border-t border-white/5 bg-black/40 backdrop-blur-md px-6 py-4.5 flex items-center justify-between sticky bottom-0 z-20">
+              <div 
+                className="border-t border-white/5 bg-black/40 backdrop-blur-md px-6 py-4.5 flex items-center justify-between sticky bottom-0 z-20"
+                style={{ paddingBottom: 'calc(1.125rem + env(safe-area-inset-bottom, 0px))' }}
+              >
                 <button
                   type="button"
                   onClick={currentStep === 1 ? () => setIsOpen(false) : handlePrevStep}
@@ -1252,206 +1258,249 @@ export default function CODBottomSheet({
                 transition={{ duration: 0.4 }}
               >
                 <div className="max-w-md w-full space-y-8 py-10 px-4">
-                  {/* Animation stage nodes */}
-                  <div className="relative h-60 w-full flex items-center justify-center overflow-visible">
-                    
-                    {/* Phase 1: Packing */}
-                    {successPhase === 'packing' && (
-                      <motion.div
-                        key="packing"
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.8, opacity: 0 }}
-                        className="flex flex-col items-center gap-4"
-                      >
-                        <div className="relative w-28 h-28 flex items-center justify-center">
-                          <motion.div
-                            className="absolute inset-0 border border-[#76C945]/30 rounded-3xl bg-[#76C945]/5"
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
-                          />
-                          <motion.svg className="w-16 h-16 text-[#8AD65A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <motion.rect x="3" y="9" width="18" height="12" rx="2" strokeWidth="2.5" />
-                            <motion.path 
-                              d="M3 9 L12 15 L21 9" 
-                              initial={{ pathLength: 0 }}
-                              animate={{ pathLength: 1 }}
-                              transition={{ duration: 1.5, ease: "easeInOut" }}
+                  {/* Animation stage canvas */}
+                  {successPhase !== 'confirmed' ? (
+                    <div className="relative w-full h-72 border border-white/5 bg-white/[0.01] rounded-3xl flex items-center justify-center overflow-hidden backdrop-blur-sm shadow-[inset_0_0_30px_rgba(255,255,255,0.02)]">
+                      
+                      {/* Moving speed sceneries in background during driving */}
+                      {successPhase === 'driving' && (
+                        <div className="absolute top-12 left-0 right-0 flex justify-around opacity-[0.08] pointer-events-none">
+                          {Array.from({ length: 3 }).map((_, i) => (
+                            <motion.svg
+                              key={i}
+                              className="w-10 h-10 text-[#8AD65A]"
+                              viewBox="0 0 24 24"
+                              fill="currentColor"
+                              animate={{ x: [100, -300] }}
+                              transition={{ duration: 1.0 + i * 0.3, repeat: Infinity, ease: 'linear' }}
+                            >
+                              <path d="M12 2 L4 18 L20 18 Z" />
+                            </motion.svg>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Moving Road Lines during Driving */}
+                      {successPhase === 'driving' && (
+                        <div className="absolute bottom-6 left-0 right-0 h-1 overflow-hidden opacity-30 flex justify-between px-4 pointer-events-none">
+                          {Array.from({ length: 8 }).map((_, i) => (
+                            <motion.div
+                              key={i}
+                              className="w-4 h-full bg-[#8AD65A] rounded"
+                              animate={{ x: [0, -60] }}
+                              transition={{ duration: 0.4, repeat: Infinity, ease: 'linear' }}
                             />
-                            <motion.path 
-                              d="M12 9 L12 21" 
-                              initial={{ scaleY: 0 }}
-                              animate={{ scaleY: 1 }}
-                              transition={{ duration: 1.2, delay: 0.5 }}
+                          ))}
+                        </div>
+                      )}
+
+                      {/* A. Package Box representation */}
+                      <motion.div
+                        className="absolute z-20"
+                        initial={{ y: -80, opacity: 1, scale: 1 }}
+                        animate={
+                          successPhase === 'packing'
+                            ? { y: -30, opacity: 1, scale: 1 }
+                            : successPhase === 'falling'
+                            ? { y: 18, opacity: 1, scale: 0.6 } // Drops directly inside truck bed!
+                            : successPhase === 'driving'
+                            ? { y: 18, x: successProgress * 3.5, opacity: 0.8, scale: 0.6 } // Drives with the truck
+                            : { opacity: 0 }
+                        }
+                        transition={{
+                          y: successPhase === 'falling' 
+                            ? { type: 'spring', stiffness: 180, damping: 12 } 
+                            : { duration: 0.4 },
+                          x: { ease: 'linear', duration: 2.5 }
+                        }}
+                      >
+                        <svg className="w-16 h-16 text-[#8AD65A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="3" y="9" width="18" height="12" rx="2" strokeWidth="2.5" />
+                          <motion.path 
+                            d="M3 9 L12 15 L21 9" 
+                            initial={{ pathLength: 0 }}
+                            animate={successPhase !== 'packing' ? { pathLength: 1 } : { pathLength: 0 }}
+                            transition={{ duration: 0.6, ease: "easeInOut" }}
+                          />
+                          <motion.path 
+                            d="M12 9 L12 21" 
+                            initial={{ scaleY: 0 }}
+                            animate={successPhase !== 'packing' ? { scaleY: 1 } : { scaleY: 0 }}
+                            transition={{ duration: 0.5, delay: 0.4 }}
+                          />
+                        </svg>
+                      </motion.div>
+
+                      {/* B. Delivery Truck SVG */}
+                      <motion.div
+                        className="absolute z-10"
+                        initial={{ x: -300 }}
+                        animate={
+                          successPhase === 'packing'
+                            ? { x: -300 }
+                            : successPhase === 'falling'
+                            ? { x: 0 }
+                            : successPhase === 'driving'
+                            ? { x: successProgress * 3.5, y: [0, -1, 0, 1, 0] } // Vibrates & Accelerates away!
+                            : { x: 400, opacity: 0 }
+                        }
+                        transition={
+                          successPhase === 'falling'
+                            ? { type: 'spring', stiffness: 120, damping: 15 }
+                            : successPhase === 'driving'
+                            ? { 
+                                x: { ease: 'linear', duration: 2.5 },
+                                y: { repeat: Infinity, duration: 0.15 } // shake engine
+                              }
+                            : { duration: 0.5 }
+                        }
+                      >
+                        <div className="relative">
+                          <svg className="w-24 h-16 text-[#76C945]" viewBox="0 0 100 60" fill="currentColor">
+                            <rect x="10" y="15" width="55" height="30" rx="2" fill="#2d6a2d" stroke="#8AD65A" strokeWidth="2" />
+                            <path d="M65 20 L80 20 L88 35 L88 45 L65 45 Z" fill="#3d8c3d" stroke="#8AD65A" strokeWidth="2" />
+                            <path d="M78 22 L85 32 L68 32 L68 22 Z" fill="#a5f3fc" opacity="0.6" />
+                            <circle cx="85" cy="40" r="3" fill="#fffae6" />
+                            <rect x="5" y="40" width="6" height="3" fill="#9ca3af" />
+                            
+                            {/* Wheel Rotations */}
+                            <motion.circle 
+                              cx="25" cy="48" r="8" 
+                              fill="#111827" 
+                              stroke="#d1d5db" 
+                              strokeWidth="2.5" 
+                              animate={successPhase === 'driving' ? { rotate: 720 } : {}}
+                              transition={{ duration: 2.5, ease: 'linear' }}
                             />
-                          </motion.svg>
+                            <motion.circle 
+                              cx="70" cy="48" r="8" 
+                              fill="#111827" 
+                              stroke="#d1d5db" 
+                              strokeWidth="2.5" 
+                              animate={successPhase === 'driving' ? { rotate: 720 } : {}}
+                              transition={{ duration: 2.5, ease: 'linear' }}
+                            />
+                          </svg>
+
+                          {/* Exhaust smoke particles */}
+                          {successPhase === 'driving' && (
+                            <div className="absolute -left-4 top-8 flex flex-col gap-1 pointer-events-none">
+                              {Array.from({ length: 3 }).map((_, i) => (
+                                <motion.span
+                                  key={i}
+                                  className="w-2 h-2 rounded-full bg-white/20 blur-[1px] block"
+                                  initial={{ scale: 0.2, x: 0, opacity: 0.8 }}
+                                  animate={{ scale: 1.8, x: -25, y: -8, opacity: 0 }}
+                                  transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.15, ease: 'easeOut' }}
+                                />
+                              ))}
+                            </div>
+                          )}
                         </div>
-                        <h3 className="text-lg font-black tracking-widest text-[#8AD65A] uppercase font-mono">
-                          {lang === 'en' ? 'Securing Item Package...' : 'پیکیج تیار کیا جا رہا ہے...'}
-                        </h3>
-                        <p className="text-white/40 text-xs font-mono">
-                          {lang === 'en' ? 'Generating secure package barcode labels...' : 'سیکیورٹی بارکوڈ لیبل تیار کیے جا رہے ہیں...'}
-                        </p>
                       </motion.div>
-                    )}
 
-                    {/* Phase 2: Shipping */}
-                    {successPhase === 'shipping' && (
-                      <motion.div
-                        key="shipping"
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.8, opacity: 0 }}
-                        className="w-full flex flex-col items-center gap-6"
-                      >
-                        <div className="w-full h-32 relative flex items-center justify-center overflow-hidden border border-white/5 rounded-3xl bg-white/[0.01]">
-                          <div className="absolute bottom-6 left-0 right-0 flex justify-between px-6 opacity-30">
-                            {Array.from({ length: 8 }).map((_, i) => (
-                              <motion.div
-                                key={i}
-                                className="w-3 h-0.5 bg-[#8AD65A] shrink-0"
-                                animate={{ x: [0, -40] }}
-                                transition={{ duration: 0.5, repeat: Infinity, ease: 'linear' }}
-                              />
-                            ))}
-                          </div>
-                          <motion.div 
-                            className="w-20 h-16 text-[#8AD65A] z-10"
-                            animate={{ y: [0, -2, 0] }}
-                            transition={{ duration: 0.2, repeat: Infinity }}
-                          >
-                            <Truck size={48} className="mx-auto" />
-                          </motion.div>
-                        </div>
-                        
-                        <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden relative">
-                          <motion.div 
-                            className="h-full bg-gradient-to-r from-[#76C945] to-[#8AD65A] shadow-[0_0_10px_#8AD65A]"
-                            initial={{ width: '0%' }}
-                            animate={{ width: `${successProgress}%` }}
-                            transition={{ duration: 0.1, ease: 'linear' }}
-                          />
-                        </div>
-                        
-                        <h3 className="text-lg font-black tracking-widest text-[#8AD65A] uppercase font-mono">
-                          {lang === 'en' ? 'Dispatching Delivery Logistics...' : 'ڈیلیوری روانہ کی جا رہی ہے...'}
-                        </h3>
-                        <p className="text-white/40 text-xs font-mono">
-                          {lang === 'en' ? 'Connecting to warehousing delivery grid...' : 'ڈیلیوری گرڈ سے رابطہ قائم کیا جا رہا ہے...'}
-                        </p>
-                      </motion.div>
-                    )}
-
-                    {/* Phase 3: Delivered */}
-                    {successPhase === 'delivered' && (
-                      <motion.div
-                        key="delivered"
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.8, opacity: 0 }}
-                        className="flex flex-col items-center gap-4"
-                      >
-                        <div className="relative w-28 h-28 flex items-center justify-center">
-                          <motion.div
-                            className="absolute inset-0 bg-emerald-500/10 rounded-full border border-emerald-500/20"
-                            animate={{ scale: [1, 1.15, 1] }}
-                            transition={{ duration: 1.5, repeat: Infinity }}
-                          />
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: 'spring', stiffness: 200, damping: 10 }}
-                          >
-                            <MapPin size={48} className="text-[#8AD65A] stroke-[2.5]" />
-                          </motion.div>
-                        </div>
-                        <h3 className="text-lg font-black tracking-widest text-[#8AD65A] uppercase font-mono">
-                          {lang === 'en' ? 'Package Arrived at Gate...' : 'پیکیج تیار ہے...'}
-                        </h3>
-                        <p className="text-white/40 text-xs font-mono">
-                          {lang === 'en' ? 'Syncing order transaction logs to client portal...' : 'آرڈر کی تفصیلات پورٹل پر اپ ڈیٹ ہو رہی ہیں...'}
-                        </p>
-                      </motion.div>
-                    )}
-
-                    {/* Phase 4: Confirmed Details */}
-                    {successPhase === 'confirmed' && (
-                      <motion.div
-                        key="confirmed"
-                        initial={{ scale: 0.85, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="w-full flex flex-col items-center gap-6"
-                      >
-                        <div className="relative w-24 h-24 flex items-center justify-center">
-                          <div 
-                            className="absolute inset-0 rounded-full blur-xl opacity-60"
-                            style={{ background: 'rgba(92,184,92,0.45)' }}
-                          />
-                          <motion.div 
-                            className="relative w-20 h-20 rounded-full bg-black border-2 border-[#5cb85c] flex items-center justify-center shadow-[0_0_30px_rgba(92,184,92,0.6)]"
-                            initial={{ rotate: -90 }}
-                            animate={{ rotate: 0 }}
-                            transition={{ type: 'spring', stiffness: 200, damping: 12 }}
-                          >
-                            <Check size={36} className="text-[#8AD65A] stroke-[3.5]" />
-                          </motion.div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <h2 className="text-2xl font-black text-white uppercase tracking-wider drop-shadow-md">
-                            {lang === 'en' ? 'Order Successfully Placed!' : 'آرڈر کامیابی سے درج ہو گیا!'}
-                          </h2>
-                          <p className="text-white/50 text-xs font-semibold leading-relaxed max-w-sm mx-auto">
-                            {lang === 'en' 
-                              ? 'Your order has been logged in our databases and is pending confirmation.' 
-                              : 'آپ کا آرڈر کامیابی سے محفوظ کر لیا گیا ہے۔'}
-                          </p>
-                        </div>
-
-                        {/* Generated Order Info */}
-                        <motion.div 
-                          className="w-full p-5 rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-md space-y-3 text-left font-mono"
-                          initial={{ y: 20, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          transition={{ delay: 0.3 }}
+                      {/* C. Destination Arrived Pin (delivered phase only) */}
+                      {successPhase === 'delivered' && (
+                        <motion.div
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ type: 'spring', stiffness: 200, damping: 10 }}
+                          className="absolute z-30"
                         >
-                          <div className="flex justify-between border-b border-white/5 pb-2">
-                            <span className="text-white/30 text-[9px] uppercase font-bold tracking-widest">{lang === 'en' ? 'Order Registry ID' : 'آرڈر نمبر'}</span>
-                            <span className="text-[#8AD65A] font-black text-xs tracking-wider">
-                              {createdOrderId ? `VA-O-${createdOrderId.slice(0, 6).toUpperCase()}` : 'VA-O-PENDING'}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-xs pt-1">
-                            <span className="text-white/40">{lang === 'en' ? 'Customer' : 'خریدار'}</span>
-                            <span className="text-white font-bold">{form.customerName}</span>
-                          </div>
-                          <div className="flex justify-between text-xs">
-                            <span className="text-white/40">{lang === 'en' ? 'Contact Phone' : 'رابطہ نمبر'}</span>
-                            <span className="text-white font-bold">{form.phone}</span>
-                          </div>
-                          <div className="flex justify-between text-xs">
-                            <span className="text-white/40">{lang === 'en' ? 'Grand Total' : 'کل قیمت'}</span>
-                            <span className="text-[#8AD65A] font-black">PKR {grandTotal.toLocaleString()}</span>
-                          </div>
+                          <MapPin size={48} className="text-[#8AD65A] stroke-[2.5]" />
                         </motion.div>
+                      )}
 
-                        <motion.button
-                          onClick={() => {
-                            resetForm();
-                            setIsOpen(false);
-                            setSuccessPhase('idle');
-                            setCurrentStep(1);
-                            navigate('/');
-                          }}
-                          whileHover={{ scale: 1.03 }}
-                          whileTap={{ scale: 0.97 }}
-                          className="w-full py-4.5 rounded-full bg-gradient-to-r from-[#2d6a2d] to-[#3d8c3d] text-white font-black text-sm uppercase tracking-widest border border-white/10 shadow-[0_0_20px_rgba(92,184,92,0.3)] hover:shadow-[0_0_30px_rgba(92,184,92,0.5)] transition-all"
+                      {/* Header label details inside canvas overlay */}
+                      <div className="absolute top-4 left-6 right-6 flex items-center justify-between text-white/50 text-[9px] font-mono tracking-widest uppercase">
+                        <span>{lang === 'en' ? 'Vital Agro Grid' : 'لوجسٹکس گرڈ'}</span>
+                        <span>
+                          {successPhase === 'packing' 
+                            ? 'Packing' 
+                            : successPhase === 'falling' 
+                              ? 'Loading Cargo' 
+                              : successPhase === 'driving' 
+                                ? 'In Transit' 
+                                : 'Arrived'}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Final step success details display */
+                    <motion.div
+                      key="confirmed"
+                      initial={{ scale: 0.85, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="w-full flex flex-col items-center gap-6 text-center"
+                    >
+                      <div className="relative w-24 h-24 flex items-center justify-center">
+                        <div 
+                          className="absolute inset-0 rounded-full blur-xl opacity-60"
+                          style={{ background: 'rgba(92,184,92,0.45)' }}
+                        />
+                        <motion.div 
+                          className="relative w-20 h-20 rounded-full bg-black border-2 border-[#5cb85c] flex items-center justify-center shadow-[0_0_30px_rgba(92,184,92,0.6)]"
+                          initial={{ rotate: -90 }}
+                          animate={{ rotate: 0 }}
+                          transition={{ type: 'spring', stiffness: 200, damping: 12 }}
                         >
-                          {lang === 'en' ? 'Return to Homepage' : 'ہوم پیج پر واپس جائیں'}
-                        </motion.button>
+                          <Check size={36} className="text-[#8AD65A] stroke-[3.5]" />
+                        </motion.div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <h2 className="text-2xl font-black text-white uppercase tracking-wider drop-shadow-md">
+                          {lang === 'en' ? 'Order Successfully Placed!' : 'آرڈر کامیابی سے درج ہو گیا!'}
+                        </h2>
+                        <p className="text-white/50 text-xs font-semibold leading-relaxed max-w-sm mx-auto">
+                          {lang === 'en' 
+                            ? 'Your order has been logged in our databases and is pending confirmation.' 
+                            : 'آپ کا آرڈر کامیابی سے محفوظ کر لیا گیا ہے۔'}
+                        </p>
+                      </div>
+
+                      <motion.div 
+                        className="w-full p-5 rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-md space-y-3 text-left font-mono"
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        <div className="flex justify-between border-b border-white/5 pb-2">
+                          <span className="text-white/30 text-[9px] uppercase font-bold tracking-widest">{lang === 'en' ? 'Order Registry ID' : 'آرڈر نمبر'}</span>
+                          <span className="text-[#8AD65A] font-black text-xs tracking-wider">
+                            {createdOrderId ? `VA-O-${createdOrderId.slice(0, 6).toUpperCase()}` : 'VA-O-PENDING'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-xs pt-1">
+                          <span className="text-white/40">{lang === 'en' ? 'Customer' : 'خریدار'}</span>
+                          <span className="text-white font-bold">{form.customerName}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-white/40">{lang === 'en' ? 'Contact Phone' : 'رابطہ نمبر'}</span>
+                          <span className="text-white font-bold">{form.phone}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-white/40">{lang === 'en' ? 'Grand Total' : 'کل قیمت'}</span>
+                          <span className="text-[#8AD65A] font-black">PKR {grandTotal.toLocaleString()}</span>
+                        </div>
                       </motion.div>
-                    )}
-                  </div>
+
+                      <motion.button
+                        onClick={() => {
+                          resetForm();
+                          setIsOpen(false);
+                          setSuccessPhase('idle');
+                          setCurrentStep(1);
+                          navigate('/');
+                        }}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        className="w-full py-4.5 rounded-full bg-gradient-to-r from-[#2d6a2d] to-[#3d8c3d] text-white font-black text-sm uppercase tracking-widest border border-white/10 shadow-[0_0_20px_rgba(92,184,92,0.3)] hover:shadow-[0_0_30px_rgba(92,184,92,0.5)] transition-all"
+                      >
+                        {lang === 'en' ? 'Return to Homepage' : 'ہوم پیج پر واپس جائیں'}
+                      </motion.button>
+                    </motion.div>
+                  )}
                 </div>
               </motion.div>
             )}
