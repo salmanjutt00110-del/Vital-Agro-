@@ -4,7 +4,7 @@ import { CheckCircle, FlaskConical, Microscope, ShieldCheck, Atom } from 'lucide
 import { useLanguage } from '@/lib/LanguageContext';
 import GlassCard from '@/components/ui/GlassCard';
 import AnimatedText from '@/components/ui/AnimatedText';
-import researchLab from '@/assets/research_lab.webp';
+import researchLab from '@/assets/Vital-C.png';
 
 export default function QualitySection() {
   const { t } = useLanguage();
@@ -123,10 +123,10 @@ export default function QualitySection() {
             >
               <img
                 src={researchLab}
-                alt="Research Laboratory"
+                alt="Vital-C Product"
                 width="600"
                 height="450"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain p-8"
                 loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-tr from-[#0A2E1F]/30 via-transparent to-[#76C945]/5" />
