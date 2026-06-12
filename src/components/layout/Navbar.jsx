@@ -84,7 +84,7 @@ Thank you.`;
             </div>
             
             {/* Desktop only logos */}
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-3">
               <span className="h-8 w-px transition-colors duration-300 bg-white/30" />
               {/* Vital Group Logo */}
               <div className="relative flex items-center justify-center rounded-lg px-1 py-0.5 bg-white/10 backdrop-blur-md">

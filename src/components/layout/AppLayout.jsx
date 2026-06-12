@@ -6,6 +6,8 @@ import FloatingButtons from './FloatingButtons';
 import ScrollToTop from '../ScrollToTop';
 import AICropAssistant from '../ai/AICropAssistant';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CircularNavTrigger } from '../ui/CircularNavTrigger';
+import { MobileBottomNav } from './MobileBottomNav';
 
 export default function AppLayout() {
   const location = useLocation();
@@ -14,7 +16,7 @@ export default function AppLayout() {
     <div className="min-h-screen flex flex-col bg-[#020d06] text-white">
       <ScrollToTop />
       <Navbar />
-      <main className="flex-1 relative overflow-hidden">
+      <main className="flex-1 relative overflow-hidden pb-20 md:pb-0">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
@@ -30,6 +32,8 @@ export default function AppLayout() {
       <Footer />
       <FloatingButtons />
       <AICropAssistant />
+      <CircularNavTrigger />
+      <MobileBottomNav />
     </div>
   );
 }

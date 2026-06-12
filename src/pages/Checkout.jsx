@@ -18,6 +18,9 @@ import {
   Clock, 
   Gift
 } from 'lucide-react';
+import { getDeliveryFee } from '@/lib/payment/config';
+import { PaymentMethodGrid } from '@/components/checkout/PaymentMethodGrid';
+import { useCart } from '@/lib/CartContext';
 
 const PROVINCES = [
   'Punjab',
@@ -48,10 +51,11 @@ const FormField = ({ label, required, error, ...props }) => (
 );
 
 export default function CheckoutPage({ product: rawProduct, defaultSize, defaultQuantity, onClose }) {
+  const { cart, cartSubtotal, cartCount, clearCart } = useCart();
   const [step, setStep] = useState(0); // Steps: 0 = Cart, 1 = Info, 2 = Address, 3 = Payment, 4 = Review, 5 = Success
   const [selectedSize, setSize] = useState(defaultSize || '100ML');
   const [quantity, setQty] = useState(defaultQuantity || 1);
-  const [payment, setPayment] = useState('COD');
+  const [payment, setPayment] = useState('cod');
   const [orderId, setOrderId] = useState(null);
   const [isOrdering, setIsOrdering] = useState(false);
 
@@ -88,8 +92,7 @@ export default function CheckoutPage({ product: rawProduct, defaultSize, default
 
   // Recalculate Shipping and Totals based on rules
   const delivery = React.useMemo(() => {
-    if (payment === 'COD') return 299;
-    return 0; // JazzCash, Easypaisa, Meezan/Bank are FREE
+    return getDeliveryFee(payment);
   }, [payment]);
 
   const rewardMessage = React.useMemo(() => {
@@ -105,7 +108,7 @@ export default function CheckoutPage({ product: rawProduct, defaultSize, default
     return '';
   }, [payment]);
 
-  const subtotal = (product?.price || 0) * quantity;
+  const subtotal = product ? ((product.price || 0) * quantity) : cartSubtotal;
   const grandTotal = subtotal + delivery;
 
   const update = (k, v) => setForm(p => ({ ...p, [k]: v }));
@@ -143,13 +146,19 @@ export default function CheckoutPage({ product: rawProduct, defaultSize, default
     if (isOrdering) return;
     setIsOrdering(true);
 
+    const productName = product ? product.name : cart.map(item => `${item.name[lang] || item.name} (${item.size.size})`).join(', ');
+    const productImage = product ? (product.image || '') : (cart[0]?.pngUrl || cart[0]?.imageUrl || '');
+    const packSize = product ? selectedSize : 'Multiple';
+    const finalQty = product ? quantity : cartCount;
+    const finalPricePerUnit = product ? (product.price || 0) : 0;
+
     const orderData = {
-      productName:   product.name,
-      productImage:  product.image || '',
-      category:      product.category || 'Special Product',
-      packSize:      selectedSize,
-      quantity,
-      pricePerUnit:  product.price || 0,
+      productName,
+      productImage,
+      category:      product ? (product.category || 'Special Product') : 'Multiple Products',
+      packSize,
+      quantity:      finalQty,
+      pricePerUnit:  finalPricePerUnit,
       subtotal,
       deliveryCharge: delivery,
       grandTotal,
@@ -163,6 +172,13 @@ export default function CheckoutPage({ product: rawProduct, defaultSize, default
       instructions:  form.instructions,
       whatsappSent:  true,
       source:        'website_checkout',
+      ...(!product && { items: cart.map(item => ({
+        id: item.id,
+        name: item.name[lang] || item.name,
+        size: item.size.size,
+        quantity: item.quantity,
+        price: Number(item.size.price || item.size.rate || 0)
+      }))})
     };
 
     try {
@@ -182,6 +198,10 @@ export default function CheckoutPage({ product: rawProduct, defaultSize, default
         colors: ['#76C945', '#8AD65A', '#FFFFFF']
       });
 
+      if (!product) {
+        clearCart();
+      }
+
       // Build and open WhatsApp pre-filled dispatch order url
       const waUrl = buildOrderMessage({ ...orderData, orderNumber: orderId });
       setTimeout(() => {
@@ -193,11 +213,15 @@ export default function CheckoutPage({ product: rawProduct, defaultSize, default
     } finally {
       setIsOrdering(false);
     }
-  }, [form, product, selectedSize, quantity, subtotal, delivery, grandTotal, payment, isOrdering]);
+  }, [form, product, selectedSize, quantity, subtotal, delivery, grandTotal, payment, isOrdering, cart, cartCount, lang, clearCart]);
 
   // Page title metadata mapping
   const stepsTitles = [
-    { title: 'Review Your Selection', subtitle: 'Confirm package size and quantity', icon: <ShoppingBag size={20} /> },
+    { 
+      title: product ? 'Review Your Selection' : 'Review Your Cart', 
+      subtitle: product ? 'Confirm package size and quantity' : 'Verify items in your shopping cart', 
+      icon: <ShoppingBag size={20} /> 
+    },
     { title: 'Personal Details', subtitle: 'Enter your contact credentials', icon: <User size={20} /> },
     { title: 'Shipping Address', subtitle: 'Provide your delivery destination', icon: <MapPin size={20} /> },
     { title: 'Payment Mode', subtitle: 'Choose how you want to pay', icon: <CreditCard size={20} /> },
@@ -289,68 +313,94 @@ export default function CheckoutPage({ product: rawProduct, defaultSize, default
               {/* STEP 0: CART */}
               {step === 0 && (
                 <div className="space-y-6">
-                  {/* Product Details Card */}
-                  <div className="flex flex-col sm:flex-row items-center gap-6 p-6 rounded-2xl bg-white/5 border border-white/10">
-                    <img 
-                      src={product?.image} 
-                      alt={product?.name}
-                      className="w-24 h-24 object-contain filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.4)]"
-                    />
-                    <div className="flex-1 text-center sm:text-left">
-                      <span className="text-[10px] font-black text-[#8AD65A] tracking-wider uppercase block mb-1">
-                        {product?.category}
-                      </span>
-                      <h3 className="text-xl font-black tracking-tight">{product?.name}</h3>
-                      <p className="text-white/40 text-xs font-mono mt-0.5">{product?.formula}</p>
-                      <p className="text-[#8AD65A] text-sm font-black mt-2 font-mono">
-                        PKR {product?.price?.toLocaleString()} / unit
-                      </p>
-                    </div>
-                  </div>
+                  {product ? (
+                    <>
+                      {/* Product Details Card */}
+                      <div className="flex flex-col sm:flex-row items-center gap-6 p-6 rounded-2xl bg-white/5 border border-white/10">
+                        <img 
+                          src={product?.image} 
+                          alt={product?.name}
+                          className="w-24 h-24 object-contain filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.4)]"
+                        />
+                        <div className="flex-1 text-center sm:text-left">
+                          <span className="text-[10px] font-black text-[#8AD65A] tracking-wider uppercase block mb-1">
+                            {product?.category}
+                          </span>
+                          <h3 className="text-xl font-black tracking-tight">{product?.name}</h3>
+                          <p className="text-white/40 text-xs font-mono mt-0.5">{product?.formula}</p>
+                          <p className="text-[#8AD65A] text-sm font-black mt-2 font-mono">
+                            PKR {product?.price?.toLocaleString()} / unit
+                          </p>
+                        </div>
+                      </div>
 
-                  {/* Size Selector */}
-                  <div className="space-y-3">
-                    <label className="block text-white/50 text-[10px] font-black uppercase tracking-widest">
-                      Select Package Size
-                    </label>
-                    <div className="flex gap-2 flex-wrap">
-                      {product?.sizes?.map((size) => (
-                        <button
-                          key={size}
-                          onClick={() => setSize(size)}
-                          className={`px-5 py-3 rounded-xl text-xs font-black border transition-all ${
-                            selectedSize === size
-                              ? 'bg-[#2d6a2d] border-[#76C945] text-white shadow-[0_0_12px_rgba(92,184,92,0.2)]'
-                              : 'bg-white/5 border-white/10 text-white/50 hover:text-white'
-                          }`}
-                        >
-                          {size}
-                        </button>
+                      {/* Size Selector */}
+                      <div className="space-y-3">
+                        <label className="block text-white/50 text-[10px] font-black uppercase tracking-widest">
+                          Select Package Size
+                        </label>
+                        <div className="flex gap-2 flex-wrap">
+                          {product?.sizes?.map((size) => (
+                            <button
+                              key={size}
+                              onClick={() => setSize(size)}
+                              className={`px-5 py-3 rounded-xl text-xs font-black border transition-all ${
+                                selectedSize === size
+                                  ? 'bg-[#2d6a2d] border-[#76C945] text-white shadow-[0_0_12px_rgba(92,184,92,0.2)]'
+                                  : 'bg-white/5 border-white/10 text-white/50 hover:text-white'
+                              }`}
+                            >
+                              {size}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Quantity Selector */}
+                      <div className="flex items-center justify-between p-4.5 rounded-2xl bg-white/5 border border-white/10">
+                        <span className="text-sm font-bold text-white/70">Quantity</span>
+                        <div className="flex items-center gap-4.5">
+                          <button 
+                            onClick={() => setQty(q => Math.max(1, q - 1))}
+                            className="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center text-lg font-bold hover:bg-white/20 active:scale-90 transition-all"
+                          >
+                            −
+                          </button>
+                          <span className="text-white font-black text-lg w-6 text-center font-mono">
+                            {quantity}
+                          </span>
+                          <button 
+                            onClick={() => setQty(q => q + 1)}
+                            className="w-10 h-10 rounded-full bg-[#2d6a2d] text-white flex items-center justify-center text-lg font-bold hover:bg-[#3d8c3d] active:scale-90 transition-all"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 scrollbar-hide">
+                      {cart.map((item) => (
+                        <div key={item.cartId} className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10">
+                          <div className="w-14 h-14 rounded-lg bg-white/5 p-2 flex items-center justify-center shrink-0">
+                            <img 
+                              src={item.pngUrl || item.imageUrl} 
+                              alt={item.name[lang] || item.name}
+                              className="max-h-full max-w-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.3)]"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-extrabold truncate">{item.name[lang] || item.name}</h4>
+                            <p className="text-[10px] text-[#8AD65A] font-black uppercase mt-0.5 tracking-wider">{item.size.size}</p>
+                            <p className="text-white/40 text-xs mt-1">Qty: {item.quantity} × PKR {Number(item.size.price || item.size.rate || 0).toLocaleString()}</p>
+                          </div>
+                          <span className="text-sm font-black font-mono shrink-0">
+                            PKR {(Number(item.size.price || item.size.rate || 0) * item.quantity).toLocaleString()}
+                          </span>
+                        </div>
                       ))}
                     </div>
-                  </div>
-
-                  {/* Quantity Selector */}
-                  <div className="flex items-center justify-between p-4.5 rounded-2xl bg-white/5 border border-white/10">
-                    <span className="text-sm font-bold text-white/70">Quantity</span>
-                    <div className="flex items-center gap-4.5">
-                      <button 
-                        onClick={() => setQty(q => Math.max(1, q - 1))}
-                        className="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center text-lg font-bold hover:bg-white/20 active:scale-90 transition-all"
-                      >
-                        −
-                      </button>
-                      <span className="text-white font-black text-lg w-6 text-center font-mono">
-                        {quantity}
-                      </span>
-                      <button 
-                        onClick={() => setQty(q => q + 1)}
-                        className="w-10 h-10 rounded-full bg-[#2d6a2d] text-white flex items-center justify-center text-lg font-bold hover:bg-[#3d8c3d] active:scale-90 transition-all"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
+                  )}
                 </div>
               )}
 
@@ -448,93 +498,10 @@ export default function CheckoutPage({ product: rawProduct, defaultSize, default
 
               {/* STEP 3: PAYMENT METHOD */}
               {step === 3 && (
-                <div className="space-y-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* COD */}
-                    <button
-                      type="button"
-                      onClick={() => setPayment('COD')}
-                      className={`p-5 rounded-2xl border text-left flex items-start gap-4 transition-all duration-300 ${
-                        payment === 'COD'
-                          ? 'bg-[#76C945]/10 border-[#76C945] shadow-[0_0_20px_rgba(118,201,69,0.15)] scale-102'
-                          : 'bg-white/5 border-white/10 hover:bg-white/10 hover:scale-102'
-                      }`}
-                    >
-                      <span className="text-3xl mt-0.5">💵</span>
-                      <div>
-                        <p className="text-white font-black text-sm">Cash on Delivery</p>
-                        <p className="text-white/45 text-[10px] mt-1">Delivery Charges: PKR 299</p>
-                      </div>
-                    </button>
-
-                    {/* JazzCash */}
-                    <button
-                      type="button"
-                      onClick={() => setPayment('jazzcash')}
-                      className={`p-5 rounded-2xl border text-left flex items-start gap-4 transition-all duration-300 ${
-                        payment === 'jazzcash'
-                          ? 'bg-[#76C945]/10 border-[#76C945] shadow-[0_0_20px_rgba(118,201,69,0.15)] scale-102'
-                          : 'bg-white/5 border-white/10 hover:bg-white/10 hover:scale-102'
-                      }`}
-                    >
-                      <span className="text-3xl mt-0.5">📱</span>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-white font-black text-sm">JazzCash Wallet</p>
-                          <span className="px-1.5 py-0.5 bg-emerald-500/20 text-[#8AD65A] rounded text-[8px] font-black">FREE SHIPPING</span>
-                        </div>
-                        <p className="text-white/45 text-[10px] mt-1">Transfer directly via Mobile Account</p>
-                      </div>
-                    </button>
-
-                    {/* Easypaisa */}
-                    <button
-                      type="button"
-                      onClick={() => setPayment('easypaisa')}
-                      className={`p-5 rounded-2xl border text-left flex items-start gap-4 transition-all duration-300 ${
-                        payment === 'easypaisa'
-                          ? 'bg-[#76C945]/10 border-[#76C945] shadow-[0_0_20px_rgba(118,201,69,0.15)] scale-102'
-                          : 'bg-white/5 border-white/10 hover:bg-white/10 hover:scale-102'
-                      }`}
-                    >
-                      <span className="text-3xl mt-0.5">⚡</span>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-white font-black text-sm">Easypaisa Wallet</p>
-                          <span className="px-1.5 py-0.5 bg-emerald-500/20 text-[#8AD65A] rounded text-[8px] font-black">FREE SHIPPING</span>
-                        </div>
-                        <p className="text-white/45 text-[10px] mt-1">Fast mobile payment transfer</p>
-                      </div>
-                    </button>
-
-                    {/* Meezan Bank */}
-                    <button
-                      type="button"
-                      onClick={() => setPayment('meezan')}
-                      className={`p-5 rounded-2xl border text-left flex items-start gap-4 transition-all duration-300 ${
-                        payment === 'meezan'
-                          ? 'bg-[#76C945]/10 border-[#76C945] shadow-[0_0_20px_rgba(118,201,69,0.15)] scale-102'
-                          : 'bg-white/5 border-white/10 hover:bg-white/10 hover:scale-102'
-                      }`}
-                    >
-                      <span className="text-3xl mt-0.5">🏦</span>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-white font-black text-sm">Bank Transfer</p>
-                          <span className="px-1.5 py-0.5 bg-emerald-500/20 text-[#8AD65A] rounded text-[8px] font-black">FREE SHIPPING</span>
-                        </div>
-                        <p className="text-white/45 text-[10px] mt-1">Direct Meezan Bank deposit</p>
-                      </div>
-                    </button>
-                  </div>
-
-                  {rewardMessage && (
-                    <div className="p-4.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3 text-emerald-400 font-bold text-xs">
-                      <Gift size={16} />
-                      <span>{rewardMessage}</span>
-                    </div>
-                  )}
-                </div>
+                <PaymentMethodGrid
+                  selected={payment}
+                  onSelect={setPayment}
+                />
               )}
 
               {/* STEP 4: REVIEW & CONFIRM */}
@@ -552,20 +519,39 @@ export default function CheckoutPage({ product: rawProduct, defaultSize, default
                     </div>
 
                     {/* Cost Breakdown */}
-                    <div className="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-3 font-mono">
-                      <p className="text-white/40 text-[9px] font-black tracking-widest uppercase">Pricing details</p>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-white/60">Subtotal ({quantity} units)</span>
+                    <div className="space-y-2 p-4 rounded-2xl bg-white/3 border border-white/8">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-white/50">Subtotal</span>
                         <span className="text-white">PKR {subtotal.toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-white/60">Delivery Charges</span>
-                        <span className="text-white">{delivery > 0 ? `PKR ${delivery}` : 'FREE'}</span>
+
+                      <div className="flex justify-between text-sm">
+                        <span className="text-white/50">Delivery</span>
+                        {delivery === 0 ? (
+                          <span className="text-[#5cb85c] font-bold">FREE 🎁</span>
+                        ) : (
+                          <span className="text-white">PKR {delivery}</span>
+                        )}
                       </div>
-                      <div className="h-px bg-white/10 my-2" />
-                      <div className="flex justify-between items-baseline">
-                        <span className="text-[#8AD65A] font-bold text-sm">Grand Total</span>
-                        <span className="text-[#8AD65A] font-black text-xl">PKR {grandTotal.toLocaleString()}</span>
+
+                      {delivery > 0 && (
+                        <p className="text-yellow-400/60 text-[10px]">
+                          💡 Switch to JazzCash/Easypaisa for FREE delivery
+                        </p>
+                      )}
+
+                      <div className="h-px bg-white/10" />
+
+                      <div className="flex justify-between items-center">
+                        <span className="text-[#5cb85c] font-bold">Grand Total</span>
+                        <motion.span
+                          key={grandTotal}
+                          className="text-[#5cb85c] font-bold text-xl"
+                          initial={{ scale: 1.1 }}
+                          animate={{ scale: 1 }}
+                        >
+                          PKR {grandTotal.toLocaleString()}
+                        </motion.span>
                       </div>
                     </div>
                   </div>

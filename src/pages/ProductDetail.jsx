@@ -5,7 +5,7 @@ import {
   Phone, ArrowLeft, Download, Send, MessageCircle,
   CheckCircle2, AlertTriangle, HelpCircle, Shield, Award, Cpu,
   Flame, HardHat, FileText, Info, Leaf, Check, Sparkles, Zap, Clock, ShieldCheck, Gauge, Layers, Activity, Maximize,
-  FileBadge, Users, ShoppingCart, CreditCard, Lock
+  FileBadge, Users, ShoppingCart
 } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { getProductBySlug, PRODUCTS_DATA } from '@/data/productsData';
@@ -192,11 +192,6 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [showStickyBar, setShowStickyBar] = useState(false);
 
-  // Local Stripe Form Modal Simulation State
-  const [isStripeModalOpen, setIsStripeModalOpen] = useState(false);
-  const [stripeForm, setStripeForm] = useState({ name: '', number: '', expiry: '', cvc: '' });
-  const [stripeLoading, setStripeLoading] = useState(false);
-
   useEffect(() => {
     const handleScroll = () => {
       setShowStickyBar(window.scrollY > 550);
@@ -368,29 +363,6 @@ Thank you.`;
   const sizesList = product.sizes || [];
   const currentSize = sizesList[selectedSizeIdx] || { size: product.packaging, price: 0, oldPrice: 0, stockStatus: 'In Stock', sku: product.productCode, weight: 'N/A' };
   
-  // Simulated Stripe payment form submit
-  const handleStripePayment = (e) => {
-    e.preventDefault();
-    if (!stripeForm.name || !stripeForm.number || !stripeForm.expiry || !stripeForm.cvc) {
-      toast({
-        variant: "destructive",
-        title: "Incomplete Payment Details",
-        description: "Please fill in all details for Stripe checkout."
-      });
-      return;
-    }
-    setStripeLoading(true);
-    setTimeout(() => {
-      setStripeLoading(false);
-      setIsStripeModalOpen(false);
-      setStripeForm({ name: '', number: '', expiry: '', cvc: '' });
-      toast({
-        title: "Simulated Checkout Successful",
-        description: "Thank you for your sandbox order! Stripe live production payment is coming soon."
-      });
-    }, 1500);
-  };
-
   // Image zoom coordinate tracker
   const handleZoomMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -402,12 +374,6 @@ Thank you.`;
   // Add to cart helper
   const handleAddToCart = () => {
     addToCart(product, currentSize, quantity);
-  };
-
-  // Direct checkout Stripe drawer opener
-  const handleDirectStripeCheckout = () => {
-    addToCart(product, currentSize, quantity);
-    setIsCartOpen(true);
   };
 
   // Related products recommendation logic
@@ -661,37 +627,22 @@ Thank you.`;
               </div>
 
               {/* Action Buttons Row - Refactored to 2 primary (top row) + 1 secondary (bottom row) arrangement */}
+              {/* Action Buttons Row - Refactored to premium checkout flow */}
               <div className="space-y-3 border-t border-white/5 pt-5">
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={handleAddToCart}
-                    className="w-full px-4 py-3.5 bg-white/10 border border-white/10 hover:bg-white/15 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all hover:scale-102 active:scale-98"
-                  >
-                    <ShoppingCart className="w-4.5 h-4.5 text-[#76C945]" />
-                    <span>{lang === 'en' ? 'Add to Cart' : 'کارٹ میں ڈالیں'}</span>
-                  </button>
-
-                  <button
-                    onClick={handleDirectStripeCheckout}
-                    className="w-full px-4 py-3.5 bg-[#76C945] hover:bg-[#8AD65A] text-[#0A2E1F] rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-center gap-1.5 transition-all hover:scale-102 active:scale-98 shadow-lg shadow-[#76C945]/20"
-                  >
-                    <CreditCard className="w-4.5 h-4.5" />
-                    <span>{lang === 'en' ? 'Stripe Pay' : 'اسٹرائپ ادا'}</span>
-                  </button>
-                </div>
+                <button
+                  onClick={handleAddToCart}
+                  className="w-full px-4 py-3.5 bg-white/10 border border-white/10 hover:bg-white/15 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all hover:scale-102 active:scale-98"
+                >
+                  <ShoppingCart className="w-4.5 h-4.5 text-[#76C945]" />
+                  <span>{lang === 'en' ? 'Add to Cart' : 'کارٹ میں ڈالیں'}</span>
+                </button>
 
                 <CODWhatsAppButton
                   product={product}
                   defaultSize={currentSize.size}
                   defaultQuantity={quantity}
-                  className="w-full py-3.5 bg-[#25d366] hover:bg-[#20ba59] text-white shadow-md rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-center gap-1.5 transition-all hover:scale-102 active:scale-98"
+                  className="w-full"
                 />
-              </div>
-
-              {/* Stripe simulated warning */}
-              <div className="flex gap-2 items-center text-[10px] text-white/40 justify-center">
-                <Lock className="w-3.5 h-3.5" />
-                <span>Simulated Sandbox Checkouts. Stripe secure transactions.</span>
               </div>
             </div>
           </motion.div>
@@ -937,7 +888,7 @@ Thank you.`;
                           <button
                             onClick={() => {
                               setSelectedSizeIdx(i);
-                              handleDirectStripeCheckout();
+                              handleAddToCart();
                             }}
                             className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-black transition-all shadow-sm"
                           >

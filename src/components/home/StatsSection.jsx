@@ -6,11 +6,11 @@ import GlassCard from '@/components/ui/GlassCard';
 import CountUp from '@/components/ui/CountUp';
 
 const statColors = [
-  { bg: 'bg-[#76C945]/10', icon: 'text-[#76C945]', glow: 'hover:shadow-[#76C945]/5' },
-  { bg: 'bg-[#5cb85c]/10', icon: 'text-[#5cb85c]', glow: 'hover:shadow-[#5cb85c]/5' },
-  { bg: 'bg-[#2d6a2d]/10', icon: 'text-[#2d6a2d]', glow: 'hover:shadow-[#2d6a2d]/5' },
+  { bg: 'bg-[#2d7a2d]/10', icon: 'text-[#2d7a2d]', glow: 'hover:shadow-[#2d7a2d]/5' },
   { bg: 'bg-[#3d8c3d]/10', icon: 'text-[#3d8c3d]', glow: 'hover:shadow-[#3d8c3d]/5' },
-  { bg: 'bg-[#4a9a4a]/10', icon: 'text-[#4a9a4a]', glow: 'hover:shadow-[#4a9a4a]/5' },
+  { bg: 'bg-[#5cb85c]/10', icon: 'text-[#5cb85c]', glow: 'hover:shadow-[#5cb85c]/5' },
+  { bg: 'bg-[#2d7a2d]/10', icon: 'text-[#2d7a2d]', glow: 'hover:shadow-[#2d7a2d]/5' },
+  { bg: 'bg-[#3d8c3d]/10', icon: 'text-[#3d8c3d]', glow: 'hover:shadow-[#3d8c3d]/5' },
 ];
 
 export default function StatsSection() {

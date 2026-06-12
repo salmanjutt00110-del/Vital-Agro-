@@ -39,10 +39,12 @@ export default function PreloaderText({ isExiting }) {
         animate="visible"
         className="flex items-center justify-center font-black uppercase text-white/50 w-full max-w-[90vw]"
         style={{
-          fontSize: 'clamp(8px, 2.3vw, 11px)',
-          letterSpacing: '0.12em',
+          fontSize: 'clamp(9px, 2.5vw, 13px)',
+          letterSpacing: '0.15em',
           whiteSpace: 'nowrap',
+          maxWidth: '75vw',
           overflow: 'hidden',
+          textOverflow: 'clip',
         }}
       >
         <Sparkles className="w-3 h-3 text-[#76C945] animate-pulse mr-1.5 flex-shrink-0" />

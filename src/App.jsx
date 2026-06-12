@@ -17,6 +17,7 @@ import { useAuthState } from '@/lib/api';
 import { auth } from '@/lib/api';
 import { HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from './components/layout/ErrorBoundary';
+import ScrollToTop from './components/ScrollToTop';
 
 // Route-based Code Splitting using React.lazy
 const Home = React.lazy(() => import('./pages/Home'));
@@ -98,6 +99,7 @@ function App() {
 
               <SmoothScroll>
                 <Router>
+                  <ScrollToTop />
                   {!isAppLoading && (
                     <React.Suspense fallback={<PageLoader />}>
                       <AuthenticatedApp />

@@ -7,7 +7,6 @@ import { useLanguage } from '@/lib/LanguageContext';
 import { PRODUCTS_DATA } from '@/data/productsData';
 import { useCart } from '@/lib/CartContext';
 import SEOHead from '@/lib/seo/SEOHead';
-import vitalAgroLogo from '@/assets/vital agro logo.webp';
 import ProductSwipe3D from '@/components/sections/ProductSwipe3D';
 import CheckoutPage from './Checkout';
 import { AnimatePresence } from 'framer-motion';
@@ -434,27 +433,27 @@ export default function Products() {
       />
       
       {/* Page Header */}
-      <section className="relative py-10 overflow-hidden z-10 select-none">
+      <section className="relative py-16 overflow-hidden z-10 select-none">
+        {/* Ambient glow behind heading */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2
+          w-96 h-48 rounded-full opacity-20
+          bg-[radial-gradient(ellipse,#2d6a2d,transparent)]
+          blur-[50px] pointer-events-none" />
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div 
             initial={{ opacity: 0, y: 15 }} 
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="space-y-3"
+            className="flex flex-col items-center"
           >
-            {/* Logo cluster */}
-            <div className="inline-block bg-white/5 backdrop-blur-md rounded-2xl px-5 py-2 border border-white/10">
-              <img
-                src={vitalAgroLogo}
-                alt="Vital Agro Logo"
-                className="h-10 sm:h-12 w-auto mx-auto object-contain"
-              />
-            </div>
-            <span className="text-[10px] font-black tracking-widest uppercase text-[#76C945] block">
-              {lang === 'en' ? 'Apple Store Premium Catalog' : 'پریمیئم پراڈکٹ کیٹلاگ'}
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full
+              bg-[rgba(45,106,45,0.2)] border border-[rgba(92,184,92,0.3)]
+              text-[#5cb85c] text-[11px] tracking-[0.2em] uppercase font-bold mb-5">
+              ✦ PREMIUM CATALOG
             </span>
-            <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight leading-none">
-              {lang === 'en' ? 'Product Explorer' : 'زرعی مصنوعات اور حل'}
+            <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight leading-tight mb-4">
+              {lang === 'en' ? 'Agricultural Products' : 'زرعی مصنوعات اور حل'}
             </h1>
             <p className="text-white/60 text-xs sm:text-sm max-w-2xl mx-auto leading-relaxed">
               {lang === 'en' 
@@ -474,7 +473,7 @@ export default function Products() {
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
             
             {/* Category selection pills with horizontal scroll */}
-            <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1 w-full lg:w-auto flex-nowrap whitespace-nowrap select-none">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 w-full lg:w-auto flex-nowrap whitespace-nowrap select-none">
               {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
                 <button
                   key={key}

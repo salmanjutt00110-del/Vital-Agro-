@@ -180,27 +180,27 @@ export default function OrderSuccess() {
             <div>
               <span className="text-[9px] text-muted-foreground dark:text-white/40 block font-bold uppercase">{lang === 'en' ? 'PAYMENT METHOD' : 'طریقہ ادائیگی'}</span>
               <span className="font-extrabold text-foreground dark:text-white/85 mt-1 block">
-                {order.paymentMethod === 'COD' 
-                  ? 'Cash On Delivery' 
-                  : order.paymentMethod === 'Stripe' 
-                    ? 'Credit/Debit Card (Stripe)'
-                    : order.paymentMethod}
+                {order.paymentMethod === 'cod' || order.paymentMethod === 'COD'
+                  ? 'Cash On Delivery (COD)' 
+                  : order.paymentMethod === 'jazzcash'
+                    ? 'JazzCash Wallet'
+                    : order.paymentMethod === 'easypaisa'
+                      ? 'Easypaisa Wallet'
+                      : order.paymentMethod === 'meezan'
+                        ? 'Bank Transfer (Meezan)'
+                        : order.paymentMethod}
               </span>
             </div>
             <div>
               <span className="text-[9px] text-muted-foreground dark:text-white/40 block font-bold uppercase">{lang === 'en' ? 'TRANSACTION STATUS' : 'ٹرانزیکشن سٹیٹس'}</span>
               <span className={`inline-block mt-1.5 px-2 py-0.5 rounded-md text-[9px] font-black uppercase ${
-                order.paymentMethod === 'COD'
+                order.paymentMethod === 'cod' || order.paymentMethod === 'COD'
                   ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                  : order.paymentDetails?.status === 'approved'
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                    : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                  : 'bg-[#5cb85c]/10 text-[#5cb85c] border border-[#5cb85c]/20'
               }`}>
-                {order.paymentMethod === 'COD' 
+                {order.paymentMethod === 'cod' || order.paymentMethod === 'COD'
                   ? 'COD Pending' 
-                  : order.paymentDetails?.status === 'approved' 
-                    ? 'Verified ✓' 
-                    : 'Awaiting Verification'}
+                  : 'Awaiting Verification'}
               </span>
             </div>
           </div>

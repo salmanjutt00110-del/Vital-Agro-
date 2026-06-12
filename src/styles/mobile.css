@@ -12,9 +12,32 @@ html {
   overscroll-behavior: none;
 }
 
+body {
+  overscroll-behavior: none;
+}
+
 /* Prevent zoom on input focus (iOS) */
 input, select, textarea {
-  font-size: 16px !important;  /* min 16px prevents iOS zoom */
+  font-size: 16px !important;
+}
+
+input[type="text"],
+input[type="tel"],
+input[type="email"],
+select, textarea {
+  font-size: 16px !important;
+  transform: scale(1);
+}
+
+.animate-gpu {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.scroll-container {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Safe area padding (iPhone notch/home bar) */
