@@ -1,7 +1,7 @@
+/* eslint-disable react/no-unknown-property */
 import { Canvas } from '@react-three/fiber';
 import { Suspense, useMemo } from 'react';
-import { MeshDistortMaterial, Float, Stars, Plane } from '@react-three/drei';
-import { motion } from 'framer-motion';
+import { Float, Stars } from '@react-three/drei';
 import * as THREE from 'three';
 
 // Utility to generate a simple noise texture
@@ -30,13 +30,16 @@ function generateNoiseTexture() {
  *   • minimal GPU load – static meshes reuse the same geometry/material.
  */
 export default function AnimatedBackground({ theme = {} }) {
+  const noiseTex = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    return generateNoiseTexture();
+  }, []);
+
   if (typeof window === 'undefined') {
     // Prevent rendering during SSR / non‑browser environments
     // This avoids a blank white screen before the client hydrates.
     return null;
   }
-
-  const noiseTex = useMemo(() => generateNoiseTexture(), []);
 
   // Gradient material using a custom shader for smooth color shift.
   const GradientMaterial = () => {

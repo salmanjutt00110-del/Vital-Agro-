@@ -1,86 +1,59 @@
 'use client';
 import React, { useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { createOrder } from '@/lib/firestore/orders';
 import { buildOrderMessage } from '@/lib/whatsapp';
 import OrderConfirmButton from '@/components/animations/OrderConfirmButton';
 import toast from 'react-hot-toast';
+import confetti from 'canvas-confetti';
+import { 
+  ShoppingBag, 
+  User, 
+  MapPin, 
+  CreditCard, 
+  CheckSquare, 
+  ChevronLeft, 
+  ChevronRight, 
+  Home, 
+  Clock, 
+  Gift
+} from 'lucide-react';
 
-// Pakistani provinces with delivery charges
-const PROVINCES = {
-  'Punjab':      260,
-  'Sindh':       320,
-  'KPK':         350,
-  'Balochistan': 380,
-  'Islamabad':   280,
-  'AJK':         350,
-  'Gilgit-Baltistan': 420,
-};
+const PROVINCES = [
+  'Punjab',
+  'Sindh',
+  'KPK',
+  'Balochistan',
+  'Islamabad',
+  'AJK',
+  'Gilgit-Baltistan'
+];
 
 // Form Field Component
 const FormField = ({ label, required, error, ...props }) => (
-  <div>
-    <label className="block text-white/50 text-[11px] font-semibold
-      tracking-[0.1em] uppercase mb-2">
-      {label}{required && <span className="text-[#5cb85c] ml-1">*</span>}
+  <div className="space-y-2">
+    <label className="block text-white/50 text-[11px] font-black tracking-[0.12em] uppercase">
+      {label}{required && <span className="text-[#8AD65A] ml-1">*</span>}
     </label>
     <input
       {...props}
-      className={`w-full px-4 py-3.5 rounded-2xl text-white text-sm
-        bg-white/5 border outline-none placeholder:text-white/25
-        transition-all duration-300
-        ${error
+      className={`w-full px-5 py-4 rounded-2xl text-white text-sm bg-white/5 border outline-none placeholder:text-white/20 transition-all duration-300 ${
+        error
           ? 'border-red-500/40 focus:border-red-400'
-          : 'border-white/10 focus:border-[rgba(92,184,92,0.5)] focus:bg-white/7'
-        }`}
+          : 'border-white/10 focus:border-[#76C945] focus:bg-white/10'
+      }`}
     />
-    {error && <p className="text-red-400 text-[11px] mt-1.5">⚠ {error}</p>}
+    {error && <p className="text-red-400 text-[11px] font-bold">⚠ {error}</p>}
   </div>
 );
 
-// Payment Method Selection Grid
-const PaymentMethodGrid = ({ selected, onSelect }) => {
-  const methods = [
-    { id: 'COD', label: 'Cash on Delivery (COD)', description: 'Pay at your doorstep', icon: '💵' },
-    { id: 'card', label: 'Credit/Debit Card', description: 'Visa / MasterCard', icon: '💳' },
-    { id: 'jazzcash', label: 'JazzCash Wallet', description: 'Instant Mobile Transfer', icon: '📱' },
-    { id: 'easypaisa', label: 'Easypaisa Wallet', description: 'Easy Mobile Payment', icon: '⚡' },
-    { id: 'meezan', label: 'Meezan Bank', description: 'Direct Account Deposit', icon: '🏦' }
-  ];
-
-  return (
-    <div className="mt-6">
-      <label className="block text-white/50 text-[11px] font-semibold tracking-[0.1em] uppercase mb-3">
-        💳 Select Payment Method
-      </label>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {methods.map((m) => (
-          <button
-            key={m.id}
-            type="button"
-            onClick={() => onSelect(m.id)}
-            className={`p-3.5 rounded-2xl border text-left flex items-start gap-3 transition-all duration-300
-              ${selected === m.id
-                ? 'bg-[rgba(92,184,92,0.08)] border-[#5cb85c] shadow-[0_0_15px_rgba(92,184,92,0.15)]'
-                : 'bg-white/5 border-white/10 hover:bg-white/7'
-              }`}
-          >
-            <span className="text-2xl mt-0.5">{m.icon}</span>
-            <div>
-              <p className="text-white font-bold text-xs">{m.label}</p>
-              <p className="text-white/45 text-[10px] mt-0.5">{m.description}</p>
-            </div>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const CheckoutPage = ({ product: rawProduct, defaultSize, defaultQuantity, onClose }) => {
-  const [selectedSize, setSize] = useState(defaultSize || (rawProduct?.sizes?.[0]?.size || rawProduct?.sizes?.[0] || '100ML'));
-  const [quantity, setQty]      = useState(defaultQuantity || 1);
-  const [payment, setPayment]   = useState('COD');
+export default function CheckoutPage({ product: rawProduct, defaultSize, defaultQuantity, onClose }) {
+  const [step, setStep] = useState(0); // Steps: 0 = Cart, 1 = Info, 2 = Address, 3 = Payment, 4 = Review, 5 = Success
+  const [selectedSize, setSize] = useState(defaultSize || '100ML');
+  const [quantity, setQty] = useState(defaultQuantity || 1);
+  const [payment, setPayment] = useState('COD');
+  const [orderId, setOrderId] = useState(null);
+  const [isOrdering, setIsOrdering] = useState(false);
 
   const [form, setForm] = useState({
     fullName: '', phone: '', city: '',
@@ -88,15 +61,13 @@ const CheckoutPage = ({ product: rawProduct, defaultSize, defaultQuantity, onClo
   });
   const [errors, setErrors] = useState({});
 
+  // Normalize product details
   const product = React.useMemo(() => {
     if (!rawProduct) return null;
-    
-    // Normalize sizes list to array of strings
     const sizesList = rawProduct.sizes 
       ? rawProduct.sizes.map(s => typeof s === 'object' ? s.size : s) 
       : [rawProduct.packaging || '100ML'];
       
-    // Find the price for the currently selected size
     let price = rawProduct.price || 999;
     if (rawProduct.sizes) {
       const sizeObj = rawProduct.sizes.find(s => (typeof s === 'object' ? s.size : s) === selectedSize);
@@ -115,30 +86,62 @@ const CheckoutPage = ({ product: rawProduct, defaultSize, defaultQuantity, onClo
     };
   }, [rawProduct, selectedSize]);
 
-  const delivery    = PROVINCES[form.province] || 280;
-  const subtotal    = (product?.price || 0) * quantity;
-  const grandTotal  = subtotal + delivery;
+  // Recalculate Shipping and Totals based on rules
+  const delivery = React.useMemo(() => {
+    if (payment === 'COD') return 299;
+    return 0; // JazzCash, Easypaisa, Meezan/Bank are FREE
+  }, [payment]);
 
-  const update = (k, v) =>
-    setForm(p => ({ ...p, [k]: v }));
+  const rewardMessage = React.useMemo(() => {
+    if (payment === 'jazzcash') {
+      return '🎉 Congratulations! You unlocked FREE Delivery.';
+    }
+    if (payment === 'easypaisa') {
+      return '🎉 Instant Payment Reward: FREE Shipping Applied.';
+    }
+    if (payment === 'meezan') {
+      return '🎉 Bank Transfer Reward: FREE Shipping Enabled.';
+    }
+    return '';
+  }, [payment]);
 
-  const validate = () => {
+  const subtotal = (product?.price || 0) * quantity;
+  const grandTotal = subtotal + delivery;
+
+  const update = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const validateStep = (currentStep) => {
     const e = {};
-    if (!form.fullName.trim())  e.fullName = 'Full name required';
-    if (!form.phone.trim())     e.phone = 'Phone required';
-    if (!/^03\d{9}$/.test(form.phone.replace(/[\s-]/g, '')))
-      e.phone = 'Valid Pakistani number (03XXXXXXXXX)';
-    if (!form.city.trim())      e.city = 'City required';
-    if (!form.address.trim())   e.address = 'Address required';
+    if (currentStep === 1) {
+      if (!form.fullName.trim()) e.fullName = 'Full name is required';
+      if (!form.phone.trim()) e.phone = 'Phone number is required';
+      else if (!/^03\d{9}$/.test(form.phone.replace(/[\s-]/g, ''))) {
+        e.phone = 'Please enter a valid phone number (e.g. 03001234567)';
+      }
+    }
+    if (currentStep === 2) {
+      if (!form.city.trim()) e.city = 'City is required';
+      if (!form.address.trim()) e.address = 'Complete delivery address is required';
+    }
     setErrors(e);
     return !Object.keys(e).length;
   };
 
-  const handleComplete = useCallback(async () => {
-    if (!validate()) {
-      toast.error('Please fill all required fields');
-      throw new Error('Validation failed');
+  const handleNext = () => {
+    if (validateStep(step)) {
+      setStep(prev => prev + 1);
+    } else {
+      toast.error('Please resolve the errors to continue');
     }
+  };
+
+  const handleBack = () => {
+    setStep(prev => Math.max(0, prev - 1));
+  };
+
+  const handleComplete = useCallback(async () => {
+    if (isOrdering) return;
+    setIsOrdering(true);
 
     const orderData = {
       productName:   product.name,
@@ -162,308 +165,502 @@ const CheckoutPage = ({ product: rawProduct, defaultSize, defaultQuantity, onClo
       source:        'website_checkout',
     };
 
-    // Save to Firebase (runs in background)
-    const orderId = await createOrder(orderData).catch(err => {
-      console.error(err);
-      return 'VA-TEMP';
-    });
+    try {
+      const orderId = await createOrder(orderData).catch(err => {
+        console.error(err);
+        return 'VA-' + Math.floor(100000 + Math.random() * 900000);
+      });
 
-    // Build and open WhatsApp pre-filled dispatch order url
-    const waUrl = buildOrderMessage({ ...orderData, orderNumber: orderId === 'VA-TEMP' ? 'VA-NEW' : orderId });
-    window.open(waUrl, '_blank');
-  }, [form, product, selectedSize, quantity, subtotal, delivery, grandTotal, payment]);
+      setOrderId(orderId);
+      setStep(5); // Transition to success step
+
+      // Launch beautiful confetti
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#76C945', '#8AD65A', '#FFFFFF']
+      });
+
+      // Build and open WhatsApp pre-filled dispatch order url
+      const waUrl = buildOrderMessage({ ...orderData, orderNumber: orderId });
+      setTimeout(() => {
+        window.open(waUrl, '_blank');
+      }, 1000);
+
+    } catch (err) {
+      toast.error('Failed to complete order. Please try again.');
+    } finally {
+      setIsOrdering(false);
+    }
+  }, [form, product, selectedSize, quantity, subtotal, delivery, grandTotal, payment, isOrdering]);
+
+  // Page title metadata mapping
+  const stepsTitles = [
+    { title: 'Review Your Selection', subtitle: 'Confirm package size and quantity', icon: <ShoppingBag size={20} /> },
+    { title: 'Personal Details', subtitle: 'Enter your contact credentials', icon: <User size={20} /> },
+    { title: 'Shipping Address', subtitle: 'Provide your delivery destination', icon: <MapPin size={20} /> },
+    { title: 'Payment Mode', subtitle: 'Choose how you want to pay', icon: <CreditCard size={20} /> },
+    { title: 'Verify & Confirm', subtitle: 'Review summary and place order', icon: <CheckSquare size={20} /> },
+    { title: 'Order Complete!', subtitle: 'Your agriculture solutions are on the way', icon: <Gift size={20} /> }
+  ];
+
+  const currentMeta = stepsTitles[step];
 
   return (
     <motion.div
-      className="fixed inset-0 z-[100] flex items-end md:items-center
-        justify-center bg-black/80 backdrop-blur-md p-0 md:p-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[120] bg-[#02110a] text-white flex flex-col justify-between overflow-y-auto"
+      initial={{ opacity: 0, scale: 1.02 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
-      {/* MODAL CONTAINER */}
-      <motion.div
-        className="relative w-full md:max-w-5xl md:h-auto h-[96vh]
-          rounded-t-[32px] md:rounded-[32px] overflow-hidden
-          flex flex-col md:flex-row"
-        style={{
-          background: 'rgba(6, 20, 6, 0.97)',
-          backdropFilter: 'blur(40px)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          boxShadow: '0 -40px 100px rgba(0,0,0,0.8)',
-        }}
-        initial={{ y: '100%' }}
-        animate={{ y: 0 }}
-        exit={{ y: '100%' }}
-        transition={{ type: 'spring', stiffness: 260, damping: 30 }}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4
-          border-b border-white/8 md:hidden"
-        >
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-[#5cb85c] animate-pulse" />
-            <span className="text-white font-bold text-sm tracking-wide">
-              VITAL AGRO CHECKOUT
-            </span>
-          </div>
-          <button onClick={onClose}
-            className="w-9 h-9 rounded-full bg-white/8
-              text-white/60 flex items-center justify-center">
-            ✕
-          </button>
-        </div>
+      {/* Dynamic Background Mesh */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 opacity-40">
+        <div className="absolute top-[-20%] left-[-20%] w-[80%] h-[80%] rounded-full blur-[150px] bg-[#76C945]/10" />
+        <div className="absolute bottom-[-20%] right-[-20%] w-[80%] h-[80%] rounded-full blur-[150px] bg-[#8AD65A]/5" />
+      </div>
 
-        {/* LEFT — FORM */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 md:px-8 md:py-8">
-
-          {/* Desktop header */}
-          <div className="hidden md:flex items-center justify-between mb-8">
-            <div>
-              <p className="text-white font-bold text-xl">Premium Checkout</p>
-              <p className="text-white/45 text-sm">Vital Agro Chemical Industries</p>
+      {/* Header Banner */}
+      <header className="relative z-10 px-6 py-6 border-b border-white/5 bg-black/30 backdrop-blur-xl">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={onClose}
+              className="px-4 py-2 text-xs font-black uppercase tracking-wider text-white/50 border border-white/10 rounded-full hover:bg-white/5 hover:text-white transition-all"
+            >
+              ← Back to Shop
+            </button>
+            <div className="h-5 w-[1px] bg-white/10" />
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black uppercase tracking-widest text-[#76C945]">Step {step + 1} of 6</span>
             </div>
-            <button onClick={onClose}
-              className="w-10 h-10 rounded-full bg-white/8
-                text-white/60 hover:text-white transition-colors">
+          </div>
+          
+          {step < 5 && (
+            <button 
+              onClick={onClose}
+              className="w-10 h-10 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-white flex items-center justify-center transition-all"
+            >
               ✕
             </button>
+          )}
+        </div>
+      </header>
+
+      {/* Main Form Area */}
+      <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-8 sm:py-16">
+        <div className="w-full max-w-2xl bg-white/[0.02] border border-white/5 backdrop-blur-2xl rounded-3xl p-6 sm:p-10 shadow-2xl overflow-hidden relative">
+          
+          {/* Progress Indicator */}
+          {step < 5 && (
+            <div className="flex gap-1.5 mb-8">
+              {[...Array(5)].map((_, i) => (
+                <div 
+                  key={i} 
+                  className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${
+                    i <= step ? 'bg-[#76C945]' : 'bg-white/10'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Current Step Header */}
+          <div className="flex items-start gap-4 mb-8">
+            <div className="w-12 h-12 rounded-2xl bg-[#76C945]/10 border border-[#76C945]/20 flex items-center justify-center text-[#8AD65A]">
+              {currentMeta.icon}
+            </div>
+            <div>
+              <h2 className="text-2xl font-black tracking-tight">{currentMeta.title}</h2>
+              <p className="text-white/40 text-xs font-medium">{currentMeta.subtitle}</p>
+            </div>
           </div>
 
-          {/* SHIPPING FORM */}
-          <div className="mb-6">
-            <p className="text-[#5cb85c] font-bold text-xs tracking-[0.15em]
-              uppercase mb-4">
-              📍 Shipping Destination
-            </p>
-            <p className="text-white/35 text-xs mb-5">
-              Provide valid delivery credentials to finalize order.
-            </p>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6"
+            >
+              {/* STEP 0: CART */}
+              {step === 0 && (
+                <div className="space-y-6">
+                  {/* Product Details Card */}
+                  <div className="flex flex-col sm:flex-row items-center gap-6 p-6 rounded-2xl bg-white/5 border border-white/10">
+                    <img 
+                      src={product?.image} 
+                      alt={product?.name}
+                      className="w-24 h-24 object-contain filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.4)]"
+                    />
+                    <div className="flex-1 text-center sm:text-left">
+                      <span className="text-[10px] font-black text-[#8AD65A] tracking-wider uppercase block mb-1">
+                        {product?.category}
+                      </span>
+                      <h3 className="text-xl font-black tracking-tight">{product?.name}</h3>
+                      <p className="text-white/40 text-xs font-mono mt-0.5">{product?.formula}</p>
+                      <p className="text-[#8AD65A] text-sm font-black mt-2 font-mono">
+                        PKR {product?.price?.toLocaleString()} / unit
+                      </p>
+                    </div>
+                  </div>
 
-            <div className="space-y-4">
-              {/* Full Name + Phone */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  label="Full Name" required
-                  placeholder="Muhammad Ali"
-                  value={form.fullName}
-                  onChange={e => update('fullName', e.target.value)}
-                  error={errors.fullName}
-                />
-                <FormField
-                  label="Phone Number" required type="tel"
-                  placeholder="03001234567"
-                  inputMode="tel"
-                  value={form.phone}
-                  onChange={e => update('phone', e.target.value)}
-                  error={errors.phone}
-                />
-              </div>
+                  {/* Size Selector */}
+                  <div className="space-y-3">
+                    <label className="block text-white/50 text-[10px] font-black uppercase tracking-widest">
+                      Select Package Size
+                    </label>
+                    <div className="flex gap-2 flex-wrap">
+                      {product?.sizes?.map((size) => (
+                        <button
+                          key={size}
+                          onClick={() => setSize(size)}
+                          className={`px-5 py-3 rounded-xl text-xs font-black border transition-all ${
+                            selectedSize === size
+                              ? 'bg-[#2d6a2d] border-[#76C945] text-white shadow-[0_0_12px_rgba(92,184,92,0.2)]'
+                              : 'bg-white/5 border-white/10 text-white/50 hover:text-white'
+                          }`}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-              {/* City + Province + Postal */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <FormField
-                  label="City" required
-                  placeholder="Haroonabad"
-                  value={form.city}
-                  onChange={e => update('city', e.target.value)}
-                  error={errors.city}
-                />
-
-                {/* Province Dropdown */}
-                <div>
-                  <label className="block text-white/50 text-[11px] font-semibold
-                    tracking-[0.1em] uppercase mb-2">
-                    Province <span className="text-[#5cb85c]">*</span>
-                  </label>
-                  <select
-                    value={form.province}
-                    onChange={e => update('province', e.target.value)}
-                    className="w-full px-4 py-3.5 rounded-2xl text-white text-sm
-                      bg-white/5 border border-white/10 outline-none
-                      focus:border-[rgba(92,184,92,0.5)]
-                      transition-all duration-300 appearance-none"
-                  >
-                    {Object.keys(PROVINCES).map(p => (
-                      <option key={p} value={p}
-                        style={{ background: '#0a1f0a', color: 'white' }}>
-                        {p} — PKR {PROVINCES[p]}
-                      </option>
-                    ))}
-                  </select>
+                  {/* Quantity Selector */}
+                  <div className="flex items-center justify-between p-4.5 rounded-2xl bg-white/5 border border-white/10">
+                    <span className="text-sm font-bold text-white/70">Quantity</span>
+                    <div className="flex items-center gap-4.5">
+                      <button 
+                        onClick={() => setQty(q => Math.max(1, q - 1))}
+                        className="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center text-lg font-bold hover:bg-white/20 active:scale-90 transition-all"
+                      >
+                        −
+                      </button>
+                      <span className="text-white font-black text-lg w-6 text-center font-mono">
+                        {quantity}
+                      </span>
+                      <button 
+                        onClick={() => setQty(q => q + 1)}
+                        className="w-10 h-10 rounded-full bg-[#2d6a2d] text-white flex items-center justify-center text-lg font-bold hover:bg-[#3d8c3d] active:scale-90 transition-all"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
                 </div>
+              )}
 
-                <FormField
-                  label="Postal Code"
-                  placeholder="63100"
-                  value={form.postal}
-                  onChange={e => update('postal', e.target.value)}
-                  type="tel" inputMode="numeric"
-                />
-              </div>
+              {/* STEP 1: PERSONAL DETAILS */}
+              {step === 1 && (
+                <div className="grid grid-cols-1 gap-6">
+                  <FormField
+                    label="Full Name"
+                    required
+                    placeholder="Muhammad Ali"
+                    value={form.fullName}
+                    onChange={e => update('fullName', e.target.value)}
+                    error={errors.fullName}
+                  />
 
-              {/* Full Address */}
-              <div>
-                <label className="block text-white/50 text-[11px] font-semibold
-                  tracking-[0.1em] uppercase mb-2">
-                  Complete Address <span className="text-[#5cb85c]">*</span>
-                </label>
-                <textarea
-                  rows={3}
-                  placeholder="Street name, Mohalla, Gali, Near landmark..."
-                  value={form.address}
-                  onChange={e => update('address', e.target.value)}
-                  className={`w-full px-4 py-3 rounded-2xl text-white text-sm
-                    bg-white/5 border outline-none resize-none
-                    placeholder:text-white/25 transition-all duration-300
-                    ${errors.address
-                      ? 'border-red-500/40'
-                      : 'border-white/10 focus:border-[rgba(92,184,92,0.5)]'
-                    }`}
-                />
-                {errors.address && (
-                  <p className="text-red-400 text-[11px] mt-1">⚠ {errors.address}</p>
-                )}
-              </div>
+                  <FormField
+                    label="Phone Number"
+                    required
+                    type="tel"
+                    placeholder="03001234567"
+                    value={form.phone}
+                    onChange={e => update('phone', e.target.value)}
+                    error={errors.phone}
+                  />
 
-              {/* Instructions */}
-              <FormField
-                label="Special Instructions (Optional)"
-                placeholder="Deliver after 5PM, call before arrival..."
-                value={form.instructions}
-                onChange={e => update('instructions', e.target.value)}
-                type="text"
-              />
-            </div>
-          </div>
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-white/50 text-[11px] leading-relaxed">
+                    ℹ **Note:** Ensure your phone number is correct. Our customer support team will contact you via this number or WhatsApp to confirm shipment.
+                  </div>
+                </div>
+              )}
 
-          {/* PAYMENT METHOD */}
-          <PaymentMethodGrid selected={payment} onSelect={setPayment} />
-        </div>
+              {/* STEP 2: SHIPPING ADDRESS */}
+              {step === 2 && (
+                <div className="grid grid-cols-1 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField
+                      label="City"
+                      required
+                      placeholder="Haroonabad"
+                      value={form.city}
+                      onChange={e => update('city', e.target.value)}
+                      error={errors.city}
+                    />
 
-        {/* RIGHT — ORDER SUMMARY */}
-        <div className="md:w-[380px] border-t md:border-t-0 md:border-l
-          border-white/8 flex flex-col"
-        >
-          <div className="flex-1 overflow-y-auto px-6 py-6">
-            <p className="text-white/50 text-[11px] font-bold tracking-[0.15em]
-              uppercase mb-5">
-              Order Summary
-            </p>
+                    <div className="space-y-2">
+                      <label className="block text-white/50 text-[11px] font-black tracking-[0.12em] uppercase">
+                        Province <span className="text-[#8AD65A]">*</span>
+                      </label>
+                      <select
+                        value={form.province}
+                        onChange={e => update('province', e.target.value)}
+                        className="w-full px-5 py-4 rounded-2xl text-white text-sm bg-white/5 border border-white/10 outline-none focus:border-[#76C945] transition-all appearance-none cursor-pointer"
+                      >
+                        {PROVINCES.map(p => (
+                          <option key={p} value={p} style={{ background: '#02110a', color: 'white' }}>
+                            {p}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
 
-            {/* Product card */}
-            <div className="flex items-center gap-4 p-4 rounded-2xl
-              bg-white/4 border border-white/8 mb-5"
-            >
-              <img src={product?.image} alt={product?.name}
-                className="w-16 h-16 object-contain"
-                style={{ filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.5))' }}
-              />
-              <div className="flex-1">
-                <p className="text-white font-bold text-sm">{product?.name}</p>
-                <p className="text-white/40 text-xs">{product?.formula}</p>
-                <p className="text-[#5cb85c] text-xs font-bold mt-1">
-                  PKR {product?.price?.toLocaleString()} / unit
-                </p>
-              </div>
-            </div>
+                  <FormField
+                    label="Postal Code (Optional)"
+                    placeholder="63100"
+                    type="tel"
+                    value={form.postal}
+                    onChange={e => update('postal', e.target.value)}
+                  />
 
-            {/* Pack Size */}
-            <div className="mb-4">
-              <p className="text-white/40 text-[11px] uppercase tracking-wider mb-2">
-                Pack Size
-              </p>
-              <div className="flex gap-2 flex-wrap">
-                {product?.sizes?.map((s) => (
-                  <button key={s}
-                    onClick={() => setSize(s)}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold border
-                      transition-all duration-200
-                      ${selectedSize === s
-                        ? 'bg-[#2d6a2d] border-[#5cb85c] text-white shadow-[0_0_12px_rgba(92,184,92,0.2)]'
-                        : 'bg-white/5 border-white/10 text-white/50 hover:text-white'
+                  <div className="space-y-2">
+                    <label className="block text-white/50 text-[11px] font-black tracking-[0.12em] uppercase">
+                      Complete Delivery Address <span className="text-[#8AD65A]">*</span>
+                    </label>
+                    <textarea
+                      rows={3}
+                      placeholder="Gali/Street, Mohalla, Near landmarks, House Number..."
+                      value={form.address}
+                      onChange={e => update('address', e.target.value)}
+                      className={`w-full px-5 py-4 rounded-2xl text-white text-sm bg-white/5 border outline-none resize-none placeholder:text-white/20 transition-all ${
+                        errors.address ? 'border-red-500/40 focus:border-red-400' : 'border-white/10 focus:border-[#76C945]'
                       }`}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
+                    />
+                    {errors.address && <p className="text-red-400 text-[11px] font-bold">⚠ {errors.address}</p>}
+                  </div>
 
-            {/* Quantity */}
-            <div className="flex items-center justify-between mb-5 p-3
-              rounded-2xl bg-white/4 border border-white/8"
-            >
-              <p className="text-white/50 text-sm">Quantity</p>
-              <div className="flex items-center gap-4">
-                <button onClick={() => setQty(q => Math.max(1, q - 1))}
-                  className="w-9 h-9 rounded-full bg-white/10 text-white
-                    flex items-center justify-center text-lg font-bold
-                    hover:bg-white/20 transition-colors active:scale-95">
-                  −
+                  <FormField
+                    label="Delivery Instructions (Optional)"
+                    placeholder="E.g. Deliver after 5 PM, Call before arriving"
+                    value={form.instructions}
+                    onChange={e => update('instructions', e.target.value)}
+                  />
+                </div>
+              )}
+
+              {/* STEP 3: PAYMENT METHOD */}
+              {step === 3 && (
+                <div className="space-y-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* COD */}
+                    <button
+                      type="button"
+                      onClick={() => setPayment('COD')}
+                      className={`p-5 rounded-2xl border text-left flex items-start gap-4 transition-all duration-300 ${
+                        payment === 'COD'
+                          ? 'bg-[#76C945]/10 border-[#76C945] shadow-[0_0_20px_rgba(118,201,69,0.15)] scale-102'
+                          : 'bg-white/5 border-white/10 hover:bg-white/10 hover:scale-102'
+                      }`}
+                    >
+                      <span className="text-3xl mt-0.5">💵</span>
+                      <div>
+                        <p className="text-white font-black text-sm">Cash on Delivery</p>
+                        <p className="text-white/45 text-[10px] mt-1">Delivery Charges: PKR 299</p>
+                      </div>
+                    </button>
+
+                    {/* JazzCash */}
+                    <button
+                      type="button"
+                      onClick={() => setPayment('jazzcash')}
+                      className={`p-5 rounded-2xl border text-left flex items-start gap-4 transition-all duration-300 ${
+                        payment === 'jazzcash'
+                          ? 'bg-[#76C945]/10 border-[#76C945] shadow-[0_0_20px_rgba(118,201,69,0.15)] scale-102'
+                          : 'bg-white/5 border-white/10 hover:bg-white/10 hover:scale-102'
+                      }`}
+                    >
+                      <span className="text-3xl mt-0.5">📱</span>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-white font-black text-sm">JazzCash Wallet</p>
+                          <span className="px-1.5 py-0.5 bg-emerald-500/20 text-[#8AD65A] rounded text-[8px] font-black">FREE SHIPPING</span>
+                        </div>
+                        <p className="text-white/45 text-[10px] mt-1">Transfer directly via Mobile Account</p>
+                      </div>
+                    </button>
+
+                    {/* Easypaisa */}
+                    <button
+                      type="button"
+                      onClick={() => setPayment('easypaisa')}
+                      className={`p-5 rounded-2xl border text-left flex items-start gap-4 transition-all duration-300 ${
+                        payment === 'easypaisa'
+                          ? 'bg-[#76C945]/10 border-[#76C945] shadow-[0_0_20px_rgba(118,201,69,0.15)] scale-102'
+                          : 'bg-white/5 border-white/10 hover:bg-white/10 hover:scale-102'
+                      }`}
+                    >
+                      <span className="text-3xl mt-0.5">⚡</span>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-white font-black text-sm">Easypaisa Wallet</p>
+                          <span className="px-1.5 py-0.5 bg-emerald-500/20 text-[#8AD65A] rounded text-[8px] font-black">FREE SHIPPING</span>
+                        </div>
+                        <p className="text-white/45 text-[10px] mt-1">Fast mobile payment transfer</p>
+                      </div>
+                    </button>
+
+                    {/* Meezan Bank */}
+                    <button
+                      type="button"
+                      onClick={() => setPayment('meezan')}
+                      className={`p-5 rounded-2xl border text-left flex items-start gap-4 transition-all duration-300 ${
+                        payment === 'meezan'
+                          ? 'bg-[#76C945]/10 border-[#76C945] shadow-[0_0_20px_rgba(118,201,69,0.15)] scale-102'
+                          : 'bg-white/5 border-white/10 hover:bg-white/10 hover:scale-102'
+                      }`}
+                    >
+                      <span className="text-3xl mt-0.5">🏦</span>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-white font-black text-sm">Bank Transfer</p>
+                          <span className="px-1.5 py-0.5 bg-emerald-500/20 text-[#8AD65A] rounded text-[8px] font-black">FREE SHIPPING</span>
+                        </div>
+                        <p className="text-white/45 text-[10px] mt-1">Direct Meezan Bank deposit</p>
+                      </div>
+                    </button>
+                  </div>
+
+                  {rewardMessage && (
+                    <div className="p-4.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3 text-emerald-400 font-bold text-xs">
+                      <Gift size={16} />
+                      <span>{rewardMessage}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* STEP 4: REVIEW & CONFIRM */}
+              {step === 4 && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Shipment Details */}
+                    <div className="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-3">
+                      <p className="text-white/40 text-[9px] font-black tracking-widest uppercase">Delivery Address</p>
+                      <p className="text-sm font-bold">{form.fullName}</p>
+                      <p className="text-xs text-white/70 font-mono">{form.phone}</p>
+                      <p className="text-xs text-white/70 leading-relaxed">
+                        {form.address}, {form.city}, {form.province} {form.postal && `(${form.postal})`}
+                      </p>
+                    </div>
+
+                    {/* Cost Breakdown */}
+                    <div className="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-3 font-mono">
+                      <p className="text-white/40 text-[9px] font-black tracking-widest uppercase">Pricing details</p>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-white/60">Subtotal ({quantity} units)</span>
+                        <span className="text-white">PKR {subtotal.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-white/60">Delivery Charges</span>
+                        <span className="text-white">{delivery > 0 ? `PKR ${delivery}` : 'FREE'}</span>
+                      </div>
+                      <div className="h-px bg-white/10 my-2" />
+                      <div className="flex justify-between items-baseline">
+                        <span className="text-[#8AD65A] font-bold text-sm">Grand Total</span>
+                        <span className="text-[#8AD65A] font-black text-xl">PKR {grandTotal.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {rewardMessage && (
+                    <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-xs text-center">
+                      {rewardMessage}
+                    </div>
+                  )}
+
+                  <div className="p-4 rounded-2xl bg-white/3 border border-white/5 text-white/30 text-[10px] leading-relaxed text-center">
+                    By completing order, you verify that you agree to receive dispatch notifications on WhatsApp. Delivery takes 2-4 working days.
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 5: SUCCESS */}
+              {step === 5 && (
+                <div className="text-center py-6 space-y-6">
+                  <div className="w-16 h-16 rounded-full bg-[#76C945]/10 border-2 border-[#76C945] flex items-center justify-center text-[#8AD65A] mx-auto text-3xl animate-bounce">
+                    ✓
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-black tracking-tight text-[#8AD65A]">Order Placed Successfully!</h3>
+                    <p className="text-white/50 text-xs mt-2 max-w-md mx-auto">
+                      Thank you for choosing Vital Agro. Your order has been registered under ID: <strong className="text-white font-mono">{orderId}</strong>.
+                    </p>
+                  </div>
+
+                  <div className="p-5.5 rounded-3xl bg-white/5 border border-white/10 max-w-md mx-auto space-y-3.5">
+                    <p className="text-xs text-white/70">
+                      We have sent a pre-filled confirmation message to WhatsApp. Please send it to ensure priority dispatch.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                      <a 
+                        href={`/track/${orderId}`} 
+                        className="px-5 py-3 rounded-2xl bg-white/10 border border-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all"
+                      >
+                        <Clock size={14} />
+                        <span>Track Order Status</span>
+                      </a>
+                      <button 
+                        onClick={onClose}
+                        className="px-5 py-3 rounded-2xl bg-[#76C945] text-[#0A2E1F] font-black text-xs flex items-center justify-center gap-2 hover:shadow-[0_0_15px_rgba(118,201,69,0.3)] transition-all"
+                      >
+                        <Home size={14} />
+                        <span>Continue Shopping</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Step Actions Footer Buttons */}
+          {step < 5 && (
+            <div className="flex gap-4.5 pt-8 mt-8 border-t border-white/5 justify-between">
+              {step > 0 ? (
+                <button
+                  onClick={handleBack}
+                  className="px-6 py-4 rounded-full border border-white/15 bg-white/5 text-white/70 font-black text-xs uppercase tracking-wider hover:bg-white/10 hover:text-white transition-all flex items-center gap-2"
+                >
+                  <ChevronLeft size={14} />
+                  <span>Back</span>
                 </button>
-                <span className="text-white font-bold text-lg w-6 text-center">
-                  {quantity}
-                </span>
-                <button onClick={() => setQty(q => q + 1)}
-                  className="w-9 h-9 rounded-full bg-[#2d6a2d] text-white
-                    flex items-center justify-center text-lg font-bold
-                    hover:bg-[#3d8c3d] transition-colors active:scale-95">
-                  +
+              ) : (
+                <div />
+              )}
+
+              {step < 4 ? (
+                <button
+                  onClick={handleNext}
+                  className="px-8 py-4 rounded-full bg-gradient-to-r from-[#76C945] to-[#5cb85c] text-[#0A2E1F] font-black text-xs uppercase tracking-wider hover:shadow-[0_0_20px_rgba(118,201,69,0.3)] transition-all flex items-center gap-2"
+                >
+                  <span>Continue</span>
+                  <ChevronRight size={14} />
                 </button>
-              </div>
+              ) : (
+                <OrderConfirmButton
+                  onConfirm={handleComplete}
+                  disabled={isOrdering}
+                />
+              )}
             </div>
-
-            {/* Price Breakdown */}
-            <div className="space-y-2.5 p-4 rounded-2xl bg-white/3
-              border border-white/8"
-            >
-              <div className="flex justify-between text-sm">
-                <span className="text-white/50">Subtotal ({quantity} items)</span>
-                <span className="text-white">PKR {subtotal.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-white/50">Delivery ({form.province})</span>
-                <span className="text-white">PKR {delivery}</span>
-              </div>
-              <div className="h-px bg-white/10 my-1" />
-              <div className="flex justify-between">
-                <span className="text-[#5cb85c] font-bold text-base">
-                  Grand Total
-                </span>
-                <span className="text-[#5cb85c] font-bold text-xl">
-                  PKR {grandTotal.toLocaleString()}
-                </span>
-              </div>
-            </div>
-
-            {/* COD Note */}
-            <div className="mt-4 p-3.5 rounded-2xl
-              bg-[rgba(45,106,45,0.12)] border border-[rgba(92,184,92,0.2)]"
-            >
-              <p className="text-[#5cb85c] text-xs font-bold mb-1">
-                ✅ Cash on Delivery (COD)
-              </p>
-              <p className="text-white/35 text-[11px] leading-relaxed">
-                No advance payment. Pay when order arrives.
-                Team confirms via WhatsApp within 2 hours.
-              </p>
-            </div>
-          </div>
-
-          {/* COMPLETE ORDER BUTTON — 3D ANIMATED */}
-          <div className="px-6 pb-8 pt-4 border-t border-white/8">
-            <OrderConfirmButton
-              onConfirm={handleComplete}
-            />
-            <p className="text-center text-white/25 text-[10px] mt-3">
-              Firebase logged · WhatsApp confirmed · COD guaranteed
-            </p>
-          </div>
+          )}
         </div>
-      </motion.div>
+      </main>
+
+      {/* Footer Branding Banner */}
+      {step < 5 && (
+        <footer className="relative z-10 px-6 py-4 border-t border-white/5 bg-black/20 text-center text-[10px] text-white/20">
+          Vital Agro Chemical Industries (Pvt.) Ltd. · Secured SSL Encryption · 24/7 Priority Helpline 063-2253137
+        </footer>
+      )}
     </motion.div>
   );
-};
-
-export default CheckoutPage;
+}
