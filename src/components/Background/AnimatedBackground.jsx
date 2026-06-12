@@ -7,13 +7,14 @@ import * as THREE from 'three';
 // Utility to generate a simple noise texture
 function generateNoiseTexture() {
   const size = 256;
-  const data = new Uint8Array(3 * size * size);
+  const data = new Uint8Array(4 * size * size);
   for (let i = 0; i < size * size; i++) {
-    const stride = i * 3;
+    const stride = i * 4;
     const v = Math.random() * 255;
     data[stride] = data[stride + 1] = data[stride + 2] = v;
+    data[stride + 3] = 255;
   }
-  const texture = new THREE.DataTexture(data, size, size, THREE.RGBFormat);
+  const texture = new THREE.DataTexture(data, size, size, THREE.RGBAFormat);
   texture.needsUpdate = true;
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
   texture.minFilter = THREE.LinearFilter;
@@ -42,7 +43,6 @@ export default function AnimatedBackground({ theme = {} }) {
     const frag = `
       uniform float time;
       void main() {
-        vec2 uv = gl_FragCoord.xy / resolution.xy;
         // dark‑green to lighter hue over time
         vec3 color = mix(vec3(0.05, 0.13, 0.07), vec3(0.12, 0.30, 0.15), 0.5 + 0.5 * sin(time * 0.2));
         gl_FragColor = vec4(color, 0.9);
@@ -55,7 +55,7 @@ export default function AnimatedBackground({ theme = {} }) {
     `;
     return (
       <mesh>
-        <planeBufferGeometry args={[20, 20]} />
+        <planeGeometry args={[20, 20]} />
         <shaderMaterial
           fragmentShader={frag}
           vertexShader={vert}
@@ -80,7 +80,7 @@ export default function AnimatedBackground({ theme = {} }) {
           <Stars radius={100} depth={50} count={2000} factor={4} saturation={0} fade speed={1} />
           {/* Noise overlay */}
           <mesh position={[0, 0, -0.1]}>
-            <planeBufferGeometry args={[20, 20]} />
+            <planeGeometry args={[20, 20]} />
             <meshBasicMaterial map={noiseTex} opacity={0.07} transparent depthWrite={false} />
           </mesh>
         </Suspense>
