@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-const ProductShowcase3D = React.lazy(() => import('../sections/ProductShowcase3D'));
+const ProductShowcase3D = React.lazy(() => import('../sections/ProductShowcase3D').then(m => ({ default: m.ProductShowcase3D })));
 
 export default function ProductsShowcase() {
   return (
