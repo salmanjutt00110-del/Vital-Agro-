@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Microscope, HeartHandshake } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
@@ -18,6 +18,14 @@ export default function AboutPreview() {
   const { t } = useLanguage();
   const videoRef = useRef(null);
   useVideoAutoplay(videoRef);
+
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   return (
     <section className="py-24 relative overflow-hidden bg-gradient-to-b from-transparent via-[#76C945]/[0.01] to-transparent">
@@ -43,20 +51,29 @@ export default function AboutPreview() {
               lift={false}
               className="relative rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl border border-white/20"
             >
-              <video
-                ref={videoRef}
-                autoPlay
-                loop
-                muted
-                playsInline
-                preload="metadata"
-                poster={vitalBgPoster}
-                className="w-full h-full object-cover"
-                style={{ objectFit: 'cover' }}
-              >
-                <source src={vitalBgWebm} type="video/webm" />
-                <source src={vitalBg} type="video/mp4" />
-              </video>
+              {!isMobile ? (
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                  poster={vitalBgPoster}
+                  className="w-full h-full object-cover"
+                  style={{ objectFit: 'cover' }}
+                >
+                  <source src={vitalBgWebm} type="video/webm" />
+                  <source src={vitalBg} type="video/mp4" />
+                </video>
+              ) : (
+                <img
+                  src={vitalBgPoster}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  style={{ objectFit: 'cover' }}
+                />
+              )}
               <div className="absolute inset-0 bg-[#0A2E1F]/20 mix-blend-overlay" />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0A2E1F]/40 to-transparent" />
             </GlassCard>

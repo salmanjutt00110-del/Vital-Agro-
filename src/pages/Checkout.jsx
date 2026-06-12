@@ -107,7 +107,7 @@ export default function CheckoutPage() {
     return {
       ...rawProduct,
       name: typeof rawProduct.name === 'object' ? (rawProduct.name[lang] || rawProduct.name.en) : rawProduct.name,
-      image: `/products/${rawProduct.slug}.png`,
+      image: `/products/${rawProduct.slug}.webp`,
       formula: rawProduct.formula || rawProduct.activeIngredient || rawProduct.formulation || '',
       sizes: sizesList,
       price,

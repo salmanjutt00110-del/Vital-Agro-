@@ -1,11 +1,11 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Phone, Leaf } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 import useVideoAutoplay from '@/hooks/useVideoAutoplay';
 import PremiumButton from '@/components/ui/PremiumButton';
 import AnimatedText from '@/components/ui/AnimatedText';
-import vitalCImg from '@/assets/Vital-C.png';
+import vitalCImg from '@/assets/Vital-C.webp';
 
 // Import Assets
 import vitalBg from '@/assets/vital bg.mp4';
@@ -16,6 +16,14 @@ export default function CTASection() {
   const { t } = useLanguage();
   const videoRef = useRef(null);
   useVideoAutoplay(videoRef);
+
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const whatsappText = encodeURIComponent("Hello Vital Agro,\n\nI am interested in your agricultural products and solutions. Please provide more details.\n\nThank you.");
   const whatsappUrl = `https://wa.me/923011837160?text=${whatsappText}`;
@@ -31,20 +39,29 @@ export default function CTASection() {
           className="relative rounded-3xl overflow-hidden shadow-2xl border border-white/10"
         >
           {/* Looping Ambient Video Background */}
-          <video
-            ref={videoRef}
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="metadata"
-            poster={vitalBgPoster}
-            className="absolute inset-0 w-full h-full object-cover z-0"
-            style={{ objectFit: 'cover' }}
-          >
-            <source src={vitalBgWebm} type="video/webm" />
-            <source src={vitalBg} type="video/mp4" />
-          </video>
+          {!isMobile ? (
+            <video
+              ref={videoRef}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              poster={vitalBgPoster}
+              className="absolute inset-0 w-full h-full object-cover z-0"
+              style={{ objectFit: 'cover' }}
+            >
+              <source src={vitalBgWebm} type="video/webm" />
+              <source src={vitalBg} type="video/mp4" />
+            </video>
+          ) : (
+            <img
+              src={vitalBgPoster}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover z-0"
+              style={{ objectFit: 'cover' }}
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-r from-[#0A2E1F]/95 via-[#0A2E1F]/90 to-[#0A2E1F]/80 z-[1]" />
 
           {/* Floating leaves */}

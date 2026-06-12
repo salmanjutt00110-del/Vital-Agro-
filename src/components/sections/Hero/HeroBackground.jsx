@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import HeroCanvas from './HeroCanvas';
 import HeroParticles from './HeroParticles';
@@ -7,23 +7,41 @@ import vitalBgWebm from '@/assets/vital_bg.webm';
 import vitalBgPoster from '@/assets/vital_bg_poster.webp';
 
 export default function HeroBackground({ videoRef }) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   return (
     <div className="absolute inset-0 overflow-hidden select-none pointer-events-none">
-      {/* Layer 1: Existing background video (untouched) */}
-      <video
-        ref={videoRef}
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="metadata"
-        poster={vitalBgPoster}
-        className="absolute inset-0 w-full h-full object-cover opacity-70 z-0"
-        style={{ objectFit: 'cover', transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
-      >
-        <source src={vitalBgWebm} type="video/webm" />
-        <source src={vitalBg} type="video/mp4" />
-      </video>
+      {/* Layer 1: Background video (only rendered on desktop for performance) */}
+      {!isMobile ? (
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          poster={vitalBgPoster}
+          className="absolute inset-0 w-full h-full object-cover opacity-70 z-0"
+          style={{ objectFit: 'cover', transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
+        >
+          <source src={vitalBgWebm} type="video/webm" />
+          <source src={vitalBg} type="video/mp4" />
+        </video>
+      ) : (
+        <img
+          src={vitalBgPoster}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover opacity-70 z-0"
+          style={{ objectFit: 'cover' }}
+        />
+      )}
 
       {/* Layer 2: Animated gradient overlay — dark brand green for text readability */}
       <motion.div
@@ -42,7 +60,7 @@ export default function HeroBackground({ videoRef }) {
       {/* Layer 4.5: Ambient Canvas Particles */}
       <HeroParticles />
 
-      {/* Layer 5: Three.js canvas */}
+      {/* Layer 5: Three.js canvas (only visible on desktop) */}
       <div className="absolute inset-0 z-[4]">
         <HeroCanvas />
       </div>

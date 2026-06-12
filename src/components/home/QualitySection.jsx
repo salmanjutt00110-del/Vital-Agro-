@@ -4,7 +4,7 @@ import { CheckCircle, FlaskConical, Microscope, ShieldCheck, Atom } from 'lucide
 import { useLanguage } from '@/lib/LanguageContext';
 import GlassCard from '@/components/ui/GlassCard';
 import AnimatedText from '@/components/ui/AnimatedText';
-import researchLab from '@/assets/Vital-C.png';
+import researchLab from '@/assets/Vital-C.webp';
 
 export default function QualitySection() {
   const { t } = useLanguage();

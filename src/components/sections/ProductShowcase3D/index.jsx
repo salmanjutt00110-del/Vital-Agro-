@@ -107,7 +107,7 @@ const PRODUCTS = Object.values(PRODUCTS_DATA).map((p) => {
 
   const sizeInfo = p.sizes?.[0] || {};
   const price = sizeInfo.price || p.price || 999;
-  const image = `/products/${p.slug}.png`;
+  const image = `/products/${p.slug}.webp`;
 
   return {
     id: p.slug,

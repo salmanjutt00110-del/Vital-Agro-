@@ -10,7 +10,7 @@ import vitalBgWebm from '@/assets/vital_bg.webm';
 import vitalBgPoster from '@/assets/vital_bg_poster.webp';
 import vitalAgroLogo from '@/assets/vital agro logo.webp';
 import tagLogo from '@/assets/tag logo.webp';
-import vitalCImg from '@/assets/Vital-C.png';
+import vitalCImg from '@/assets/Vital-C.webp';
 
 export default function About() {
   const videoRef1 = useRef(null);

@@ -4,7 +4,7 @@ import { Shield, FlaskConical, Truck, Award, Users, HeartPulse, Globe, Zap } fro
 import { useLanguage } from '@/lib/LanguageContext';
 import GlassCard from '@/components/ui/GlassCard';
 import AnimatedText from '@/components/ui/AnimatedText';
-import vitalCImg from '@/assets/Vital-C.png';
+import vitalCImg from '@/assets/Vital-C.webp';
 
 export default function WhyChooseUs() {
   const { t } = useLanguage();
