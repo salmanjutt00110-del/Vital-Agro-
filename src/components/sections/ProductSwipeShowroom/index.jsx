@@ -6,7 +6,9 @@ import { useLanguage } from '@/lib/LanguageContext';
 import { PRODUCTS_DATA } from '@/data/productsData';
 import { useCart } from '@/lib/CartContext';
 import PremiumButton from '@/components/ui/PremiumButton';
-
+import PremiumCard from '@/components/ProductCard/PremiumCard';
+import AnimatedBackground from '@/components/Background/AnimatedBackground';
+import useAutoRotate from '@/hooks/useAutoRotate';
 const FEATURED_SLUGS = [
   "conference-gold",
   "easy-grow",
@@ -187,6 +189,9 @@ export default function ProductSwipeShowroom() {
     setIsCartOpen(true);
   };
 
+  // Initialize auto-rotate behavior
+  useAutoRotate({ goNext, containerRef });
+
   return (
     <div
       ref={containerRef}
@@ -196,7 +201,9 @@ export default function ProductSwipeShowroom() {
       style={{ background: theme.bg }}
       {...swipeHandlers}
     >
-      {/* Background Floating Particles */}
+      {/* Animated Background */}
+      <AnimatedBackground theme={theme} />
+
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         {[...Array(typeof window !== 'undefined' && window.innerWidth < 768 ? 10 : 25)].map((_, i) => (
           <motion.div
@@ -236,6 +243,8 @@ export default function ProductSwipeShowroom() {
         
         {/* Left Column: Premium Reveal Details */}
         <div className="text-left space-y-6 md:space-y-8 order-2 lg:order-1">
+          {/* Premium Card */}
+          <PremiumCard product={activeProduct} mousePosition={mousePosition} lang={lang} />
           <AnimatePresence mode="wait">
             <motion.div
               key={activeProduct.id}
@@ -425,11 +434,7 @@ export default function ProductSwipeShowroom() {
                 setCurrentIndex(idx);
                 setProgress(0);
               }}
-              className={`h-1.5 rounded-full transition-all duration-500 ${
-                currentIndex === idx 
-                  ? 'w-8 bg-[#8AD65A] shadow-[0_0_8px_#76C945]' 
-                  : 'w-2.5 bg-white/20 hover:bg-white/40'
-              }`}
+              className={`h-1.5 rounded-full transition-all duration-500 ${currentIndex === idx ? 'w-8 bg-[#8AD65A] shadow-[0_0_8px_#76C945]' : 'w-2.5 bg-white/20 hover:bg-white/40'}`}
             />
           ))}
         </div>
