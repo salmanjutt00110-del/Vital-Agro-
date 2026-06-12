@@ -3,12 +3,23 @@ import ReactDOM from 'react-dom/client'
 import App from '@/App.jsx'
 import '@/index.css'
 
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('Service Worker registered successfully:', reg.scope))
-      .catch(err => console.error('Service Worker registration failed:', err));
+// Cleanly unregister any active service worker to prevent caching dynamic chunks and causing white screens
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (const registration of registrations) {
+      registration.unregister()
+        .then(() => console.log('Service Worker unregistered successfully'));
+    }
   });
+
+  // Clear all caches to break out of any stale bundle cache loops
+  if (window.caches) {
+    caches.keys().then((names) => {
+      for (const name of names) {
+        caches.delete(name);
+      }
+    });
+  }
 }
 
 if (import.meta.env.DEV) {
