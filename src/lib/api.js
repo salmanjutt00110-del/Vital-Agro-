@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-
-const API_BASE_URL = 'http://localhost:5000/api';
+import apiClient from './apiClient';
 
 // Simple active health checking flag
 let serverOnline = false;
@@ -8,11 +7,9 @@ let serverOnline = false;
 // Check server status
 async function checkServerHealth() {
   try {
-    const controller = new AbortController();
-    const tId = setTimeout(() => controller.abort(), 1000);
-    const res = await fetch(`${API_BASE_URL}/products`, { signal: controller.signal });
-    clearTimeout(tId);
-    serverOnline = res.ok;
+    // Timeout of 2s for health check, no retry
+    const res = await apiClient.get('/products', { timeout: 2000 });
+    serverOnline = (res.status === 200);
   } catch (e) {
     serverOnline = false;
     console.warn("Vital Agro API server is offline. Falling back to offline-first LocalStorage emulation mode.");
@@ -57,23 +54,15 @@ export const auth = {
     await checkServerHealth();
     if (serverOnline) {
       try {
-        const res = await fetch(`${API_BASE_URL}/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          const session = { access_token: data.token, user: data.user };
-          localStorage.setItem('vital_sb_session', JSON.stringify(session));
-          triggerAuthChange('SIGNED_IN', session);
-          return { data: { user: data.user, session }, error: null };
-        } else {
-          const err = await res.json().catch(() => ({ error: 'Login failed' }));
-          return { data: { user: null, session: null }, error: { message: err.error || 'Invalid credentials' } };
-        }
+        const res = await apiClient.post('/auth/login', { email, password });
+        const data = res.data;
+        const session = { access_token: data.token, user: data.user };
+        localStorage.setItem('vital_sb_session', JSON.stringify(session));
+        triggerAuthChange('SIGNED_IN', session);
+        return { data: { user: data.user, session }, error: null };
       } catch (e) {
-        // Fall back to offline emulation
+        const errMsg = e.response?.data?.error || 'Invalid credentials';
+        return { data: { user: null, session: null }, error: { message: errMsg } };
       }
     }
 
@@ -182,6 +171,7 @@ export const collection = (dbRef, path) => {
   return { type: 'collection', path };
 };
 
+// document adapter helper
 export const doc = (dbRef, path, id) => {
   return { type: 'doc', path, id };
 };
@@ -190,20 +180,9 @@ export const addDoc = async (colRef, data) => {
   await checkServerHealth();
   if (serverOnline) {
     try {
-      const session = getLocalSession();
-      const headers = { 'Content-Type': 'application/json' };
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
-      }
-      const res = await fetch(`${API_BASE_URL}/orders`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(data)
-      });
-      if (res.ok) {
-        const result = await res.json();
-        return { id: result.order_id, orderNumber: result.order_number };
-      }
+      const res = await apiClient.post('/orders', data);
+      const result = res.data;
+      return { id: result.order_id, orderNumber: result.order_number };
     } catch (e) {
       console.error("Failed to post order to Flask:", e);
     }
@@ -223,17 +202,8 @@ export const updateDoc = async (docRef, data) => {
   await checkServerHealth();
   if (serverOnline) {
     try {
-      const session = getLocalSession();
-      const headers = { 'Content-Type': 'application/json' };
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
-      }
-      const res = await fetch(`${API_BASE_URL}/orders/${docRef.id}/status`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify(data)
-      });
-      if (res.ok) return;
+      await apiClient.put(`/orders/${docRef.id}/status`, data);
+      return;
     } catch (e) {
       console.error("Failed to update status on Flask:", e);
     }
@@ -282,25 +252,18 @@ export const getDocs = async (queryRef) => {
   await checkServerHealth();
   if (serverOnline) {
     try {
-      const session = getLocalSession();
-      const headers = {};
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
-      }
       // Depending on collection path, trigger products or orders
-      let url = `${API_BASE_URL}/${queryRef.path}`;
+      let url = `/${queryRef.path}`;
       if (queryRef.path === 'orders' && queryRef.type === 'query') {
-        url = `${API_BASE_URL}/orders`;
+        url = `/orders`;
       }
-      const res = await fetch(url, { headers });
-      if (res.ok) {
-        const rawList = await res.json();
-        const docs = rawList.map(item => ({
-          id: item.id,
-          data: () => convertDates(item)
-        }));
-        return { docs, empty: docs.length === 0, size: docs.length };
-      }
+      const res = await apiClient.get(url);
+      const rawList = res.data;
+      const docs = rawList.map(item => ({
+        id: item.id,
+        data: () => convertDates(item)
+      }));
+      return { docs, empty: docs.length === 0, size: docs.length };
     } catch (e) {
       console.error("Failed to query Flask API:", e);
     }
@@ -335,18 +298,16 @@ export const onSnapshot = (ref, callback, errorCallback) => {
         await checkServerHealth();
         if (serverOnline) {
           try {
-            const res = await fetch(`${API_BASE_URL}/orders/${ref.id}`);
-            if (res.ok) {
-              const data = await res.json();
-              if (active) {
-                callback({
-                  exists: () => !!data,
-                  id: ref.id,
-                  data: () => data ? convertDates(data) : null
-                });
-              }
-              return;
+            const res = await apiClient.get(`/orders/${ref.id}`);
+            const data = res.data;
+            if (active) {
+              callback({
+                exists: () => !!data,
+                id: ref.id,
+                data: () => data ? convertDates(data) : null
+              });
             }
+            return;
           } catch (e) {}
         }
 
@@ -365,25 +326,18 @@ export const onSnapshot = (ref, callback, errorCallback) => {
         await checkServerHealth();
         if (serverOnline) {
           try {
-            const session = getLocalSession();
-            const headers = {};
-            if (session?.access_token) {
-              headers['Authorization'] = `Bearer ${session.access_token}`;
+            const res = await apiClient.get(`/orders`);
+            const list = res.data;
+            if (active) {
+              callback({
+                docs: list.map(item => ({
+                  id: item.id,
+                  data: () => convertDates(item)
+                })),
+                size: list.length
+              });
             }
-            const res = await fetch(`${API_BASE_URL}/orders`, { headers });
-            if (res.ok) {
-              const list = await res.json();
-              if (active) {
-                callback({
-                  docs: list.map(item => ({
-                    id: item.id,
-                    data: () => convertDates(item)
-                  })),
-                  size: list.length
-                });
-              }
-              return;
-            }
+            return;
           } catch (e) {}
         }
 
@@ -454,15 +408,8 @@ export const verifyReceiptUnique = async (refId) => {
   await checkServerHealth();
   if (!serverOnline) return { duplicate: false };
   try {
-    const res = await fetch(`${API_BASE_URL}/payments/verify-receipt`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refId })
-    });
-    if (res.ok) {
-      return await res.json();
-    }
-    return { duplicate: true };
+    const res = await apiClient.post('/payments/verify-receipt', { refId });
+    return res.data;
   } catch (e) {
     return { duplicate: false };
   }

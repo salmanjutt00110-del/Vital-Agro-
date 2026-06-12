@@ -25,6 +25,15 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingPublicSettings(true);
       setAuthError(null);
       
+      if (!appParams.appId || appParams.appId === 'null' || appParams.appId === 'undefined') {
+        console.warn("Base44 app ID is missing or null. Skipping public-settings load. Application is running in public mode.");
+        setIsLoadingPublicSettings(false);
+        setIsLoadingAuth(false);
+        setIsAuthenticated(false);
+        setAuthChecked(true);
+        return;
+      }
+      
       // First, check app public settings (with token if available)
       // This will tell us if auth is required, user not registered, etc.
       const appClient = createAxiosClient({

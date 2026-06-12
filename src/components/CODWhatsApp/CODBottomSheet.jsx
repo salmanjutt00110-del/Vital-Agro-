@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShieldCheck, Image, AlertCircle, CreditCard, Landmark, Truck, Copy, Check, Clock, User, Phone, Mail, MapPin, ChevronRight, Edit, Package } from 'lucide-react';
+import { X, ShieldCheck, Image, AlertCircle, CreditCard, Truck, Copy, Check, Clock, User, Phone, Mail, MapPin, ChevronRight, Edit, Package } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/lib/LanguageContext';
 import { verifyReceipt } from '@/lib/ai/receiptVerifier';

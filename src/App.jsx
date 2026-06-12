@@ -16,6 +16,7 @@ import SmoothScroll from '@/components/layout/SmoothScroll';
 import { useAuthState } from '@/lib/api';
 import { auth } from '@/lib/api';
 import { HelmetProvider } from 'react-helmet-async';
+import ErrorBoundary from './components/layout/ErrorBoundary';
 
 // Route-based Code Splitting using React.lazy
 const Home = React.lazy(() => import('./pages/Home'));
@@ -59,21 +60,21 @@ const AuthenticatedApp = () => {
   // Bypassed base44 authentication checks to keep the website public and browseable without login
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
+      <Route path="/login" element={<ErrorBoundary><Login /></ErrorBoundary>} />
+      <Route path="/register" element={<ErrorBoundary><Register /></ErrorBoundary>} />
+      <Route path="/forgot-password" element={<ErrorBoundary><ForgotPassword /></ErrorBoundary>} />
+      <Route path="/reset-password" element={<ErrorBoundary><ResetPassword /></ErrorBoundary>} />
+      <Route path="/admin" element={<ErrorBoundary><AdminGuard><AdminDashboard /></AdminGuard></ErrorBoundary>} />
       <Route element={<AppLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/products" element={<Products />} />
-        <Route path="/products/:id" element={<ProductDetail />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/why-us" element={<WhyUs />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/ai-scanner" element={<AIScannerPage />} />
-        <Route path="/track/:id" element={<OrderTimeline />} />
-        <Route path="/order-success/:id" element={<OrderSuccess />} />
+        <Route path="/" element={<ErrorBoundary><Home /></ErrorBoundary>} />
+        <Route path="/products" element={<ErrorBoundary><Products /></ErrorBoundary>} />
+        <Route path="/products/:id" element={<ErrorBoundary><ProductDetail /></ErrorBoundary>} />
+        <Route path="/about" element={<ErrorBoundary><About /></ErrorBoundary>} />
+        <Route path="/why-us" element={<ErrorBoundary><WhyUs /></ErrorBoundary>} />
+        <Route path="/contact" element={<ErrorBoundary><Contact /></ErrorBoundary>} />
+        <Route path="/ai-scanner" element={<ErrorBoundary><AIScannerPage /></ErrorBoundary>} />
+        <Route path="/track/:id" element={<ErrorBoundary><OrderTimeline /></ErrorBoundary>} />
+        <Route path="/order-success/:id" element={<ErrorBoundary><OrderSuccess /></ErrorBoundary>} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

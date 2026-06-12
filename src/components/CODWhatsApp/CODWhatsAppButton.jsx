@@ -204,6 +204,8 @@ export default function CODWhatsAppButton({ product, className = "", defaultSize
         {orderState.isOpen && (
           <CheckoutPage
             product={product}
+            defaultSize={defaultSize}
+            defaultQuantity={defaultQuantity}
             onClose={() => orderState.setIsOpen(false)}
           />
         )}

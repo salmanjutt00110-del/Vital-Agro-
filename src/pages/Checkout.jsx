@@ -77,9 +77,9 @@ const PaymentMethodGrid = ({ selected, onSelect }) => {
   );
 };
 
-const CheckoutPage = ({ product, onClose }) => {
-  const [selectedSize, setSize] = useState(product?.sizes?.[0] || '100ML');
-  const [quantity, setQty]      = useState(1);
+const CheckoutPage = ({ product: rawProduct, defaultSize, defaultQuantity, onClose }) => {
+  const [selectedSize, setSize] = useState(defaultSize || (rawProduct?.sizes?.[0]?.size || rawProduct?.sizes?.[0] || '100ML'));
+  const [quantity, setQty]      = useState(defaultQuantity || 1);
   const [payment, setPayment]   = useState('COD');
 
   const [form, setForm] = useState({
@@ -87,6 +87,33 @@ const CheckoutPage = ({ product, onClose }) => {
     province: 'Punjab', postal: '', address: '', instructions: '',
   });
   const [errors, setErrors] = useState({});
+
+  const product = React.useMemo(() => {
+    if (!rawProduct) return null;
+    
+    // Normalize sizes list to array of strings
+    const sizesList = rawProduct.sizes 
+      ? rawProduct.sizes.map(s => typeof s === 'object' ? s.size : s) 
+      : [rawProduct.packaging || '100ML'];
+      
+    // Find the price for the currently selected size
+    let price = rawProduct.price || 999;
+    if (rawProduct.sizes) {
+      const sizeObj = rawProduct.sizes.find(s => (typeof s === 'object' ? s.size : s) === selectedSize);
+      if (sizeObj && sizeObj.price) {
+        price = sizeObj.price;
+      }
+    }
+
+    return {
+      ...rawProduct,
+      name: typeof rawProduct.name === 'object' ? (rawProduct.name.en || rawProduct.name.ur) : rawProduct.name,
+      image: rawProduct.image || rawProduct.pngUrl || rawProduct.imageUrl || '',
+      formula: rawProduct.formula || rawProduct.activeIngredient || rawProduct.formulation || '',
+      sizes: sizesList,
+      price,
+    };
+  }, [rawProduct, selectedSize]);
 
   const delivery    = PROVINCES[form.province] || 280;
   const subtotal    = (product?.price || 0) * quantity;

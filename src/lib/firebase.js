@@ -11,12 +11,35 @@ const config = {
   appId:             import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const app  = getApps().length === 0 ? initializeApp(config) : getApps()[0];
-export const db   = getFirestore(app);
-export const auth = getAuth(app);
+let firebaseEnabled = !!(
+  config.apiKey && 
+  config.apiKey !== "YOUR_API_KEY" && 
+  !config.apiKey.includes("placeholder")
+);
 
-// Offline support
-if (typeof window !== 'undefined') {
-  enableIndexedDbPersistence(db).catch(() => {});
+let app = null;
+let db = null;
+let auth = null;
+
+if (firebaseEnabled) {
+  try {
+    app = getApps().length === 0 ? initializeApp(config) : getApps()[0];
+    db = getFirestore(app);
+    auth = getAuth(app);
+
+    // Offline support
+    if (typeof window !== 'undefined') {
+      enableIndexedDbPersistence(db).catch(() => {});
+    }
+  } catch (error) {
+    console.error("Firebase SDK initialization failed, falling back to disabled mode:", error);
+    firebaseEnabled = false;
+    app = null;
+    db = null;
+    auth = null;
+  }
 }
+
+export const isFirebaseEnabled = firebaseEnabled;
+export { app, db, auth };
 export default app;

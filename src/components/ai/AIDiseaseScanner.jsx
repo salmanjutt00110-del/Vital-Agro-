@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, ShieldCheck, Sparkles, RefreshCw, FileText, AlertCircle } from 'lucide-react';
+import { Camera, AlertCircle } from 'lucide-react';
 import { analyzeImageWithGemini } from '@/lib/gemini';
 import { useLanguage } from '@/lib/LanguageContext';
 import { PRODUCTS_DATA } from '@/data/productsData';

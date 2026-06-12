@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, Heart, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react';
+import { Search, ShoppingBag } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import CropFilter from '@/components/products/CropFilter';
 import { useLanguage } from '@/lib/LanguageContext';
 import { PRODUCTS_DATA } from '@/data/productsData';
 import { useCart } from '@/lib/CartContext';
-import { useToast } from '@/components/ui/use-toast';
 import SEOHead from '@/lib/seo/SEOHead';
 import vitalAgroLogo from '@/assets/vital agro logo.webp';
 import ProductSwipe3D from '@/components/sections/ProductSwipe3D';
