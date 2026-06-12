@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createOrder } from '@/lib/firestore/orders';
-import { buildWhatsAppURL } from './orderMessage';
+import { buildWhatsAppURL, getDeliveryCharge } from './orderMessage';
 
 /**
  * Custom React hook to orchestrate bottom-sheet order form state,
@@ -90,6 +90,8 @@ export const useWhatsAppOrder = (product, defaultSize = null, defaultQuantity = 
     const price = getPriceForSize(form.selectedSize);
     const prodName = typeof product.name === 'object' ? (product.name.en || product.name) : product.name;
     const imageSrc = product.pngUrl || product.imageUrl || product.image || "";
+    const deliveryCharge = getDeliveryCharge(form.province);
+    const totalAmount = price * form.quantity + deliveryCharge;
 
     const orderPayload = {
       item: {
@@ -112,7 +114,8 @@ export const useWhatsAppOrder = (product, defaultSize = null, defaultQuantity = 
         postalCode: form.postalCode,
       },
       specialInstructions: form.specialInstructions,
-      totalAmount:   price * form.quantity,
+      totalAmount:   totalAmount,
+      deliveryCharge: deliveryCharge,
       paymentMethod: form.paymentMethod || 'COD',
       paymentDetails: form.paymentMethod !== 'COD' ? {
         refId: form.paymentRefId || '',
@@ -126,7 +129,7 @@ export const useWhatsAppOrder = (product, defaultSize = null, defaultQuantity = 
         confidenceScore: form.paymentConfidence || 1.0,
         duplicateDetected: form.paymentDuplicate || false,
       } : null,
-      source:        'website',
+      source:        'website_checkout',
       whatsappSent:  true,
     };
 
@@ -143,6 +146,7 @@ export const useWhatsAppOrder = (product, defaultSize = null, defaultQuantity = 
       productName:  prodName,
       packSize:     form.selectedSize,
       pricePerUnit: price,
+      deliveryCharge: deliveryCharge,
     });
     window.open(url, '_blank');
     return createdId;

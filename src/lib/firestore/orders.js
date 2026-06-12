@@ -1,97 +1,85 @@
 import {
-  db,
   collection, addDoc, doc, updateDoc,
   serverTimestamp, query, orderBy,
-  onSnapshot, where, getCountFromServer,
-} from '@/lib/api';
+  onSnapshot, getCountFromServer,
+} from 'firebase/firestore';
+import { db } from '../firebase';
 
-const ORDERS_COLLECTION = 'orders';
+const COL = 'orders';
 
-/**
- * Generates an incremented order number: VA-YYYY-NNNN.
- * 
- * @returns {Promise<string>} Next order number.
- */
-const generateOrderNumber = async () => {
+// Auto order number: VA-[Year]-[Count]
+const genOrderNum = async () => {
   const year = new Date().getFullYear();
-  const colRef = collection(db, ORDERS_COLLECTION);
-  const snapshot = await getCountFromServer(colRef);
-  const count = snapshot.data().count + 1;
-  return `VA-${year}-${String(count).padStart(4, '0')}`;
+  const snap = await getCountFromServer(collection(db, COL));
+  return `VA-${year}-${String(snap.data().count + 1).padStart(4, '0')}`;
 };
 
-/**
- * Saves a new Cash on Delivery order to Firestore.
- * 
- * @param {object} orderData - Payload containing product item and customer details.
- * @returns {Promise<string>} Created document ID.
- */
-export const createOrder = async (orderData) => {
-  const orderNumber = await generateOrderNumber();
-
-  const docRef = await addDoc(collection(db, ORDERS_COLLECTION), {
-    ...orderData,
+export const createOrder = async (data) => {
+  const orderNumber = await genOrderNum();
+  const ref = await addDoc(collection(db, COL), {
+    ...data,
     orderNumber,
-    status:     'pending',
-    createdAt:  serverTimestamp(),
-    updatedAt:  serverTimestamp(),
+    status: 'pending',
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
   });
-
-  return docRef.id;
+  return ref.id;
 };
 
-/**
- * Updates the order state status in Firestore.
- * 
- * @param {string} orderId 
- * @param {string} status 
- * @param {string} [notes] 
- * @returns {Promise<void>}
- */
-export const updateOrderStatus = async (orderId, status, notes = "", paymentDetails = null) => {
-  const docRef = doc(db, ORDERS_COLLECTION, orderId);
-  await updateDoc(docRef, {
+export const updateOrder = async (id, status, notes) => {
+  await updateDoc(doc(db, COL, id), {
     status,
-    notes:      notes,
-    updatedAt:  serverTimestamp(),
+    notes: notes || '',
+    updatedAt: serverTimestamp(),
+    ...(status === 'confirmed'  && { confirmedAt: serverTimestamp() }),
+    ...(status === 'delivered'  && { deliveredAt: serverTimestamp() }),
+  });
+};
+
+// Legacy compatibility wrapper
+export const updateOrderStatus = async (id, status, notes = '', paymentDetails = null) => {
+  await updateDoc(doc(db, COL, id), {
+    status,
+    notes: notes || '',
+    updatedAt: serverTimestamp(),
     ...(paymentDetails && { paymentDetails }),
     ...(status === 'confirmed'  && { confirmedAt: serverTimestamp() }),
     ...(status === 'delivered'  && { deliveredAt: serverTimestamp() }),
   });
 };
 
-/**
- * Attaches a real-time snapshot listener on the complete orders list.
- * 
- * @param {function} callback - Triggers on every snapshot update.
- * @returns {function} Unsubscribe handle.
- */
-export const subscribeToOrders = (callback) => {
-  const q = query(
-    collection(db, ORDERS_COLLECTION),
-    orderBy('createdAt', 'desc')
+export const subscribeOrders = (cb) =>
+  onSnapshot(
+    query(collection(db, COL), orderBy('createdAt', 'desc')),
+    snap => cb(snap.docs.map(d => {
+      const data = d.data();
+      // Ensure date conversion helper to handle toDate() if pages call it
+      const convertDates = (obj) => {
+        if (!obj) return obj;
+        const newObj = { ...obj };
+        const dateFields = ['createdAt', 'updatedAt', 'confirmedAt', 'deliveredAt'];
+        dateFields.forEach(f => {
+          if (newObj[f] && typeof newObj[f].toDate !== 'function') {
+            const dVal = newObj[f].seconds 
+              ? new Date(newObj[f].seconds * 1000) 
+              : new Date(newObj[f]);
+            newObj[f] = { toDate: () => dVal };
+          }
+        });
+        return newObj;
+      };
+      return { id: d.id, ...convertDates(data) };
+    }))
   );
-  return onSnapshot(q, (snapshot) => {
-    const orders = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    callback(orders);
-  });
-};
 
-/**
- * Attaches a listener to count the number of currently pending orders.
- * 
- * @param {function} callback 
- * @returns {function} Unsubscribe handle.
- */
-export const subscribeToPendingCount = (callback) => {
-  const q = query(
-    collection(db, ORDERS_COLLECTION),
-    where('status', '==', 'pending')
+// Legacy compatibility wrapper
+export const subscribeToOrders = (cb) => subscribeOrders(cb);
+export const subscribeToPendingCount = (cb) => {
+  return onSnapshot(
+    query(collection(db, COL)),
+    snap => {
+      const pendings = snap.docs.filter(d => d.data().status === 'pending');
+      cb(pendings.length);
+    }
   );
-  return onSnapshot(q, (snapshot) => {
-    callback(snapshot.size);
-  });
 };

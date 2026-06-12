@@ -14,6 +14,17 @@ function OrderRow({ order }) {
   const [updating, setUpdating] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
 
+  // Normalize order properties to support both nested schema and flat schema
+  const customerName = order.customerName || order.customer?.name || 'N/A';
+  const customerPhone = order.customerPhone || order.customer?.phone || '';
+  const city = order.city || order.customer?.city || 'N/A';
+  const address = order.address || order.customer?.address || 'N/A';
+  
+  const productName = order.productName || order.item?.productName || 'N/A';
+  const packSize = order.packSize || order.item?.packSize || 'N/A';
+  const quantity = order.quantity || order.item?.quantity || 1;
+  const grandTotal = order.grandTotal || order.totalAmount || 0;
+
   const handleStatusChange = async (newStatus, paymentDetails = null) => {
     setUpdating(true);
     try {
@@ -27,14 +38,14 @@ function OrderRow({ order }) {
 
   const openWhatsApp = () => {
     // Format Pakistani phone for WhatsApp URL (ensure 92 prefix instead of leading 0)
-    let cleanPhone = order.customer.phone.replace(/\D/g, '');
+    let cleanPhone = customerPhone.replace(/\D/g, '');
     if (cleanPhone.startsWith('0')) {
       cleanPhone = '92' + cleanPhone.slice(1);
     }
 
     const msg = encodeURIComponent(
-      `Hello ${order.customer.name}! Your order #${order.orderNumber} ` +
-      `for ${order.item.productName} has been confirmed. ` +
+      `Hello ${customerName}! Your order #${order.orderNumber} ` +
+      `for ${productName} has been confirmed. ` +
       `We will deliver within 2-3 working days. Thank you! — Vital Agro`
     );
     window.open(`https://wa.me/${cleanPhone}?text=${msg}`, '_blank');
@@ -55,23 +66,23 @@ function OrderRow({ order }) {
 
       {/* Product */}
       <td className="px-4 py-4">
-        <p className="text-white text-sm font-semibold">{order.item.productName}</p>
+        <p className="text-white text-sm font-semibold">{productName}</p>
         <p className="text-white/40 text-xs">
-          {order.item.packSize} × {order.item.quantity}
+          {packSize} × {quantity}
         </p>
       </td>
 
       {/* Customer */}
       <td className="px-4 py-4">
-        <p className="text-white text-sm font-semibold">{order.customer.name}</p>
-        <p className="text-[#5cb85c] text-xs font-mono">{order.customer.phone}</p>
-        <p className="text-white/30 text-xs">{order.customer.city}</p>
-        <p className="text-white/40 text-[10px] mt-0.5 max-w-xs truncate">{order.customer.address}</p>
+        <p className="text-white text-sm font-semibold">{customerName}</p>
+        <p className="text-[#5cb85c] text-xs font-mono">{customerPhone}</p>
+        <p className="text-white/30 text-xs">{city}</p>
+        <p className="text-white/40 text-[10px] mt-0.5 max-w-xs truncate">{address}</p>
       </td>
 
       {/* Amount */}
       <td className="px-4 py-4">
-        <p className="text-white font-bold font-mono">PKR {order.totalAmount.toLocaleString()}</p>
+        <p className="text-white font-bold font-mono">PKR {grandTotal.toLocaleString()}</p>
         <div className="flex items-center gap-1.5 mt-0.5">
           <span className="text-white/30 text-xs font-semibold">{order.paymentMethod || 'COD'}</span>
           {order.paymentDetails && (

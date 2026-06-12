@@ -4,13 +4,14 @@ import SwipeCard3D from './SwipeCard3D';
 import DotIndicator from './DotIndicator';
 import SwipeArrows from './SwipeArrows';
 import { useLanguage } from '@/lib/LanguageContext';
+import useMobile from '@/hooks/useMobile';
 import './styles.css';
 
 /**
  * Enterprise horizontal momentum product slider with 3D perspective depth,
  * snap momentum, keyboard arrows support, trackpad/wheel support, and auto-centering.
  */
-export default function ProductSwipe3D({ products: rawProducts }) {
+export default function ProductSwipe3D({ products: rawProducts, openCheckout }) {
   const { lang } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(0);
   const trackRef = useRef(null);
@@ -42,16 +43,10 @@ export default function ProductSwipe3D({ products: rawProducts }) {
 
   const total = products.length;
 
-  // Track widths for responsive snap physics
-  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
-
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const cardWidth = windowWidth < 640 ? 290 : 340;
+  const { isMobile } = useMobile();
+  const cardWidth = isMobile ? 290 : 340;
+  const enable3D = !isMobile;
+  const ANIM_DURATION = isMobile ? 0.5 : 0.65;
   const gap = 24;
 
   const goNext = () => {
@@ -178,14 +173,15 @@ export default function ProductSwipe3D({ products: rawProducts }) {
                   filter: isActive ? 'blur(0px)' : 'blur(2.5px)',
                   opacity: isActive ? 1 : 0.4,
                   z: isActive ? 0 : -150,
-                  rotateY: isActive ? 0 : idx < currentIndex ? 20 : -20,
+                  rotateY: enable3D ? (isActive ? 0 : idx < currentIndex ? 20 : -20) : 0,
                 }}
-                transition={{ type: 'spring', stiffness: 200, damping: 24 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 24, duration: ANIM_DURATION }}
               >
                 <SwipeCard3D
                   product={product}
                   isActive={isActive}
                   isPeek={diff > 0}
+                  openCheckout={openCheckout}
                 />
               </motion.div>
             );

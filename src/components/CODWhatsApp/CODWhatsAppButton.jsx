@@ -1,10 +1,9 @@
-import React, { Suspense, useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motion';
 import { ShoppingBag } from 'lucide-react';
 import { useWhatsAppOrder } from './useWhatsAppOrder';
 import { useLanguage } from '@/lib/LanguageContext';
-
-const CODBottomSheet = React.lazy(() => import('./CODBottomSheet'));
+import CheckoutPage from '@/pages/Checkout';
 
 // Sound/Haptic feedback helper (optional, failsafe)
 const triggerHaptic = () => {
@@ -201,9 +200,14 @@ export default function CODWhatsAppButton({ product, className = "", defaultSize
         </motion.button>
       </div>
 
-      <Suspense fallback={null}>
-        <CODBottomSheet product={product} {...orderState} />
-      </Suspense>
+      <AnimatePresence>
+        {orderState.isOpen && (
+          <CheckoutPage
+            product={product}
+            onClose={() => orderState.setIsOpen(false)}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }

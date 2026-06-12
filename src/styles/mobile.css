@@ -1,0 +1,60 @@
+/* Touch improvements */
+*, *::before, *::after {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+}
+
+/* Smooth scroll on iOS */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
+}
+
+/* Prevent zoom on input focus (iOS) */
+input, select, textarea {
+  font-size: 16px !important;  /* min 16px prevents iOS zoom */
+}
+
+/* Safe area padding (iPhone notch/home bar) */
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 20px); }
+.safe-top    { padding-top:    env(safe-area-inset-top, 0px);    }
+
+/* Scrollbar hide */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Floating action buttons */
+.fab-group {
+  position: fixed;
+  right: 16px;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Bottom sheet handle */
+.sheet-handle {
+  width: 40px; height: 4px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 99px;
+  margin: 12px auto 8px;
+}
+
+/* Minimum touch target */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Card swipe — no text selection during drag */
+.swipe-card {
+  user-select: none;
+  -webkit-user-select: none;
+}

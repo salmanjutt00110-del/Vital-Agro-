@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Target, Eye, Award, Microscope, HeartHandshake, Globe } from 'lucide-react';
 import useVideoAutoplay from '@/hooks/useVideoAutoplay';
+import SEOHead from '@/lib/seo/SEOHead';
 
 // Import Assets
 import vitalBg from '@/assets/vital bg.mp4';
@@ -19,6 +20,11 @@ export default function About() {
 
   return (
     <div className="min-h-screen pt-24">
+      <SEOHead
+        title="About Us | Vital Agro Chemical Industries"
+        description="Pioneering agricultural excellence in Pakistan through high-efficacy crop protection and plant nutrition formulations."
+        url="https://vital-agro.vercel.app/about"
+      />
       {/* Header */}
       <section className="bg-[#0A2E1F] py-20 relative overflow-hidden">
         <video

@@ -6,51 +6,42 @@ import { useLanguage } from '@/lib/LanguageContext';
 import { verifyReceipt } from '@/lib/ai/receiptVerifier';
 import { verifyReceiptUnique } from '@/lib/api';
 import confetti from 'canvas-confetti';
+import { getDeliveryCharge } from './orderMessage';
+import OrderConfirmButton from './OrderConfirmButton';
 
-const InputField = ({ label, error, value, icon: Icon, ...props }) => {
-  const [focused, setFocused] = useState(false);
-  const isFilled = value && String(value).length > 0;
+const PROVINCES = [
+  'Punjab', 'Sindh', 'KPK', 'Balochistan',
+  'Islamabad', 'AJK', 'GB',
+];
 
+const InputField = ({ label, error, required, icon: Icon, ...props }) => {
   return (
     <div className="w-full relative text-left">
+      <label className="block text-white/55 text-[11px] font-semibold tracking-[0.12em] uppercase mb-2">
+        {label}{required && <span className="text-[#5cb85c] ml-1">*</span>}
+      </label>
       <div className="relative flex items-center">
         {Icon && (
-          <div className={`absolute left-4 transition-colors duration-300 ${focused ? 'text-[#8AD65A]' : 'text-white/30'}`}>
+          <div className="absolute left-4 text-white/30">
             <Icon size={16} />
           </div>
         )}
         <input
-          value={value}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
           {...props}
           className={`
-            w-full pt-6 pb-2 rounded-2xl text-sm text-white
-            bg-white/[0.02] border outline-none
-            placeholder-transparent
-            focus:bg-white/[0.04]
-            transition-all duration-300
+            w-full py-3.5 rounded-2xl text-white text-sm outline-none transition-all duration-300 placeholder:text-white/25 bg-white/5 border
             ${Icon ? 'pl-11 pr-4' : 'px-4'}
             ${error
-              ? 'border-red-500/50 bg-red-500/5 shadow-[0_0_15px_rgba(239,68,68,0.1)]'
-              : focused
-              ? 'border-[#76C945] shadow-[0_0_15px_rgba(118,201,69,0.15)]'
-              : 'border-white/10 hover:border-white/20'
+              ? 'bg-red-500/8 border-red-500/40 focus:border-red-400'
+              : 'border-white/10 focus:border-[rgba(92,184,92,0.5)] focus:bg-white/7'
             }
           `}
         />
-        <label 
-          className={`
-            absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-white/40 uppercase tracking-wider transition-all duration-200 pointer-events-none
-            ${Icon ? 'left-11' : 'left-4'}
-            ${(focused || isFilled) ? 'top-3 text-[9px] text-[#8AD65A] font-black' : ''}
-          `}
-        >
-          {label}
-        </label>
       </div>
       {error && (
-        <p className="text-red-400 text-[10px] mt-1.5 ml-1 font-semibold">{error}</p>
+        <p className="text-red-400 text-[11px] mt-1.5 flex items-center gap-1 font-semibold">
+          ⚠ {error}
+        </p>
       )}
     </div>
   );
@@ -151,6 +142,108 @@ const GlassCreditCard = ({ paymentMethod, customerName, phone, amount }) => {
     </div>
   );
 };
+
+const PAYMENT_METHODS = [
+  {
+    id: 'COD',
+    label: 'Cash On Delivery',
+    sublabel: 'Pay at your doorstep',
+    icon: () => (
+      <div className="w-8 h-8 rounded-full bg-[#5cb85c]/20
+        flex items-center justify-center text-lg">💵</div>
+    ),
+    available: true,
+    recommended: true,
+  },
+  {
+    id: 'Stripe',
+    label: 'Credit / Debit Card',
+    sublabel: 'Secured by Stripe',
+    icon: () => (
+      <div className="w-8 h-8 rounded-lg bg-blue-500/20
+        flex items-center justify-center">
+        <CreditCard size={16} className="text-blue-400" />
+      </div>
+    ),
+    available: true,
+  },
+  {
+    id: 'JazzCash',
+    label: 'JazzCash Wallet',
+    sublabel: 'Transfer & verify',
+    icon: () => (
+      <div className="w-8 h-8 rounded-lg overflow-hidden
+        bg-[#ED1C24] flex items-center justify-center
+        text-white text-[10px] font-black leading-none text-center">
+        JC
+      </div>
+    ),
+    available: false,
+    comingSoon: true,
+  },
+  {
+    id: 'Easypaisa',
+    label: 'Easypaisa',
+    sublabel: 'Transfer & verify',
+    icon: () => (
+      <div className="w-8 h-8 rounded-lg overflow-hidden
+        bg-[#1DB954] flex items-center justify-center
+        text-white text-[9px] font-black">EP</div>
+    ),
+    available: false,
+    comingSoon: true,
+  },
+  {
+    id: 'Bank',
+    label: 'Meezan Bank Ltd',
+    sublabel: 'Direct bank transfer',
+    icon: () => (
+      <div className="w-8 h-8 rounded-lg
+        bg-[#006633] flex items-center justify-center
+        text-white text-[9px] font-black">MB</div>
+    ),
+    available: false,
+    comingSoon: true,
+  },
+];
+
+const PaymentCard = ({ method, selected, onSelect }) => (
+  <motion.button
+    onClick={() => method.available && onSelect(method.id)}
+    whileTap={method.available ? { scale: 0.98 } : {}}
+    className={`
+      relative p-4 rounded-2xl border text-left w-full
+      transition-all duration-300
+      ${selected
+        ? 'bg-[rgba(45,106,45,0.25)] border-[#5cb85c] shadow-[0_0_20px_rgba(92,184,92,0.15)]'
+        : 'bg-white/3 border-white/10 hover:border-white/20'
+      }
+      ${!method.available ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+    `}
+  >
+    <div className="flex items-center gap-3">
+      <method.icon />
+      <div className="flex-1">
+        <p className="text-white text-sm font-semibold">{method.label}</p>
+        <p className="text-white/40 text-xs">{method.sublabel}</p>
+      </div>
+      {selected && (
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="w-5 h-5 rounded-full bg-[#5cb85c]
+            flex items-center justify-center"
+        >
+          <Check size={12} className="text-white" />
+        </motion.div>
+      )}
+      {method.comingSoon && (
+        <span className="text-[9px] text-white/30 border border-white/10
+          px-1.5 py-0.5 rounded">SOON</span>
+      )}
+    </div>
+  </motion.button>
+);
 
 export default function CODBottomSheet({
   product, isOpen, setIsOpen,
@@ -351,7 +444,7 @@ export default function CODBottomSheet({
 
   // Billing math
   const itemsSubtotal = currentPrice * form.quantity;
-  const deliveryCharges = itemsSubtotal > 3000 ? 0 : 250;
+  const deliveryCharges = getDeliveryCharge(form.province);
   const grandTotal = itemsSubtotal + deliveryCharges;
 
   // Delivery limits dates
@@ -755,14 +848,45 @@ export default function CODBottomSheet({
                           icon={MapPin}
                         />
 
-                        <InputField
-                          label={lang === 'en' ? "Province *" : "صوبہ *"}
-                          placeholder="Punjab"
-                          value={form.province}
-                          onChange={(e) => updateForm('province', e.target.value)}
-                          error={localErrors.province || externalErrors.province}
-                          icon={MapPin}
-                        />
+                        <div className="w-full text-left">
+                          <label className="block text-white/55 text-[11px] font-semibold tracking-[0.12em] uppercase mb-2">
+                            {lang === 'en' ? "Province *" : "صوبہ *"}
+                          </label>
+                          <div className="relative flex items-center">
+                            <div className="absolute left-4 text-white/30">
+                              <MapPin size={16} />
+                            </div>
+                            <select
+                              value={form.province}
+                              onChange={(e) => updateForm('province', e.target.value)}
+                              className={`
+                                w-full py-3.5 pl-11 pr-10 rounded-2xl text-white text-sm outline-none transition-all duration-300 bg-white/5 border appearance-none
+                                ${(localErrors.province || externalErrors.province)
+                                  ? 'bg-red-500/8 border-red-500/40 focus:border-red-400'
+                                  : 'border-white/10 focus:border-[rgba(92,184,92,0.5)] focus:bg-[#0a1f0a]'
+                                }
+                              `}
+                              style={{ colorScheme: 'dark' }}
+                            >
+                              <option value="" className="bg-[#0a1f0a] text-white/40">
+                                {lang === 'en' ? 'Select Province' : 'صوبہ منتخب کریں'}
+                              </option>
+                              {PROVINCES.map((prov) => (
+                                <option key={prov} value={prov} className="bg-[#0a1f0a] text-white">
+                                  {prov}
+                                </option>
+                              ))}
+                            </select>
+                            <div className="absolute right-4 pointer-events-none text-white/40">
+                              ▼
+                            </div>
+                          </div>
+                          {(localErrors.province || externalErrors.province) && (
+                            <p className="text-red-400 text-[11px] mt-1.5 flex items-center gap-1 font-semibold">
+                              ⚠ {localErrors.province || externalErrors.province}
+                            </p>
+                          )}
+                        </div>
                       </div>
 
                       <div className="grid gap-5">
@@ -820,18 +944,20 @@ export default function CODBottomSheet({
                       </div>
 
                       {/* Billing breakdown panel */}
-                      <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-5 space-y-3 font-mono text-xs backdrop-blur-md">
-                        <div className="flex justify-between text-white/50">
-                          <span>{lang === 'en' ? 'Subtotal:' : 'مصنوعات کی قیمت:'}</span>
-                          <span>PKR {itemsSubtotal.toLocaleString()}</span>
+                      <div className="space-y-2 border-t border-white/8 pt-3 mt-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-white/50">{lang === 'en' ? 'Subtotal:' : 'مصنوعات کی قیمت:'}</span>
+                          <span className="text-white">PKR {itemsSubtotal.toLocaleString()}</span>
                         </div>
-                        <div className="flex justify-between text-white/50">
-                          <span>{lang === 'en' ? 'Delivery Charges:' : 'ڈیلیوری چارجز:'}</span>
-                          <span className="font-bold text-[#8AD65A]">{deliveryCharges === 0 ? 'FREE' : `PKR ${deliveryCharges}`}</span>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-white/50">{lang === 'en' ? `Delivery (${form.province || 'Pakistan'}):` : `ڈیلیوری چارجز (${form.province || 'پاکستان'}):`}</span>
+                          <span className="text-white">PKR {deliveryCharges.toLocaleString()}</span>
                         </div>
-                        <div className="flex justify-between text-[#8AD65A] font-black text-sm pt-2.5 border-t border-white/5">
-                          <span>{lang === 'en' ? 'Grand Total:' : 'کل قیمت:'}</span>
-                          <span>PKR {grandTotal.toLocaleString()}</span>
+                        <div className="flex justify-between text-base font-bold border-t border-white/8 pt-2 mt-2">
+                          <span className="text-[#5cb85c]">{lang === 'en' ? 'Grand Total:' : 'کل قیمت:'}</span>
+                          <span className="text-[#5cb85c] text-lg font-black">
+                            PKR {grandTotal.toLocaleString()}
+                          </span>
                         </div>
                       </div>
 
@@ -841,41 +967,20 @@ export default function CODBottomSheet({
                           {lang === 'en' ? 'Select Payment Mode' : 'ادائیگی کا طریقہ منتخب کریں'}
                         </h4>
 
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
-                          {[
-                            { id: 'COD', name: 'Cash On Delivery', desc: 'Pay at your doorstep', icon: Truck },
-                            { id: 'Stripe', name: 'Credit Card', desc: 'Secure via Stripe', icon: CreditCard },
-                            { id: 'JazzCash', name: 'JazzCash Wallet', desc: 'Verify transaction ref', icon: ShieldCheck },
-                            { id: 'Easypaisa', name: 'Easypaisa Wallet', desc: 'Verify transaction ref', icon: ShieldCheck },
-                            { id: 'Bank', name: 'Meezan Bank Ltd', desc: 'Direct bank deposit', icon: Landmark },
-                          ].map((method) => {
-                            const Icon = method.icon;
+                        <div className="flex flex-col gap-3">
+                          {PAYMENT_METHODS.map((method) => {
                             const isSelected = form.paymentMethod === method.id;
                             return (
-                              <button
+                              <PaymentCard
                                 key={method.id}
-                                type="button"
-                                onClick={() => {
-                                  updateForm('paymentMethod', method.id);
+                                method={method}
+                                selected={isSelected}
+                                onSelect={(id) => {
+                                  updateForm('paymentMethod', id);
                                   setReceiptSuccess(false);
                                   setReceiptError(null);
                                 }}
-                                className={`
-                                  p-4 rounded-2xl border text-left flex flex-col gap-2.5 transition-all duration-300 select-none
-                                  ${isSelected
-                                    ? 'bg-[#2d6a2d]/15 border-[#5cb85c] text-white shadow-[0_0_15px_rgba(92,184,92,0.15)] scale-[1.02]'
-                                    : 'bg-white/[0.02] border-white/10 text-white/50 hover:bg-white/5'
-                                  }
-                                `}
-                              >
-                                <div className={`p-2 rounded-xl w-fit ${isSelected ? 'bg-[#5cb85c]/25 text-[#8AD65A]' : 'bg-white/5 text-white/40'}`}>
-                                  <Icon size={16} />
-                                </div>
-                                <div>
-                                  <span className="font-extrabold text-xs block text-white">{method.name}</span>
-                                  <span className="text-[9px] text-white/35 block mt-0.5">{method.desc}</span>
-                                </div>
-                              </button>
+                              />
                             );
                           })}
                         </div>
@@ -1216,6 +1321,10 @@ export default function CODBottomSheet({
                           <span className="font-bold uppercase">{form.paymentMethod}</span>
                         </div>
                       </div>
+
+                      <p className="text-center text-white/25 text-[11px] mt-3">
+                        Order details sent to WhatsApp · Firebase logged · COD confirmed
+                      </p>
                     </div>
                   )}
 
@@ -1226,26 +1335,40 @@ export default function CODBottomSheet({
             {/* Bottom Navigation controls */}
             {successPhase === 'idle' && (
               <div 
-                className="border-t border-white/5 bg-black/40 backdrop-blur-md px-6 py-4.5 flex items-center justify-between sticky bottom-0 z-20"
+                className="border-t border-white/5 bg-black/40 backdrop-blur-md px-6 py-4.5 flex items-center justify-between gap-4 sticky bottom-0 z-20"
                 style={{ paddingBottom: 'calc(1.125rem + env(safe-area-inset-bottom, 0px))' }}
               >
                 <button
                   type="button"
                   onClick={currentStep === 1 ? () => setIsOpen(false) : handlePrevStep}
-                  className="px-5 py-3 rounded-xl border border-white/10 text-white/70 hover:text-white bg-white/5 hover:bg-white/10 transition-all font-bold text-xs uppercase tracking-wider select-none"
+                  className="px-5 py-3 rounded-xl border border-white/10 text-white/70 hover:text-white bg-white/5 hover:bg-white/10 transition-all font-bold text-xs uppercase tracking-wider select-none shrink-0"
                 >
                   {currentStep === 1 ? (lang === 'en' ? 'Cancel' : 'کینسل') : (lang === 'en' ? 'Back' : 'واپس')}
                 </button>
                 
-                <button
-                  type="button"
-                  onClick={currentStep === 6 ? handlePlaceOrderTimeline : handleNextStep}
-                  disabled={isSubmitting}
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#2d6a2d] to-[#3d8c3d] text-white font-extrabold text-xs uppercase tracking-widest border border-[rgba(92,184,92,0.4)] shadow-[0_0_20px_rgba(92,184,92,0.2)] hover:shadow-[0_0_35px_rgba(92,184,92,0.4)] transition-all flex items-center gap-1.5 select-none"
-                >
-                  <span>{currentStep === 6 ? (lang === 'en' ? 'Place Order' : 'آرڈر کریں') : (lang === 'en' ? 'Continue' : 'جاری رکھیں')}</span>
-                  <ChevronRight size={14} />
-                </button>
+                {currentStep === 6 ? (
+                  <div className="flex-1 max-w-xs">
+                    <OrderConfirmButton
+                      onConfirm={submitOrder}
+                      onValidate={() => true}
+                      onComplete={(orderId) => {
+                        setCreatedOrderId(orderId);
+                        setSuccessPhase('confirmed');
+                      }}
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleNextStep}
+                    disabled={isSubmitting}
+                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#2d6a2d] to-[#3d8c3d] text-white font-extrabold text-xs uppercase tracking-widest border border-[rgba(92,184,92,0.4)] shadow-[0_0_20px_rgba(92,184,92,0.2)] hover:shadow-[0_0_35px_rgba(92,184,92,0.4)] transition-all flex items-center gap-1.5 select-none"
+                  >
+                    <span>{lang === 'en' ? 'Continue' : 'جاری رکھیں'}</span>
+                    <ChevronRight size={14} />
+                  </button>
+                )}
               </div>
             )}
 

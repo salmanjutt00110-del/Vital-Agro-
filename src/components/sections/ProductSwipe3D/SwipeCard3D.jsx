@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import FloatingProduct from './FloatingProduct';
-import CODWhatsAppButton from '@/components/CODWhatsApp/CODWhatsAppButton';
+import { useLanguage } from '@/lib/LanguageContext';
 
-export default function SwipeCard3D({ product, isActive, isPeek, isDragging }) {
+export default function SwipeCard3D({ product, isActive, isPeek, isDragging, openCheckout }) {
+  const { lang } = useLanguage();
   const [isHovered, setIsHovered] = useState(false);
   const imageSrc = product.pngUrl || product.imageUrl || product.image;
-  const prodName = typeof product.name === 'object' ? (product.name.en || product.name) : product.name;
+  const prodName = typeof product.name === 'object' ? (product.name.en || product.name || product.name[lang]) : product.name;
 
   return (
     <motion.div
@@ -108,21 +109,35 @@ export default function SwipeCard3D({ product, isActive, isPeek, isDragging }) {
       </div>
 
       {/* Action Buttons */}
-      <div className="w-full flex flex-col gap-3 mt-auto z-10">
-        {/* COD WhatsApp Order Button */}
-        <CODWhatsAppButton product={product} />
+      <div className="w-full flex flex-col gap-2.5 mt-auto z-10">
+        {/* BUY NOW COD — opens checkout */}
+        <motion.button
+          onClick={() => openCheckout && openCheckout(product)}
+          whileTap={{ scale: 0.97 }}
+          className="w-full py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider text-white relative overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, #1e5c1e 0%, #2d7a2d 50%, #1e5c1e 100%)',
+            backgroundSize: '200% 100%',
+            boxShadow: '0 0 28px rgba(45,106,45,0.35)',
+          }}
+        >
+          {/* Shimmer */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+            animate={{ x: ['-100%', '200%'] }}
+            transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1.5 }}
+          />
+          <span className="relative z-10 flex items-center justify-center gap-2">
+            <span>🛒</span> {lang === 'en' ? 'BUY NOW (COD)' : 'ابھی خریدیں (COD)'}
+          </span>
+        </motion.button>
 
         {/* View Details */}
         <Link
           to={`/products/${product.slug}`}
-          className="
-            w-full py-3.5 rounded-2xl text-center text-xs font-black uppercase tracking-wider
-            text-white/60 border border-white/10
-            hover:text-white hover:border-white/25 hover:bg-white/[0.02]
-            transition-all duration-300
-          "
+          className="w-full py-3 rounded-2xl text-center text-xs font-black uppercase tracking-wider text-white/50 border border-white/10 hover:text-white hover:border-white/25 hover:bg-white/[0.02] transition-all duration-300"
         >
-          View Details →
+          {lang === 'en' ? 'View Details →' : 'تفصیلات دیکھیں ←'}
         </Link>
       </div>
     </motion.div>

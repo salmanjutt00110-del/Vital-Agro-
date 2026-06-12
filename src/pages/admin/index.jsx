@@ -24,7 +24,7 @@ export default function AdminDashboard() {
     delivered:  orders.filter(o => o.status === 'delivered').length,
     revenue:    orders
       .filter(o => o.status === 'delivered')
-      .reduce((sum, o) => sum + (o.totalAmount || 0), 0),
+      .reduce((sum, o) => sum + (o.grandTotal || o.totalAmount || 0), 0),
     todayOrders: orders.filter(o => {
       const today = new Date();
       const orderDate = o.createdAt?.toDate?.();
@@ -38,11 +38,15 @@ export default function AdminDashboard() {
     .filter(o => {
       if (!search) return true;
       const term = search.toLowerCase();
+      const name = o.customerName || o.customer?.name || '';
+      const phone = o.customerPhone || o.customer?.phone || '';
+      const orderNum = o.orderNumber || '';
+      const prodName = o.productName || o.item?.productName || '';
       return (
-        o.customer.name.toLowerCase().includes(term) ||
-        o.customer.phone.includes(term) ||
-        o.orderNumber.toLowerCase().includes(term) ||
-        o.item.productName.toLowerCase().includes(term)
+        name.toLowerCase().includes(term) ||
+        phone.includes(term) ||
+        orderNum.toLowerCase().includes(term) ||
+        prodName.toLowerCase().includes(term)
       );
     });
 

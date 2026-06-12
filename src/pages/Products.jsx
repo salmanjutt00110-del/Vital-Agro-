@@ -8,9 +8,23 @@ import { useLanguage } from '@/lib/LanguageContext';
 import { PRODUCTS_DATA } from '@/data/productsData';
 import { useCart } from '@/lib/CartContext';
 import { useToast } from '@/components/ui/use-toast';
-import CODWhatsAppButton from '@/components/CODWhatsApp/CODWhatsAppButton';
 import SEOHead from '@/lib/seo/SEOHead';
 import vitalAgroLogo from '@/assets/vital agro logo.webp';
+import ProductSwipe3D from '@/components/sections/ProductSwipe3D';
+import CheckoutPage from './Checkout';
+import { AnimatePresence } from 'framer-motion';
+
+const CheckoutWrapper = ({ product, isOpen, setIsOpen }) => {
+  if (!isOpen) return null;
+  return (
+    <AnimatePresence>
+      <CheckoutPage
+        product={product}
+        onClose={() => setIsOpen(false)}
+      />
+    </AnimatePresence>
+  );
+};
 
 // Psychological Pricing Helper: Rounds up price to end with 99
 const formatPsychologicalPrice = (price) => {
@@ -124,205 +138,126 @@ const SlideToCart = ({ onSlideSuccess, lang }) => {
   );
 };
 
-// True 3D Product Explorer Card Component optimized for Mobile & spacing
-const ProductCard = ({ product, index, lang, wishlist, toggleWishlist, addToCart }) => {
-  const [sizeIdx, setSizeIdx] = useState(0);
+// ProductGridCard — upgraded glassmorphic dark catalog card
+const ProductGridCard = ({ product, openCheckout, lang }) => {
   const [qty, setQty] = useState(1);
-  const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
-  const { toast } = useToast();
-
-  const sizes = product.sizes || [];
-  const currentSize = sizes[sizeIdx] || { size: product.packaging, price: 999, oldPrice: 1299, sku: product.productCode, stockStatus: 'In Stock' };
-
-  const promoBadge = useMemo(() => {
-    if (product.featured) return "BEST SELLER";
-    const badgesList = ["NEW", "HOT", "LIMITED", "BEST SELLER"];
-    return badgesList[index % badgesList.length];
-  }, [product, index]);
-
-  const displayedPrice = formatPsychologicalPrice(currentSize.price);
-  const isWishlisted = wishlist.includes(product.slug);
-
-  const handleSlideSuccess = () => {
-    addToCart(product, currentSize, qty);
-    toast({
-      title: lang === 'en' ? "Added to Cart" : "کارٹ میں شامل کر دیا گیا",
-      description: `${qty}x ${product.name[lang]} (${currentSize.size}) added to your checkout drawer.`
-    });
-    setQty(1);
-  };
-
-  const handleWishlistClick = (e) => {
-    e.preventDefault();
-    toggleWishlist(product.slug);
-    toast({
-      title: isWishlisted 
-        ? (lang === 'en' ? "Removed from Wishlist" : "خواہش کی فہرست سے خارج") 
-        : (lang === 'en' ? "Added to Wishlist" : "خواہش کی فہرست میں شامل"),
-      description: `${product.name[lang]} has been ${isWishlisted ? 'removed from' : 'added to'} your wishlist.`
-    });
-  };
-
-  const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setMouseOffset({ x: x * 16, y: y * 16 });
-  };
-
-  const handleMouseLeave = () => {
-    setMouseOffset({ x: 0, y: 0 });
-  };
-
-  const activeTheme = PRODUCT_COLOR_THEMES[product.slug] || PRODUCT_COLOR_THEMES["fatty"];
 
   return (
-    <div 
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className="product-explorer-card w-[290px] xs:w-[325px] sm:w-[370px] min-h-[500px] xs:min-h-[540px] sm:min-h-[585px] flex-shrink-0 snap-center rounded-[32px] p-4 xs:p-5 sm:p-6 bg-gradient-to-b from-white/[0.06] to-white/[0.01] border border-white/10 backdrop-blur-3xl shadow-[0_25px_50px_rgba(0,0,0,0.5)] hover:shadow-[0_35px_60px_rgba(0,0,0,0.8)] hover:border-white/20 flex flex-col justify-between transition-all duration-500 overflow-hidden relative group select-none text-white"
+    <motion.div
+      className="group relative rounded-2xl overflow-hidden flex flex-col h-full"
+      style={{
+        background: 'rgba(255,255,255,0.04)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
+      }}
+      whileHover={{
+        y: -4,
+        boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(92,184,92,0.15)',
+      }}
+      transition={{ duration: 0.3 }}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-40px' }}
     >
-      {/* Background themed glow orb */}
-      <div 
-        className="absolute top-[28%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 sm:w-48 sm:h-48 rounded-full blur-[60px] sm:blur-[65px] pointer-events-none opacity-25 group-hover:opacity-40 transition-all duration-700 group-hover:scale-125"
-        style={{ backgroundColor: activeTheme.particle }}
-      />
-
-      {/* Header bar within card */}
-      <div className="flex justify-between items-center z-10 text-[9px] sm:text-[10px]">
-        <span className="px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-white/5 border border-white/10 text-white/80 font-black uppercase tracking-widest">
-          {promoBadge}
+      {/* Top badges row */}
+      <div className="flex justify-between items-center px-3 pt-3 pb-0">
+        <span className="text-[9px] font-bold tracking-wider px-2 py-0.5
+          rounded-full border border-white/10 text-white/40 uppercase">
+          {product.badge || 'PRODUCT'}
         </span>
-        <span className="font-black tracking-widest" style={{ color: activeTheme.particle }}>
-          {getCategoryLabel(product.category)}
+        <span className="text-[9px] font-bold tracking-wider text-[#5cb85c] uppercase font-black">
+          {product.category}
         </span>
       </div>
 
-      {/* Floating Interactive 3D Image Area */}
-      <Link 
-        to={`/products/${product.slug}`}
-        className="relative flex-1 flex items-center justify-center max-h-[160px] xs:max-h-[190px] sm:max-h-[230px] my-2 xs:my-3 sm:my-4 overflow-visible cursor-pointer z-10"
-      >
+      {/* Product Image — larger, better centered */}
+      <div className="relative flex items-center justify-center py-5 px-4 h-40">
         <motion.div
-          animate={{
-            x: mouseOffset.x,
-            y: mouseOffset.y,
-            rotateX: -mouseOffset.y * 1.5,
-            rotateY: mouseOffset.x * 1.5
+          className="absolute inset-0 opacity-0 group-hover:opacity-100
+            transition-opacity duration-500"
+          style={{
+            background: 'radial-gradient(circle at 50% 70%, rgba(92,184,92,0.08) 0%, transparent 70%)',
           }}
-          transition={{ type: "spring", stiffness: 150, damping: 20 }}
-          className="relative w-[65%] h-full flex items-center justify-center"
-        >
-          {/* Subtle bottom shadow under the bottle */}
-          <div className="absolute -bottom-2 w-[80%] h-3.5 bg-black/40 rounded-full blur-[8px] pointer-events-none" />
-          
-          <img
-            src={product.pngUrl || product.imageUrl}
-            alt={product.name[lang]}
-            className="max-h-full w-auto object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.3)] transition-transform duration-500 hover:scale-105"
-            loading="lazy"
-          />
-        </motion.div>
-      </Link>
-
-      {/* Info block */}
-      <div className="space-y-0.5 xs:space-y-1 z-10">
-        <Link 
-          to={`/products/${product.slug}`}
-          className="font-black text-xl sm:text-2xl text-white leading-tight block truncate hover:text-[#8AD65A] transition-colors"
-        >
-          {product.name[lang]}
-        </Link>
-        <div className="flex items-center justify-between text-[11px] sm:text-xs">
-          <span className="text-white/50 font-bold block truncate max-w-[170px] sm:max-w-[210px]">
-            {product.genericName[lang] || product.genericName.en}
-          </span>
-          {product.formulation && (
-            <span className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 font-mono text-[9px] text-white/60">
-              {product.formulation}
-            </span>
-          )}
-        </div>
+        />
+        <motion.img
+          src={product.image}
+          alt={`${product.name} - ${product.category}`}
+          className="h-32 w-full object-contain relative z-10"
+          style={{
+            filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.4))',
+          }}
+          whileHover={{ scale: 1.08, y: -4 }}
+          transition={{ duration: 0.4 }}
+          loading="lazy"
+          width="200"
+          height="128"
+        />
       </div>
 
-      {/* Sizes list */}
-      {sizes.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-2.5 z-10">
-          {sizes.slice(0, 4).map((sz, idx) => (
-            <button
-              key={idx}
-              onClick={() => setSizeIdx(idx)}
-              className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[9px] sm:text-[10px] font-black border transition-all ${
-                sizeIdx === idx
-                  ? 'bg-white text-black border-white shadow-lg'
-                  : 'bg-white/5 text-white/70 border-white/5 hover:bg-white/10 hover:border-white/10'
-              }`}
-            >
-              {sz.size}
-            </button>
-          ))}
-        </div>
-      )}
+      {/* Info */}
+      <div className="px-3 pb-3 flex-1 flex flex-col justify-between">
+        <div>
+          {/* Product name */}
+          <h3 className="text-white font-extrabold text-sm leading-tight truncate">
+            {product.name}
+          </h3>
+          <p className="text-white/35 text-[10px] mt-0.5 mb-2 truncate font-mono">
+            {product.formula}
+          </p>
 
-      {/* Price row */}
-      <div className="flex items-center justify-between border-t border-white/5 pt-2.5 mt-2.5 sm:pt-3 sm:mt-3 z-10">
-        <div className="flex flex-col">
-          <span className="text-lg sm:text-xl font-black font-mono tracking-tight text-[#8AD65A]">
-            <RollingCardPrice price={displayedPrice} />
-          </span>
-          <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest mt-0.5" style={{ color: activeTheme.particle }}>
-            {currentSize.stockStatus === 'In Stock' ? 'IN STOCK' : 'LOW STOCK'}
-          </span>
+          {/* Size pills */}
+          <div className="flex gap-1 mb-3 flex-wrap">
+            {product.sizes?.slice(0, 3).map(size => (
+              <span key={size}
+                className="px-2 py-0.5 rounded-lg text-[9px] font-black
+                  bg-white/5 border border-white/10 text-white/50">
+                {size}
+              </span>
+            ))}
+          </div>
         </div>
 
-        {/* Quantity */}
-        <div className="flex items-center gap-2 bg-white/5 rounded-xl border border-white/10 p-1">
-          <button
-            onClick={() => setQty(q => Math.max(1, q - 1))}
-            className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-xs sm:text-sm text-white font-black transition-all active:scale-90"
+        <div>
+          {/* Price + Quantity */}
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <span className="text-[#5cb85c] font-black text-base font-mono">
+                PKR {product.price?.toLocaleString()}
+              </span>
+              <p className="text-[#5cb85c]/60 text-[9px] font-bold tracking-wider">IN STOCK</p>
+            </div>
+            <div className="flex items-center gap-1.5 bg-white/5 rounded-full border border-white/10 p-0.5">
+              <button 
+                onClick={() => setQty(q => Math.max(1, q - 1))}
+                className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 text-white/70 text-sm flex items-center justify-center transition-colors font-bold"
+              >
+                −
+              </button>
+              <span className="text-white text-xs font-black w-4 text-center font-mono">{qty}</span>
+              <button 
+                onClick={() => setQty(q => q + 1)}
+                className="w-6 h-6 rounded-full bg-[#2d6a2d] hover:bg-[#3d8c3d] text-white text-sm flex items-center justify-center transition-colors font-bold"
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          {/* BUY NOW COD Button */}
+          <motion.button
+            onClick={() => openCheckout({ ...product, defaultQty: qty })}
+            whileTap={{ scale: 0.97 }}
+            className="w-full py-2.5 rounded-xl font-black text-xs text-white uppercase tracking-wider
+              bg-gradient-to-r from-[#1e5c1e] to-[#2d6a2d]
+              border border-[rgba(92,184,92,0.3)]
+              hover:shadow-[0_0_20px_rgba(92,184,92,0.25)] transition-all duration-300"
           >
-            -
-          </button>
-          <span className="w-4 sm:w-5 text-center text-xs sm:text-sm font-black text-white font-mono">{qty}</span>
-          <button
-            onClick={() => setQty(q => q + 1)}
-            className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-xs sm:text-sm text-white font-black transition-all active:scale-90"
-          >
-            +
-          </button>
+            🛒 {lang === 'en' ? 'BUY NOW (COD)' : 'ابھی خریدیں (COD)'}
+          </motion.button>
         </div>
       </div>
-
-      {/* Actions */}
-      <div className="mt-2.5 sm:mt-3.5 z-10 flex gap-2 items-center">
-        {/* Wishlist toggle */}
-        <button
-          onClick={handleWishlistClick}
-          className={`p-2.5 sm:p-3 rounded-2xl border transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center ${
-            isWishlisted
-              ? 'border-red-500 bg-red-500/10 text-red-500'
-              : 'border-white/10 hover:bg-white/10 text-white/70'
-          }`}
-          aria-label="Toggle Wishlist"
-        >
-          <Heart className={`w-4 h-4 sm:w-4.5 sm:h-4.5 ${isWishlisted ? 'fill-current' : ''}`} />
-        </button>
-
-        {/* COD WhatsApp Button */}
-        <div className="flex-1">
-          <CODWhatsAppButton
-            product={product}
-            defaultSize={currentSize.size}
-            defaultQuantity={qty}
-            className="py-2.5 sm:py-3 text-[10px] sm:text-xs font-black rounded-2xl bg-green-600/10 hover:bg-green-600/20 border border-green-500/20 text-green-400"
-          />
-        </div>
-      </div>
-
-      <div className="mt-2 sm:mt-2.5 z-10">
-        <SlideToCart onSlideSuccess={handleSlideSuccess} lang={lang} />
-      </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -391,14 +326,45 @@ export default function Products() {
     return Object.values(PRODUCTS_DATA).filter(p => p.id);
   }, []);
 
+  const [checkoutProduct, setCheckoutProduct] = useState(null);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const openCheckout = (product) => {
+    setCheckoutProduct(product);
+    setIsCheckoutOpen(true);
+  };
+
+  const mappedProducts = useMemo(() => {
+    return products.map(p => {
+      const sizeInfo = p.sizes?.[0] || {};
+      const price = sizeInfo.price || p.price || 999;
+      const originalPrice = sizeInfo.oldPrice || null;
+      const discount = sizeInfo.discount || (originalPrice ? Math.round((1 - price / originalPrice) * 100) : null);
+      
+      const categoryLabel = getCategoryLabel(p.category);
+      const sizesList = p.sizes ? p.sizes.map(s => typeof s === 'object' ? s.size : s) : [p.packaging || '100ML'];
+
+      return {
+        ...p,
+        name: typeof p.name === 'object' ? (p.name[lang] || p.name.en) : p.name,
+        formula: p.activeIngredient || p.formulation || "",
+        image: p.pngUrl || p.imageUrl,
+        price,
+        originalPrice,
+        discount,
+        category: categoryLabel,
+        sizes: sizesList,
+      };
+    });
+  }, [products, lang]);
+
   // Filter products matching active criteria
   const filtered = useMemo(() => {
-    return products.filter(p => {
-      const matchCat = category === 'all' || p.category === category;
+    return mappedProducts.filter(p => {
+      const matchCat = category === 'all' || p.category.toLowerCase().replace(' ', '_') === category;
       
       const searchLower = search.toLowerCase();
       const matchSearch = !search || 
-        p.name[lang].toLowerCase().includes(searchLower) ||
+        p.name.toLowerCase().includes(searchLower) ||
         p.description[lang].toLowerCase().includes(searchLower) ||
         p.activeIngredient.toLowerCase().includes(searchLower);
 
@@ -406,109 +372,22 @@ export default function Products() {
         p.crops?.some(c => c.name.en.toLowerCase().includes(kw) || c.name.ur.includes(kw)) ||
         p.description.en.toLowerCase().includes(kw) ||
         p.description.ur.includes(kw) ||
-        p.name.en.toLowerCase().includes(kw)
+        p.name.toLowerCase().includes(kw)
       );
       
       return matchCat && matchSearch && matchCrop;
     });
-  }, [products, category, search, activeCrop, lang]);
+  }, [mappedProducts, category, search, activeCrop, lang]);
 
-  const activeProduct = filtered[activeIdx];
-
-  // Auto product rotation sequence every 7 seconds
-  useEffect(() => {
-    if (isHovered || filtered.length <= 1) return;
-
-    const rotationInterval = setInterval(() => {
-      const nextIdx = (activeIdx + 1) % filtered.length;
-      setActiveIdx(nextIdx);
-
-      if (containerRef.current) {
-        const container = containerRef.current;
-        const card = container.querySelector('.product-explorer-card');
-        if (card) {
-          container.scrollTo({
-            left: (card.offsetWidth + 32) * nextIdx,
-            behavior: 'smooth'
-          });
-        }
-      }
-    }, 7000); // 7 seconds
-
-    return () => clearInterval(rotationInterval);
-  }, [activeIdx, filtered, isHovered]);
-
-  // Dynamically compute layout background details from current card
-  const bgStyle = useMemo(() => {
-    if (!activeProduct) {
-      return {
-        bg: "radial-gradient(circle at center, #02140c 0%, #000000 100%)",
-        glow: "rgba(118, 201, 69, 0.25)",
-        particleColor: "#76C945"
-      };
-    }
-    const theme = PRODUCT_COLOR_THEMES[activeProduct.slug] || PRODUCT_COLOR_THEMES["fatty"];
-    return {
-      bg: `radial-gradient(circle at center, ${theme.glow.replace('0.4', '0.07')} 0%, #010604 100%)`,
-      glow: theme.glow,
-      particleColor: theme.particle
-    };
-  }, [activeProduct]);
-
-  // Track currently centered product index via scroll listener
-  const handleScroll = () => {
-    if (!containerRef.current) return;
-    const container = containerRef.current;
-    const cards = container.querySelectorAll('.product-explorer-card');
-    if (!cards || cards.length === 0) return;
-
-    const containerCenter = container.scrollLeft + container.offsetWidth / 2;
-    let closestIdx = 0;
-    let minDiff = Infinity;
-
-    cards.forEach((card, idx) => {
-      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-      const diff = Math.abs(containerCenter - cardCenter);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestIdx = idx;
-      }
-    });
-
-    if (closestIdx >= 0 && closestIdx < filtered.length && closestIdx !== activeIdx) {
-      setActiveIdx(closestIdx);
-    }
-  };
-
-  // Setup scroll listener on lane
-  useEffect(() => {
-    const container = containerRef.current;
-    if (container) {
-      container.addEventListener('scroll', handleScroll, { passive: true });
-      return () => container.removeEventListener('scroll', handleScroll);
-    }
-  }, [filtered, activeIdx]);
-
-  // Reset indices on filtering changes
-  useEffect(() => {
-    setActiveIdx(0);
-    if (containerRef.current) {
-      containerRef.current.scrollLeft = 0;
-    }
-  }, [category, search, activeCrop]);
-
-  const scrollLane = (dir) => {
-    if (!containerRef.current) return;
-    const container = containerRef.current;
-    const card = container.querySelector('.product-explorer-card');
-    if (!card) return;
-    const scrollAmount = (card.offsetWidth + 32) * dir;
-    container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+  const bgStyle = {
+    bg: "radial-gradient(circle at center, #02140c 0%, #000000 100%)",
+    glow: "rgba(92, 184, 92, 0.15)",
+    particleColor: "#5cb85c"
   };
 
   return (
     <div 
-      className="min-h-screen pt-20 text-white font-body transition-all duration-1000 overflow-x-hidden relative"
+      className="min-h-screen pt-20 text-white font-body transition-all duration-1000 overflow-x-hidden relative bg-[#0a1f0a]"
       style={{ background: bgStyle.bg }}
     >
       <SEOHead
@@ -588,6 +467,9 @@ export default function Products() {
         </div>
       </section>
 
+      {/* 3D Swipe Showroom Hero (Top of Products Page) */}
+      <ProductSwipe3D products={mappedProducts} openCheckout={openCheckout} />
+
       {/* Sticky Filtering Bar: Apple Store Navigation Pills */}
       <section className="py-4 border-y border-white/5 sticky top-20 z-30 bg-black/60 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -631,111 +513,39 @@ export default function Products() {
         </div>
       </section>
 
-      {/* Horizontal Product Explorer Section */}
-      <section className="py-6 sm:py-10 relative z-20 overflow-visible">
-        <div className="max-w-7xl mx-auto relative px-4 sm:px-6 lg:px-8">
-          
-          {/* Active Product Theme Indicator Badge */}
-          {filtered.length > 0 && activeProduct && (
-            <div className="mb-4 flex items-center justify-center gap-2">
-              <span className="h-2 w-2 rounded-full animate-ping" style={{ backgroundColor: bgStyle.particleColor }} />
-              <span className="text-[10px] font-mono uppercase tracking-widest text-white/50">
-                Vision Aura: <span className="font-bold text-white transition-colors duration-500" style={{ color: bgStyle.particleColor }}>{PRODUCT_COLOR_THEMES[activeProduct.slug]?.themeName || "Vital Green"}</span>
-              </span>
-            </div>
-          )}
-
-          {/* Explorer Lane Container */}
-          <div 
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            className="relative group/lane"
-          >
-            {/* Arrow Overlays for desktop */}
-            {filtered.length > 0 && (
-              <>
-                <button
-                  onClick={() => scrollLane(-1)}
-                  className="absolute left-[-16px] top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-black/50 hover:bg-black/75 border border-white/10 text-white flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-30 opacity-0 group-hover/lane:opacity-100 shadow-[0_0_20px_rgba(0,0,0,0.5)] cursor-pointer hidden md:flex"
-                  aria-label="Scroll left"
-                >
-                  <ChevronLeft size={24} />
-                </button>
-                <button
-                  onClick={() => scrollLane(1)}
-                  className="absolute right-[-16px] top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-black/50 hover:bg-black/75 border border-white/10 text-white flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-30 opacity-0 group-hover/lane:opacity-100 shadow-[0_0_20px_rgba(0,0,0,0.5)] cursor-pointer hidden md:flex"
-                  aria-label="Scroll right"
-                >
-                  <ChevronRight size={24} />
-                </button>
-              </>
-            )}
-
-            {/* Horizontal Snap Row */}
-            <div 
-              ref={containerRef}
-              className="flex overflow-x-auto snap-x snap-mandatory gap-6 sm:gap-8 py-4 px-2 md:px-6 scrollbar-none scroll-smooth relative z-20 w-full"
-              style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
-            >
-              {filtered.map((product, i) => (
-                <div
+      {/* Catalog grid section */}
+      <section className="py-10 relative z-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fadeIn">
+          {filtered.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {filtered.map((product) => (
+                <ProductGridCard
                   key={product.slug}
-                  className="snap-center flex-shrink-0"
-                >
-                  <ProductCard
-                    product={product}
-                    index={i}
-                    lang={lang}
-                    wishlist={wishlist}
-                    toggleWishlist={toggleWishlist}
-                    addToCart={addToCart}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Dots Indicator showing the active scroll position */}
-          {filtered.length > 1 && (
-            <div className="flex justify-center gap-2 mt-6 z-20 relative select-none">
-              {filtered.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => {
-                    if (containerRef.current) {
-                      const container = containerRef.current;
-                      const card = container.querySelector('.product-explorer-card');
-                      if (card) {
-                        container.scrollTo({
-                          left: (card.offsetWidth + 32) * idx,
-                          behavior: 'smooth'
-                        });
-                        setActiveIdx(idx);
-                      }
-                    }
-                  }}
-                  className={`h-1.5 rounded-full transition-all duration-500 ${
-                    activeIdx === idx 
-                      ? 'w-8 bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]' 
-                      : 'w-2 bg-white/20 hover:bg-white/40'
-                  }`}
-                  aria-label={`Slide to product ${idx + 1}`}
+                  product={product}
+                  openCheckout={openCheckout}
+                  lang={lang}
                 />
               ))}
             </div>
-          )}
-
-          {/* Empty state details */}
-          {filtered.length === 0 && (
-            <div className="text-center py-20 bg-white/5 rounded-3xl border border-white/10 p-8 max-w-xl mx-auto shadow-2xl backdrop-blur-md z-20 relative">
+          ) : (
+            <div className="text-center py-20 bg-white/5 rounded-3xl border border-white/10 p-8 max-w-xl mx-auto shadow-2xl backdrop-blur-md">
               <p className="text-white/60 text-sm font-bold">
                 {lang === 'en' ? 'No premium products found matching your filters.' : 'آپ کے معیار کے مطابق کوئی مصنوعات نہیں ملیں۔'}
               </p>
             </div>
           )}
-
         </div>
       </section>
+
+      {/* Checkout Wrapper */}
+      {checkoutProduct && isCheckoutOpen && (
+        <CheckoutWrapper
+          key={checkoutProduct.slug}
+          product={checkoutProduct}
+          isOpen={isCheckoutOpen}
+          setIsOpen={setIsCheckoutOpen}
+        />
+      )}
     </div>
   );
 }

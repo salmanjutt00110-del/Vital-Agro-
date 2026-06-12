@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { useLanguage } from '@/lib/LanguageContext';
+import SEOHead from '@/lib/seo/SEOHead';
 
 // Import Assets
 import vitalAgroLogo from '@/assets/vital agro logo.webp';
@@ -137,6 +138,11 @@ export default function Contact() {
 
   return (
     <div className="min-h-screen pt-20 bg-[#F4F7F5]" dir={isRTL ? "rtl" : "ltr"}>
+      <SEOHead
+        title="Contact Us | Vital Agro Chemical Industries"
+        description="Get in touch with Vital Agro. Send us a message, locate our Head Office, or connect via WhatsApp for inquiries."
+        url="https://vital-agro.vercel.app/contact"
+      />
       {/* Header */}
       <section className="bg-[#0A2E1F] py-24 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10" style={{
