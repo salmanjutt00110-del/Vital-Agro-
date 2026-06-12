@@ -37,8 +37,16 @@ const OrderTimeline = React.lazy(() => import('./pages/OrderTimeline'));
 const OrderSuccess = React.lazy(() => import('./pages/OrderSuccess'));
 
 const PageLoader = () => (
-  <div className="min-h-[60vh] flex items-center justify-center bg-[#F4F7F5] dark:bg-[#0A2E1F]">
-    <div className="w-10 h-10 rounded-full border-4 border-[#76C945] border-t-transparent animate-spin" />
+  <div className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-[#020d06]">
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(92,184,92,0.08)_0%,transparent_70%)] pointer-events-none" />
+    <div className="relative w-16 h-16 flex items-center justify-center">
+      <div className="absolute inset-0 rounded-full border-2 border-white/5" />
+      <div className="absolute inset-0 rounded-full border-t-2 border-[#5cb85c] animate-spin" style={{ animationDuration: '1s' }} />
+      <div className="w-8 h-8 rounded-full bg-[#5cb85c]/10 animate-pulse" />
+    </div>
+    <p className="mt-4 text-[10px] font-mono text-white/40 tracking-[0.2em] uppercase animate-pulse">
+      Loading Page...
+    </p>
   </div>
 );
 

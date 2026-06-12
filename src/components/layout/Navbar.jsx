@@ -1,7 +1,9 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Phone, MessageCircle, MapPin, Home, Info, ShoppingBag, Award, PhoneCall, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ShoppingBag } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useCart } from '@/lib/CartContext';
 import vitalAgroLogo from '@/assets/vital agro logo.webp';
@@ -10,275 +12,183 @@ import tagLogo from '@/assets/tag logo.webp';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const { pathname } = useLocation();
   const { lang, setLang, t } = useLanguage();
   const { cartCount, setIsCartOpen } = useCart();
 
-  const NAV_LINKS = [
-    { label: t.nav.home, path: '/', icon: Home },
-    { label: t.nav.about, path: '/about', icon: Info },
-    { label: t.nav.products, path: '/products', icon: ShoppingBag },
-    { label: t.nav.whyUs, path: '/why-us', icon: Award },
-    { label: t.nav.contact, path: '/contact', icon: MapPin },
-    { label: t.nav.aiScanner, path: '/ai-scanner', icon: Sparkles },
-  ];
-
   useEffect(() => {
-    const handleScroll = () => {
-      const nextScrolled = window.scrollY > 40;
-      setScrolled((prev) => (prev !== nextScrolled ? nextScrolled : prev));
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    const fn = () => setScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', fn, { passive: true });
+    return () => window.removeEventListener('scroll', fn);
   }, []);
 
+  // Close menu on route change
   useEffect(() => {
-    setMobileOpen(false);
-  }, [location]);
+    setMenuOpen(false);
+  }, [pathname]);
 
-  useEffect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [mobileOpen]);
-
-  const getWhatsAppGeneralLink = () => {
-    const phone = "923011837160";
-    const message = `Hello Vital Agro,
-
-I am interested in getting a quote / purchasing your products. Please provide pricing and catalog.
-
-Thank you.`;
-    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-  };
-
-  const whatsappUrl = getWhatsAppGeneralLink();
-
-  const isLight = false;
-  const navBg = scrolled
-    ? 'bg-black/85 backdrop-blur-[24px] border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.5),0_0_15px_rgba(92,184,92,0.15)]'
-    : 'bg-black/40 backdrop-blur-[16px] border-b border-white/5 shadow-md shadow-black/15';
-  const textColor = 'text-white/90';
+  const NAV_LINKS = [
+    { label: lang === 'ur' ? t.nav.home : 'Home', path: '/' },
+    { label: lang === 'ur' ? t.nav.about : 'About Us', path: '/about' },
+    { label: lang === 'ur' ? t.nav.products : 'Products', path: '/products' },
+    { label: lang === 'ur' ? t.nav.whyUs : 'Why Vital', path: '/why-us' },
+    { label: lang === 'ur' ? t.nav.contact : 'Contact', path: '/contact' },
+    { label: lang === 'ur' ? t.nav.aiScanner : 'AI Scanner', path: '/ai-scanner' },
+  ];
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${navBg}`} style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className={`flex items-center justify-between transition-all duration-300 ${scrolled ? 'h-16' : 'h-20'}`}>
-          {/* Logo cluster — Vital Agro + Vital Group + Tag */}
-          <Link to="/" className="flex items-center gap-3 group">
-            {/* Vital Agro Logo — always show original colors with enhanced visibility */}
-            <div className="relative flex items-center justify-center rounded-lg px-1 py-0.5 bg-white/15 backdrop-blur-md shadow-lg shadow-white/5">
+    <>
+      <nav
+        className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
+          scrolled
+            ? 'bg-[rgba(6,20,6,0.95)] backdrop-blur-[24px] border-b border-white/8 shadow-[0_4px_30px_rgba(0,0,0,0.4)]'
+            : 'bg-transparent'
+        }`}
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+      >
+        <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+          {/* LEFT: Logo */}
+          <Link to="/" className="flex items-center gap-3">
+            <div className="relative flex items-center justify-center rounded-lg px-1.5 py-0.5 bg-white/10 backdrop-blur-md">
               <img
                 src={vitalAgroLogo}
                 alt="Vital Agro Logo"
-                width="112"
-                height="48"
-                className="h-10 sm:h-12 w-auto object-contain transition-all duration-300 drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]"
+                className="h-9 w-auto object-contain transition-all duration-300 drop-shadow-[0_0_10px_rgba(255,255,255,0.25)]"
               />
             </div>
-            
-            {/* Desktop only logos */}
-            <div className="hidden lg:flex items-center gap-3">
-              <span className="h-8 w-px transition-colors duration-300 bg-white/30" />
-              {/* Vital Group Logo */}
-              <div className="relative flex items-center justify-center rounded-lg px-1 py-0.5 bg-white/10 backdrop-blur-md">
-                <img
-                  src={vitalGroupLogo}
-                  alt="Vital Group Logo"
-                  width="88"
-                  height="36"
-                  className="h-8 sm:h-9 w-auto object-contain transition-all duration-300 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]"
-                />
+            {/* Desktop: show group logos */}
+            <div className="hidden lg:flex items-center gap-3 border-l border-white/15 pl-3">
+              <div className="relative flex items-center justify-center rounded-lg px-1 py-0.5 bg-white/5 backdrop-blur-md">
+                <img src={vitalGroupLogo} alt="Vital Group" className="h-6 w-auto object-contain opacity-70" />
               </div>
-              <span className="h-6 w-px transition-colors duration-300 bg-white/20" />
-              {/* Tag Logo */}
-              <div className="relative flex items-center justify-center rounded-lg px-1 py-0.5 bg-white/10 backdrop-blur-md">
-                <img
-                  src={tagLogo}
-                  alt="Tag Logo"
-                  width="64"
-                  height="28"
-                  className="h-6 sm:h-7 w-auto object-contain transition-all duration-300 drop-shadow-[0_0_6px_rgba(255,255,255,0.3)]"
-                />
+              <div className="relative flex items-center justify-center rounded-lg px-1 py-0.5 bg-white/5 backdrop-blur-md">
+                <img src={tagLogo} alt="TAG" className="h-6 w-auto object-contain opacity-70" />
               </div>
             </div>
           </Link>
 
-          {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-1">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`relative px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-300 rounded-lg
-                  ${location.pathname === link.path
-                    ? 'text-white bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.08)]'
-                    : 'text-white/80 hover:text-[#8AD65A] hover:drop-shadow-[0_0_8px_rgba(138,214,90,0.5)]'
+          {/* CENTER: Desktop nav links */}
+          <div className="hidden md:flex items-center gap-1">
+            {NAV_LINKS.map((link) => {
+              const isActive = pathname === link.path;
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                    isActive
+                      ? 'text-[#5cb85c] bg-[rgba(92,184,92,0.12)]'
+                      : 'text-white/60 hover:text-white hover:bg-white/6'
                   }`}
-              >
-                {link.label}
-                {location.pathname === link.path && (
-                  <motion.div
-                    layoutId="nav-indicator"
-                    className="absolute bottom-0 left-4 right-4 h-0.5 bg-[#76C945] rounded-full shadow-[0_0_8px_#76C945]"
-                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                  />
-                )}
-              </Link>
-            ))}
-          </div>
-
-          {/* CTA + Language Switcher */}
-          <div className="hidden lg:flex items-center gap-3">
-            <a
-              href="tel:+920632253137"
-              className={`flex items-center gap-2 text-sm font-medium ${textColor} transition-colors hover:text-[#76C945]`}
-            >
-              <Phone className="w-4 h-4" />
-              <span>{t.nav.phone}</span>
-            </a>
-
-            {/* Cart Icon Toggle */}
-            <button
-              onClick={() => setIsCartOpen(true)}
-              className={`relative p-2 rounded-full border transition-all duration-300 hover:scale-105 active:scale-95
-                ${isLight
-                  ? 'border-[#0A2E1F]/20 text-[#0A2E1F] bg-[#0A2E1F]/5 hover:bg-[#0A2E1F]/10'
-                  : 'border-white/30 text-white bg-white/10 hover:bg-white/20'
-                }`}
-            >
-              <ShoppingBag className="w-4.5 h-4.5" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-[#76C945] text-[#0A2E1F] text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center border border-[#0A2E1F]/20 animate-pulse">
-                  {cartCount}
-                </span>
-              )}
-            </button>
-
-            {/* Language Switcher */}
-            <motion.button
-              onClick={() => setLang(lang === 'en' ? 'ur' : 'en')}
-              className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all duration-300 overflow-hidden
-                ${isLight
-                  ? 'border-[#0A2E1F]/20 text-[#0A2E1F] bg-[#0A2E1F]/5 hover:bg-[#0A2E1F]/10'
-                  : 'border-white/30 text-white bg-white/10 hover:bg-white/20'
-                }`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <AnimatePresence mode="wait">
-                <motion.span
-                  key={lang}
-                  initial={{ y: -12, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: 12, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="flex items-center gap-1"
                 >
-                  {lang === 'en' ? (
-                    <><span className="text-base leading-none">🇵🇰</span> اردو</>
-                  ) : (
-                    <><span className="text-base leading-none">🇬🇧</span> EN</>
-                  )}
-                </motion.span>
-              </AnimatePresence>
-            </motion.button>
-
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-5 py-2.5 btn-premium-primary text-sm font-extrabold rounded-full shadow-md"
-            >
-              {t.nav.getQuote}
-            </a>
+                  {link.label}
+                </Link>
+              );
+            })}
           </div>
 
-          {/* Mobile: Lang + Cart + Toggle */}
-          <div className="lg:hidden flex items-center gap-2">
+          {/* RIGHT: Actions */}
+          <div className="flex items-center gap-2">
+            {/* Cart */}
             <button
               onClick={() => setIsCartOpen(true)}
-              className={`relative w-12 h-12 flex items-center justify-center rounded-full border transition-all duration-200 active:scale-95
-                ${isLight ? 'border-[#0A2E1F]/20 text-[#0A2E1F] bg-[#0A2E1F]/5' : 'border-white/30 text-white bg-white/10'}`}
+              className="relative w-10 h-10 rounded-xl bg-white/6 border border-white/10 flex items-center justify-center hover:bg-white/12 transition-colors"
               aria-label="Open cart"
             >
-              <ShoppingBag className="w-4.5 h-4.5" />
+              <ShoppingBag className="w-4.5 h-4.5 text-white" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#76C945] text-[#0A2E1F] text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="absolute -top-1.5 -right-1.5 bg-[#5cb85c] text-[#0A2E1F] text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
                   {cartCount}
                 </span>
               )}
             </button>
-            <motion.button
-              onClick={() => setLang(lang === 'en' ? 'ur' : 'en')}
-              className={`w-12 h-12 flex items-center justify-center rounded-full text-xs font-bold border transition-all duration-200 active:scale-95
-                ${isLight ? 'border-[#0A2E1F]/20 text-[#0A2E1F] bg-[#0A2E1F]/5' : 'border-white/30 text-white bg-white/10'}`}
-              whileTap={{ scale: 0.9 }}
-              aria-label="Toggle language"
-            >
-              {lang === 'en' ? '🇵🇰' : '🇬🇧'}
-            </motion.button>
+
+            {/* Urdu toggle */}
             <button
-              onClick={() => setMobileOpen(true)}
-              className={`w-12 h-12 flex items-center justify-center rounded-lg transition-all duration-200 active:scale-95 ${textColor}`}
-              aria-label="Open menu"
+              onClick={() => setLang(lang === 'en' ? 'ur' : 'en')}
+              className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/10 text-white/60 text-xs font-semibold hover:border-white/25 hover:text-white transition-all"
             >
-              <Menu className="w-6 h-6" />
+              {lang === 'en' ? (
+                <>🇵🇰 اردو</>
+              ) : (
+                <>🇬🇧 EN</>
+              )}
+            </button>
+
+            {/* Get Quote CTA */}
+            <Link
+              to="/contact"
+              className="hidden md:flex items-center px-4 py-2 rounded-xl bg-[#2d6a2d] text-white text-sm font-bold hover:bg-[#3d8c3d] transition-colors shadow-[0_0_20px_rgba(92,184,92,0.25)]"
+            >
+              {lang === 'en' ? 'Get a Quote' : 'رابطہ کریں'}
+            </Link>
+
+            {/* THREE-DOT HAMBURGER — Mobile only */}
+            <button
+              onClick={() => setMenuOpen((o) => !o)}
+              className="md:hidden flex flex-col items-center justify-center w-10 h-10 rounded-xl bg-white/6 border border-white/10 hover:bg-white/12 transition-colors gap-[5px]"
+              aria-label="Menu"
+            >
+              <motion.div
+                animate={menuOpen ? { rotate: 45, y: 7 } : { rotate: 0, y: 0 }}
+                className="w-5 h-[2px] bg-white/80 rounded-full origin-center"
+              />
+              <motion.div
+                animate={menuOpen ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }}
+                className="w-3.5 h-[2px] bg-white/80 rounded-full"
+              />
+              <motion.div
+                animate={menuOpen ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }}
+                className="w-5 h-[2px] bg-white/80 rounded-full origin-center"
+              />
             </button>
           </div>
         </div>
-      </div>
+      </nav>
 
-      {/* Mobile Menu Drawer */}
+      {/* MOBILE MENU DRAWER */}
       <AnimatePresence>
-        {mobileOpen && (
+        {menuOpen && (
           <>
             {/* Backdrop */}
             <motion.div
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setMobileOpen(false)}
-              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+              onClick={() => setMenuOpen(false)}
             />
 
-            {/* Drawer Panel */}
+            {/* Drawer */}
             <motion.div
+              className="fixed top-0 right-0 bottom-0 z-50 w-[280px] md:hidden flex flex-col overflow-y-auto"
+              style={{
+                background: 'rgba(6,20,6,0.98)',
+                backdropFilter: 'blur(40px)',
+                borderLeft: '1px solid rgba(255,255,255,0.08)',
+                boxShadow: '-20px 0 60px rgba(0,0,0,0.6)',
+              }}
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 h-full w-[300px] xs:w-[320px] bg-[#0A2E1F]/95 backdrop-blur-3xl border-l border-white/10 z-50 shadow-2xl flex flex-col pt-6 overflow-y-auto select-none text-white"
-              style={{ 
-                paddingTop: 'calc(env(safe-area-inset-top, 0px) + 24px)',
-                paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)'
-              }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             >
-              {/* Drawer Header */}
-              <div className="flex items-center justify-between px-6 pb-4 border-b border-white/10">
-                <span className="text-sm font-black tracking-widest text-[#76C945] uppercase">
-                  {lang === 'en' ? 'Vital Menu' : 'مینو'}
-                </span>
+              {/* Drawer header */}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-white/8">
+                <img src={vitalAgroLogo} alt="Vital Agro" className="h-8 w-auto object-contain bg-white/10 p-1 rounded-lg" />
                 <button
-                  onClick={() => setMobileOpen(false)}
-                  className="w-12 h-12 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-all active:scale-95"
-                  aria-label="Close menu"
+                  onClick={() => setMenuOpen(false)}
+                  className="w-9 h-9 rounded-xl bg-white/8 text-white/60 hover:text-white flex items-center justify-center text-lg"
                 >
-                  <X className="w-5 h-5" />
+                  ✕
                 </button>
               </div>
 
-              {/* Navigation Links */}
-              <div className="flex-1 px-4 py-6 space-y-2">
+              {/* Nav links — TEXT ONLY, NO EMOJIS */}
+              <div className="flex-1 px-4 py-6 space-y-1">
                 {NAV_LINKS.map((link, i) => {
-                  const LinkIcon = link.icon;
-                  const isActive = location.pathname === link.path;
+                  const isActive = pathname === link.path;
                   return (
                     <motion.div
                       key={link.path}
@@ -288,79 +198,75 @@ Thank you.`;
                     >
                       <Link
                         to={link.path}
-                        onClick={() => setMobileOpen(false)}
-                        className={`flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-base font-bold transition-all duration-300
-                          ${isActive
-                            ? 'bg-[#76C945]/20 text-[#8AD65A] border-l-4 border-[#76C945] pl-3.5'
-                            : 'text-white/80 hover:bg-white/5 hover:text-white'
-                          }`}
+                        className={`flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all duration-200 ${
+                          isActive
+                            ? 'bg-[rgba(92,184,92,0.18)] text-[#5cb85c] border border-[rgba(92,184,92,0.25)]'
+                            : 'text-white/70 hover:text-white hover:bg-white/6'
+                        }`}
                       >
-                        <LinkIcon className={`w-5 h-5 ${isActive ? 'text-[#8AD65A]' : 'text-white/60'}`} />
                         <span>{link.label}</span>
+                        {isActive && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#5cb85c] shadow-[0_0_6px_rgba(92,184,92,0.8)]" />
+                        )}
                       </Link>
                     </motion.div>
                   );
                 })}
               </div>
 
-              {/* Utility Quick Action Grid */}
-              <div className="px-6 py-6 border-t border-white/10 space-y-4 bg-black/20 pb-12">
-                <span className="text-[10px] text-white/40 block font-black uppercase tracking-widest px-2">
-                  {lang === 'en' ? 'Quick Operations' : 'فوری روابط'}
-                </span>
-                
+              {/* Quick actions */}
+              <div className="px-4 pb-8 border-t border-white/8 pt-4 space-y-4">
+                <p className="text-white/30 text-[10px] uppercase tracking-widest px-2">
+                  {lang === 'en' ? 'Quick Actions' : 'فوری روابط'}
+                </p>
                 <div className="grid grid-cols-2 gap-2.5">
-                  {/* Call Office */}
-                  <a
-                    href="tel:+920632253137"
-                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-center group min-h-[48px]"
-                  >
-                    <PhoneCall className="w-5 h-5 text-[#8AD65A] mb-1 group-hover:scale-110 transition-transform" />
-                    <span className="text-xs font-black text-white/90">{lang === 'en' ? 'Call Office' : 'دفتر کال کریں'}</span>
-                    <span className="text-[9px] text-white/40 mt-0.5">063-2253137</span>
-                  </a>
-
-                  {/* WhatsApp Support */}
-                  <a
-                    href={`https://wa.me/923011837160?text=${encodeURIComponent(lang === 'ur' ? 'سلام وائٹل ایگرو، مجھے معلومات درکار ہیں۔' : 'Hello Vital Agro, I need some information.')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-center group min-h-[48px]"
-                  >
-                    <MessageCircle className="w-5 h-5 text-green-400 mb-1 group-hover:scale-110 transition-transform" />
-                    <span className="text-xs font-black text-white/90">{lang === 'en' ? 'WhatsApp Support' : 'واٹس ایپ رابطہ'}</span>
-                    <span className="text-[9px] text-white/40 mt-0.5">0301-1837160</span>
-                  </a>
-
-                  {/* Google Maps directions */}
-                  <a
-                    href="https://www.google.com/maps/dir/?api=1&destination=Plot+No.+50+%26+56%2C+Vital+Office%2C+Haroonabad%2C+Distt.+Bahawalnagar%2C+Pakistan"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-center group min-h-[48px]"
-                  >
-                    <MapPin className="w-5 h-5 text-[#C5A059] mb-1 group-hover:scale-110 transition-transform" />
-                    <span className="text-xs font-black text-white/90">{lang === 'en' ? 'Get Directions' : 'لوکیشن نقشہ'}</span>
-                    <span className="text-[9px] text-white/40 mt-0.5">Haroonabad</span>
-                  </a>
-
-                  {/* Get Quote / Inquiry */}
-                  <a
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-[#76C945]/10 border border-[#76C945]/30 hover:bg-[#76C945]/20 transition-all text-center group min-h-[48px]"
-                  >
-                    <Award className="w-5 h-5 text-[#8AD65A] mb-1 group-hover:scale-110 transition-transform" />
-                    <span className="text-xs font-black text-[#8AD65A]">{lang === 'en' ? 'Get Quote' : 'کوٹیشن حاصل کریں'}</span>
-                    <span className="text-[9px] text-[#8AD65A]/60 mt-0.5">{lang === 'en' ? 'Instant Request' : 'فوری رابطہ'}</span>
-                  </a>
+                  {[
+                    { label: lang === 'en' ? 'Call Office' : 'دفتر کال کریں', sub: '063-2253137', action: 'tel:0632253137' },
+                    { label: lang === 'en' ? 'WhatsApp' : 'واٹس ایپ', sub: '0301-1837160', action: 'https://wa.me/923011837160' },
+                    { 
+                      label: lang === 'en' ? 'Get Directions' : 'لوکیشن نقشہ', 
+                      sub: 'Haroonabad', 
+                      action: 'https://www.google.com/maps/dir/?api=1&destination=Plot+No.+50+%26+56%2C+Vital+Office%2C+Haroonabad%2C+Distt.+Bahawalnagar%2C+Pakistan' 
+                    },
+                    { label: lang === 'en' ? 'Get Quote' : 'کوٹیشن', sub: 'Instant', action: '/contact', highlight: true },
+                  ].map((item) => (
+                    <a
+                      key={item.label}
+                      href={item.action}
+                      target={item.action.startsWith('http') ? '_blank' : '_self'}
+                      rel="noopener noreferrer"
+                      className={`p-3 rounded-2xl border text-left transition-all duration-200 ${
+                        item.highlight
+                          ? 'bg-[rgba(45,106,45,0.3)] border-[rgba(92,184,92,0.4)] text-[#5cb85c]'
+                          : 'bg-white/4 border-white/8 text-white/60'
+                      }`}
+                    >
+                      <p className="text-xs font-bold">{item.label}</p>
+                      <p className="text-[10px] opacity-60 mt-0.5">{item.sub}</p>
+                    </a>
+                  ))}
                 </div>
+
+                {/* Mobile Language Toggle */}
+                <button
+                  onClick={() => setLang(lang === 'en' ? 'ur' : 'en')}
+                  className="w-full py-3 rounded-2xl text-center font-bold text-xs border border-white/10 text-white/80 hover:bg-white/5 transition-all"
+                >
+                  {lang === 'en' ? '🇵🇰 بدلیئے برائے اردو' : '🇬🇧 Switch to English'}
+                </button>
+
+                {/* Become a dealer */}
+                <Link
+                  to="/contact"
+                  className="block w-full py-3.5 rounded-2xl text-center font-bold text-sm text-white bg-gradient-to-r from-[#1e5c1e] to-[#2d7a2d] shadow-[0_0_20px_rgba(92,184,92,0.2)]"
+                >
+                  {lang === 'en' ? 'Become a Dealer' : 'ڈیلر بنیں'}
+                </Link>
               </div>
             </motion.div>
           </>
         )}
       </AnimatePresence>
-    </nav>
+    </>
   );
 }

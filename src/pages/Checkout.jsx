@@ -21,6 +21,7 @@ import {
 import { getDeliveryFee } from '@/lib/payment/config';
 import { PaymentMethodGrid } from '@/components/checkout/PaymentMethodGrid';
 import { useCart } from '@/lib/CartContext';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const PROVINCES = [
   'Punjab',
@@ -52,6 +53,7 @@ const FormField = ({ label, required, error, ...props }) => (
 
 export default function CheckoutPage({ product: rawProduct, defaultSize, defaultQuantity, onClose }) {
   const { cart, cartSubtotal, cartCount, clearCart } = useCart();
+  const { lang } = useLanguage();
   const [step, setStep] = useState(0); // Steps: 0 = Cart, 1 = Info, 2 = Address, 3 = Payment, 4 = Review, 5 = Success
   const [selectedSize, setSize] = useState(defaultSize || '100ML');
   const [quantity, setQty] = useState(defaultQuantity || 1);

@@ -1,17 +1,14 @@
 import React, { Suspense } from 'react';
-const ProductSwipeShowroom = React.lazy(() => import('../sections/ProductSwipeShowroom'));
-import { PRODUCTS_DATA } from '@/data/productsData';
+const ProductShowcase = React.lazy(() => import('../sections/ProductShowcase'));
 
 export default function ProductsShowcase() {
-  const products = Object.values(PRODUCTS_DATA).filter(p => p.id);
-  
   return (
     <Suspense fallback={
       <div className="h-[400px] flex items-center justify-center bg-[#02140c] text-white/40 text-xs tracking-widest font-black uppercase">
         Loading Collection Stage...
       </div>
     }>
-      <ProductSwipeShowroom products={products} />
+      <ProductShowcase />
     </Suspense>
   );
 }

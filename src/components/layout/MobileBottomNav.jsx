@@ -2,53 +2,62 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-const BOTTOM_TABS = [
-  { label: 'Home',     icon: '🏠', path: '/'         },
-  { label: 'Products', icon: '🧪', path: '/products' },
-  { label: 'Spacer',   icon: '',   path: '#', isSpacer: true },
-  { label: 'Scanner',  icon: '🤖', path: '/ai-scanner'},
-  { label: 'Contact',  icon: '📍', path: '/contact'  },
+const TABS = [
+  { label: 'Home',     path: '/' },
+  { label: 'Products', path: '/products' },
+  { label: 'Scanner',  path: '/ai-scanner' },
+  { label: 'Contact',  path: '/contact' },
 ];
 
 export const MobileBottomNav = () => {
-  const location = useLocation();
+  const { pathname } = useLocation();
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 md:hidden safe-bottom"
+    <nav
+      className="fixed bottom-0 inset-x-0 z-40 md:hidden safe-bottom"
       style={{
-        background: 'rgba(6,20,6,0.96)',
-        backdropFilter: 'blur(24px)',
-        borderTop: '1px solid rgba(255,255,255,0.08)',
+        background: 'rgba(5,16,5,0.97)',
+        backdropFilter: 'blur(28px)',
+        borderTop: '1px solid rgba(255,255,255,0.07)',
+        paddingBottom: 'env(safe-area-inset-bottom, 8px)',
       }}
     >
-      <div className="flex items-center justify-around px-2 pt-2 pb-1">
-        {BOTTOM_TABS.map((tab, idx) => {
-          if (tab.isSpacer) {
-            return <div key="spacer" className="w-14 h-10 shrink-0" />;
-          }
+      <div className="flex items-center justify-around">
+        {TABS.map((tab) => {
+          const isActive =
+            pathname === tab.path ||
+            (tab.path !== '/' && pathname.startsWith(tab.path));
 
-          const isActive = location.pathname === tab.path;
           return (
-            <Link key={tab.path} to={tab.path}
-              className="flex flex-col items-center gap-1 py-1 px-3 rounded-2xl
-                transition-all duration-200 min-w-[60px]"
-              style={{
-                background: isActive ? 'rgba(45,106,45,0.25)' : 'transparent',
-              }}
+            <Link
+              key={tab.path}
+              to={tab.path}
+              className="flex-1 flex flex-col items-center py-2.5 relative min-h-[56px] justify-center"
             >
-              <motion.span
-                className="text-lg"
-                animate={{ scale: isActive ? 1.15 : 1 }}
-                style={{
-                  filter: isActive
-                    ? 'drop-shadow(0 0 6px rgba(92,184,92,0.8))'
-                    : 'none',
-                }}
+              {/* Active background pill */}
+              {isActive && (
+                <motion.div
+                  layoutId="bottom-tab-bg"
+                  className="absolute inset-x-2 top-1 bottom-1 rounded-2xl bg-[rgba(45,106,45,0.2)]"
+                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                />
+              )}
+
+              {/* Active top line */}
+              {isActive && (
+                <motion.div
+                  layoutId="bottom-tab-line"
+                  className="absolute top-0 inset-x-6 h-[2px] rounded-full bg-[#5cb85c]"
+                  style={{ boxShadow: '0 0 8px rgba(92,184,92,0.8)' }}
+                />
+              )}
+
+              {/* Label — TEXT ONLY, CLEAN */}
+              <span
+                className={`relative z-10 text-xs font-semibold transition-all duration-300 ${
+                  isActive ? 'text-[#5cb85c]' : 'text-white/40'
+                }`}
               >
-                {tab.icon}
-              </motion.span>
-              <span className={`text-[9px] font-semibold
-                ${isActive ? 'text-[#5cb85c]' : 'text-white/35'}`}>
                 {tab.label}
               </span>
             </Link>
