@@ -8,20 +8,8 @@ import { PRODUCTS_DATA } from '@/data/productsData';
 import { useCart } from '@/lib/CartContext';
 import SEOHead from '@/lib/seo/SEOHead';
 import ProductSwipe3D from '@/components/sections/ProductSwipe3D';
-import CheckoutPage from './Checkout';
+import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
-
-const CheckoutWrapper = ({ product, isOpen, setIsOpen }) => {
-  if (!isOpen) return null;
-  return (
-    <AnimatePresence>
-      <CheckoutPage
-        product={product}
-        onClose={() => setIsOpen(false)}
-      />
-    </AnimatePresence>
-  );
-};
 
 // Psychological Pricing Helper: Rounds up price to end with 99
 const formatPsychologicalPrice = (price) => {
@@ -323,11 +311,9 @@ export default function Products() {
     return Object.values(PRODUCTS_DATA).filter(p => p.id);
   }, []);
 
-  const [checkoutProduct, setCheckoutProduct] = useState(null);
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const navigate = useNavigate();
   const openCheckout = (product) => {
-    setCheckoutProduct(product);
-    setIsCheckoutOpen(true);
+    navigate(`/checkout?product=${product.slug || product.id}`);
   };
 
   const mappedProducts = useMemo(() => {
@@ -534,15 +520,6 @@ export default function Products() {
         </div>
       </section>
 
-      {/* Checkout Wrapper */}
-      {checkoutProduct && isCheckoutOpen && (
-        <CheckoutWrapper
-          key={checkoutProduct.slug}
-          product={checkoutProduct}
-          isOpen={isCheckoutOpen}
-          setIsOpen={setIsCheckoutOpen}
-        />
-      )}
     </div>
   );
 }

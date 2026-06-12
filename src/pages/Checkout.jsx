@@ -1,27 +1,18 @@
 'use client';
-import React, { useState, useCallback } from 'react';
+
+import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createOrder } from '@/lib/firestore/orders';
 import { buildOrderMessage } from '@/lib/whatsapp';
-import OrderConfirmButton from '@/components/animations/OrderConfirmButton';
-import toast from 'react-hot-toast';
-import confetti from 'canvas-confetti';
-import { 
-  ShoppingBag, 
-  User, 
-  MapPin, 
-  CreditCard, 
-  CheckSquare, 
-  ChevronLeft, 
-  ChevronRight, 
-  Home, 
-  Clock, 
-  Gift
-} from 'lucide-react';
-import { getDeliveryFee } from '@/lib/payment/config';
+import { getDeliveryFee, PAYMENT_METHODS } from '@/lib/payment/config';
 import { PaymentMethodGrid } from '@/components/checkout/PaymentMethodGrid';
 import { useCart } from '@/lib/CartContext';
 import { useLanguage } from '@/lib/LanguageContext';
+import { PRODUCTS_DATA } from '@/data/productsData';
+import { TruckPreloader } from '@/components/Preloader/TruckPreloader';
+import toast from 'react-hot-toast';
+import { ShoppingBag, User, MapPin, CreditCard, Gift, ShieldCheck, Truck } from 'lucide-react';
 
 const PROVINCES = [
   'Punjab',
@@ -51,604 +42,560 @@ const FormField = ({ label, required, error, ...props }) => (
   </div>
 );
 
-export default function CheckoutPage({ product: rawProduct, defaultSize, defaultQuantity, onClose }) {
-  const { cart, cartSubtotal, cartCount, clearCart } = useCart();
+export default function CheckoutPage() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { lang } = useLanguage();
-  const [step, setStep] = useState(0); // Steps: 0 = Cart, 1 = Info, 2 = Address, 3 = Payment, 4 = Review, 5 = Success
-  const [selectedSize, setSize] = useState(defaultSize || '100ML');
-  const [quantity, setQty] = useState(defaultQuantity || 1);
+  const { cart, cartSubtotal, cartCount, clearCart } = useCart();
+
+  const productSlug = searchParams.get('product');
+  const sizeParam = searchParams.get('size');
+  const qtyParam = searchParams.get('qty');
+
+  const rawProduct = useMemo(() => {
+    if (!productSlug) return null;
+    return PRODUCTS_DATA[productSlug] || Object.values(PRODUCTS_DATA).find(p => p.slug === productSlug);
+  }, [productSlug]);
+
+  const [selectedSize, setSize] = useState(sizeParam || '');
+  const [quantity, setQty] = useState(qtyParam ? parseInt(qtyParam, 10) : 1);
   const [payment, setPayment] = useState('cod');
   const [orderId, setOrderId] = useState(null);
   const [isOrdering, setIsOrdering] = useState(false);
+  const [preloaderDone, setPreloaderDone] = useState(false);
 
   const [form, setForm] = useState({
-    fullName: '', phone: '', city: '',
-    province: 'Punjab', postal: '', address: '', instructions: '',
+    fullName: '',
+    phone: '',
+    city: '',
+    province: 'Punjab',
+    postal: '',
+    address: '',
+    instructions: '',
   });
   const [errors, setErrors] = useState({});
 
-  // Normalize product details
-  const product = React.useMemo(() => {
+  // Initialize selected size if product is loaded
+  useEffect(() => {
+    if (rawProduct) {
+      const sizesList = rawProduct.sizes
+        ? rawProduct.sizes.map(s => typeof s === 'object' ? s.size : s)
+        : [rawProduct.packaging || '100ML'];
+      if (!selectedSize && sizesList.length > 0) {
+        setSize(sizeParam || sizesList[0]);
+      }
+    }
+  }, [rawProduct, selectedSize, sizeParam]);
+
+  // Compute selected product details
+  const product = useMemo(() => {
     if (!rawProduct) return null;
-    const sizesList = rawProduct.sizes 
-      ? rawProduct.sizes.map(s => typeof s === 'object' ? s.size : s) 
+    const sizesList = rawProduct.sizes
+      ? rawProduct.sizes.map(s => typeof s === 'object' ? s.size : s)
       : [rawProduct.packaging || '100ML'];
-      
+
     let price = rawProduct.price || 999;
     if (rawProduct.sizes) {
       const sizeObj = rawProduct.sizes.find(s => (typeof s === 'object' ? s.size : s) === selectedSize);
       if (sizeObj && sizeObj.price) {
         price = sizeObj.price;
+      } else if (sizeObj && sizeObj.rate && sizeObj.rate !== "Negotiable") {
+        price = Number(sizeObj.rate);
       }
     }
 
     return {
       ...rawProduct,
-      name: typeof rawProduct.name === 'object' ? (rawProduct.name.en || rawProduct.name.ur) : rawProduct.name,
-      image: rawProduct.image || rawProduct.pngUrl || rawProduct.imageUrl || '',
+      name: typeof rawProduct.name === 'object' ? (rawProduct.name[lang] || rawProduct.name.en) : rawProduct.name,
+      image: `/products/${rawProduct.slug}.png`,
       formula: rawProduct.formula || rawProduct.activeIngredient || rawProduct.formulation || '',
       sizes: sizesList,
       price,
     };
-  }, [rawProduct, selectedSize]);
+  }, [rawProduct, selectedSize, lang]);
 
-  // Recalculate Shipping and Totals based on rules
-  const delivery = React.useMemo(() => {
-    return getDeliveryFee(payment);
-  }, [payment]);
-
-  const rewardMessage = React.useMemo(() => {
-    if (payment === 'jazzcash') {
-      return '🎉 Congratulations! You unlocked FREE Delivery.';
-    }
-    if (payment === 'easypaisa') {
-      return '🎉 Instant Payment Reward: FREE Shipping Applied.';
-    }
-    if (payment === 'meezan') {
-      return '🎉 Bank Transfer Reward: FREE Shipping Enabled.';
-    }
-    return '';
-  }, [payment]);
-
-  const subtotal = product ? ((product.price || 0) * quantity) : cartSubtotal;
+  // Calculate pricing breakdown
+  const subtotal = product ? (product.price * quantity) : cartSubtotal;
+  const delivery = getDeliveryFee(payment);
   const grandTotal = subtotal + delivery;
 
-  const update = (k, v) => setForm(p => ({ ...p, [k]: v }));
-
-  const validateStep = (currentStep) => {
-    const e = {};
-    if (currentStep === 1) {
-      if (!form.fullName.trim()) e.fullName = 'Full name is required';
-      if (!form.phone.trim()) e.phone = 'Phone number is required';
-      else if (!/^03\d{9}$/.test(form.phone.replace(/[\s-]/g, ''))) {
-        e.phone = 'Please enter a valid phone number (e.g. 03001234567)';
-      }
+  const updateField = (key, value) => {
+    setForm(prev => ({ ...prev, [key]: value }));
+    if (errors[key]) {
+      setErrors(prev => ({ ...prev, [key]: null }));
     }
-    if (currentStep === 2) {
-      if (!form.city.trim()) e.city = 'City is required';
-      if (!form.address.trim()) e.address = 'Complete delivery address is required';
+  };
+
+  const validateForm = () => {
+    const e = {};
+    if (!form.fullName.trim()) {
+      e.fullName = lang === 'en' ? 'Full name is required' : 'مکمل نام درج کرنا ضروری ہے';
+    }
+    if (!form.phone.trim()) {
+      e.phone = lang === 'en' ? 'Phone number is required' : 'فون نمبر درج کرنا ضروری ہے';
+    } else if (!/^03\d{9}$/.test(form.phone.replace(/[\s-]/g, ''))) {
+      e.phone = lang === 'en'
+        ? 'Please enter a valid phone number (e.g. 03001234567)'
+        : 'درست فون نمبر درج کریں (جیسے 03001234567)';
+    }
+    if (!form.city.trim()) {
+      e.city = lang === 'en' ? 'City is required' : 'شہر کا نام درج کرنا ضروری ہے';
+    }
+    if (!form.address.trim()) {
+      e.address = lang === 'en' ? 'Complete delivery address is required' : 'مکمل پتہ درج کرنا ضروری ہے';
     }
     setErrors(e);
-    return !Object.keys(e).length;
+    return Object.keys(e).length === 0;
   };
 
-  const handleNext = () => {
-    if (validateStep(step)) {
-      setStep(prev => prev + 1);
-    } else {
-      toast.error('Please resolve the errors to continue');
+  const handleComplete = async () => {
+    if (!validateForm()) {
+      toast.error(lang === 'en' ? 'Please complete all required fields correctly.' : 'برائے مہربانی تمام فیلڈز درست طریقے سے پُر کریں۔');
+      return;
     }
-  };
 
-  const handleBack = () => {
-    setStep(prev => Math.max(0, prev - 1));
-  };
-
-  const handleComplete = useCallback(async () => {
-    if (isOrdering) return;
     setIsOrdering(true);
+    setPreloaderDone(false);
 
-    const productName = product ? product.name : cart.map(item => `${item.name[lang] || item.name} (${item.size.size})`).join(', ');
-    const productImage = product ? (product.image || '') : (cart[0]?.pngUrl || cart[0]?.imageUrl || '');
+    const productName = product
+      ? product.name
+      : cart.map(item => `${item.name[lang] || item.name} (${item.size.size})`).join(', ');
+
+    const productImage = product
+      ? (product.image || '')
+      : (cart[0]?.pngUrl || cart[0]?.imageUrl || '');
+
     const packSize = product ? selectedSize : 'Multiple';
     const finalQty = product ? quantity : cartCount;
-    const finalPricePerUnit = product ? (product.price || 0) : 0;
+    const finalPricePerUnit = product ? product.price : 0;
 
     const orderData = {
       productName,
       productImage,
-      category:      product ? (product.category || 'Special Product') : 'Multiple Products',
+      category: product ? (product.category || 'Special Product') : 'Multiple Products',
       packSize,
-      quantity:      finalQty,
-      pricePerUnit:  finalPricePerUnit,
+      quantity: finalQty,
+      pricePerUnit: finalPricePerUnit,
       subtotal,
       deliveryCharge: delivery,
       grandTotal,
       paymentMethod: payment,
-      customerName:  form.fullName,
+      customerName: form.fullName,
       customerPhone: form.phone,
-      city:          form.city,
-      province:      form.province,
-      postalCode:    form.postal,
-      address:       form.address,
-      instructions:  form.instructions,
-      whatsappSent:  true,
-      source:        'website_checkout',
-      ...(!product && { items: cart.map(item => ({
-        id: item.id,
-        name: item.name[lang] || item.name,
-        size: item.size.size,
-        quantity: item.quantity,
-        price: Number(item.size.price || item.size.rate || 0)
-      }))})
+      city: form.city,
+      province: form.province,
+      postalCode: form.postal,
+      address: form.address,
+      instructions: form.instructions,
+      whatsappSent: true,
+      source: 'website_checkout',
+      ...(!product && {
+        items: cart.map(item => ({
+          id: item.id,
+          name: item.name[lang] || item.name,
+          size: item.size.size,
+          quantity: item.quantity,
+          price: Number(item.size.price || item.size.rate || 0)
+        }))
+      })
     };
 
     try {
-      const orderId = await createOrder(orderData).catch(err => {
+      const generatedId = await createOrder(orderData).catch(err => {
         console.error(err);
         return 'VA-' + Math.floor(100000 + Math.random() * 900000);
       });
+      setOrderId(generatedId);
+    } catch (err) {
+      console.error(err);
+      toast.error(lang === 'en' ? 'Order placement failed, trying fallback...' : 'آرڈر ڈیٹا بیس میں محفوظ نہیں ہوسکا، متبادل طریقہ آزمایا جا رہا ہے۔');
+      setOrderId('VA-' + Math.floor(100000 + Math.random() * 900000));
+    }
+  };
 
-      setOrderId(orderId);
-      setStep(5); // Transition to success step
+  // Check if both order storage and preloader are completed to redirect
+  useEffect(() => {
+    if (isOrdering && orderId && preloaderDone) {
+      const productName = product
+        ? product.name
+        : cart.map(item => `${item.name[lang] || item.name} (${item.size.size})`).join(', ');
 
-      // Launch beautiful confetti
-      confetti({
-        particleCount: 150,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ['#76C945', '#8AD65A', '#FFFFFF']
-      });
+      const packSize = product ? selectedSize : 'Multiple';
+      const finalQty = product ? quantity : cartCount;
+
+      const orderDataForWA = {
+        orderNumber: orderId,
+        productName,
+        packSize,
+        quantity: finalQty,
+        subtotal,
+        deliveryCharge: delivery,
+        grandTotal,
+        paymentMethod: payment,
+        customerName: form.fullName,
+        customerPhone: form.phone,
+        city: form.city,
+        province: form.province,
+        address: form.address,
+        instructions: form.instructions
+      };
+
+      const waUrl = buildOrderMessage(orderDataForWA);
+
+      // Open WhatsApp prefilled message
+      window.open(waUrl, '_blank');
 
       if (!product) {
         clearCart();
       }
 
-      // Build and open WhatsApp pre-filled dispatch order url
-      const waUrl = buildOrderMessage({ ...orderData, orderNumber: orderId });
-      setTimeout(() => {
-        window.open(waUrl, '_blank');
-      }, 1000);
-
-    } catch (err) {
-      toast.error('Failed to complete order. Please try again.');
-    } finally {
-      setIsOrdering(false);
+      // Navigate to order success route
+      navigate(`/order-success/${orderId}`);
     }
-  }, [form, product, selectedSize, quantity, subtotal, delivery, grandTotal, payment, isOrdering, cart, cartCount, lang, clearCart]);
+  }, [orderId, preloaderDone, isOrdering, product, selectedSize, quantity, cartCount, subtotal, delivery, grandTotal, payment, form, clearCart, navigate, lang]);
 
-  // Page title metadata mapping
-  const stepsTitles = [
-    { 
-      title: product ? 'Review Your Selection' : 'Review Your Cart', 
-      subtitle: product ? 'Confirm package size and quantity' : 'Verify items in your shopping cart', 
-      icon: <ShoppingBag size={20} /> 
-    },
-    { title: 'Personal Details', subtitle: 'Enter your contact credentials', icon: <User size={20} /> },
-    { title: 'Shipping Address', subtitle: 'Provide your delivery destination', icon: <MapPin size={20} /> },
-    { title: 'Payment Mode', subtitle: 'Choose how you want to pay', icon: <CreditCard size={20} /> },
-    { title: 'Verify & Confirm', subtitle: 'Review summary and place order', icon: <CheckSquare size={20} /> },
-    { title: 'Order Complete!', subtitle: 'Your agriculture solutions are on the way', icon: <Gift size={20} /> }
-  ];
+  const rewardMessage = useMemo(() => {
+    if (payment === 'jazzcash' || payment === 'easypaisa' || payment === 'meezan') {
+      return lang === 'en'
+        ? '🎉 Online Payment Reward: FREE Delivery Applied!'
+        : '🎉 آن لائن ادائیگی کا انعام: مفت ڈیلیوری لاگو ہو گئی!';
+    }
+    return '';
+  }, [payment, lang]);
 
-  const currentMeta = stepsTitles[step];
+  // Handle empty state if no product slug and cart is empty
+  if (!productSlug && cart.length === 0 && !isOrdering) {
+    return (
+      <div className="min-h-screen pt-28 pb-20 flex items-center justify-center bg-[#020d06] text-white px-4">
+        <div className="max-w-md w-full text-center space-y-6 p-8 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl">
+          <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-white/30 mx-auto">
+            <ShoppingBag size={32} />
+          </div>
+          <h2 className="text-2xl font-black">
+            {lang === 'en' ? 'Your Cart is Empty' : 'آپ کی کارٹ خالی ہے'}
+          </h2>
+          <p className="text-sm text-white/50 leading-relaxed">
+            {lang === 'en'
+              ? 'Please select products from our catalog before proceeding to checkout.'
+              : 'براہ کرم چیک آؤٹ پر جانے سے پہلے ہماری کیٹلاگ سے پروڈکٹس منتخب کریں۔'}
+          </p>
+          <Link
+            to="/products"
+            className="inline-flex items-center justify-center w-full px-6 py-4 bg-[#76C945] hover:bg-[#8AD65A] text-[#0A2E1F] rounded-2xl text-sm font-black transition-colors"
+          >
+            {lang === 'en' ? 'Explore Products' : 'پروڈکٹس دیکھیں'}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <motion.div
-      className="fixed inset-0 z-[120] bg-[#02110a] text-white flex flex-col justify-between overflow-y-auto"
-      initial={{ opacity: 0, scale: 1.02 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.98 }}
-      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-    >
-      {/* Dynamic Background Mesh */}
+    <div className="min-h-screen pt-28 pb-20 bg-[#020d06] text-white relative select-none">
+      {/* Preloader full-screen overlay during order completion */}
+      <AnimatePresence>
+        {isOrdering && (
+          <TruckPreloader onComplete={() => setPreloaderDone(true)} />
+        )}
+      </AnimatePresence>
+
+      {/* Background Glows */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 opacity-40">
         <div className="absolute top-[-20%] left-[-20%] w-[80%] h-[80%] rounded-full blur-[150px] bg-[#76C945]/10" />
         <div className="absolute bottom-[-20%] right-[-20%] w-[80%] h-[80%] rounded-full blur-[150px] bg-[#8AD65A]/5" />
       </div>
 
-      {/* Header Banner */}
-      <header className="relative z-10 px-6 py-6 border-b border-white/5 bg-black/30 backdrop-blur-xl">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={onClose}
-              className="px-4 py-2 text-xs font-black uppercase tracking-wider text-white/50 border border-white/10 rounded-full hover:bg-white/5 hover:text-white transition-all"
-            >
-              ← Back to Shop
-            </button>
-            <div className="h-5 w-[1px] bg-white/10" />
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-black uppercase tracking-widest text-[#76C945]">Step {step + 1} of 6</span>
-            </div>
-          </div>
-          
-          {step < 5 && (
-            <button 
-              onClick={onClose}
-              className="w-10 h-10 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-white flex items-center justify-center transition-all"
-            >
-              ✕
-            </button>
-          )}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* Title */}
+        <div className="mb-8">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight uppercase">
+            {lang === 'en' ? 'Premium Checkout' : 'پریمیئم چیک آؤٹ'}
+          </h1>
+          <p className="text-white/40 text-xs sm:text-sm font-medium mt-1">
+            {lang === 'en'
+              ? 'Secure Cash on Delivery & Online Transfer Options'
+              : 'محفوظ کیش آن ڈیلیوری اور آن لائن ٹرانسفر کے اختیارات'}
+          </p>
         </div>
-      </header>
 
-      {/* Main Form Area */}
-      <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-8 sm:py-16">
-        <div className="w-full max-w-2xl bg-white/[0.02] border border-white/5 backdrop-blur-2xl rounded-3xl p-6 sm:p-10 shadow-2xl overflow-hidden relative">
-          
-          {/* Progress Indicator */}
-          {step < 5 && (
-            <div className="flex gap-1.5 mb-8">
-              {[...Array(5)].map((_, i) => (
-                <div 
-                  key={i} 
-                  className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${
-                    i <= step ? 'bg-[#76C945]' : 'bg-white/10'
-                  }`}
-                />
-              ))}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* LEFT COLUMN: Shipping & Payment Form */}
+          <div className="lg:col-span-7 space-y-6 bg-white/[0.02] border border-white/5 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 shadow-2xl">
+            <div className="flex items-center gap-3 pb-4 border-b border-white/5">
+              <div className="w-8 h-8 rounded-lg bg-[#76C945]/10 flex items-center justify-center text-[#8AD65A]">
+                <MapPin size={16} />
+              </div>
+              <h2 className="text-lg font-black tracking-tight uppercase">
+                {lang === 'en' ? 'Shipping Details' : 'ڈیلیوری کی تفصیلات'}
+              </h2>
             </div>
-          )}
 
-          {/* Current Step Header */}
-          <div className="flex items-start gap-4 mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-[#76C945]/10 border border-[#76C945]/20 flex items-center justify-center text-[#8AD65A]">
-              {currentMeta.icon}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField
+                label={lang === 'en' ? 'Full Name' : 'مکمل نام'}
+                required
+                placeholder={lang === 'en' ? 'E.g., Muhammad Ali' : 'مثال: محمد علی'}
+                value={form.fullName}
+                onChange={e => updateField('fullName', e.target.value)}
+                error={errors.fullName}
+              />
+
+              <FormField
+                label={lang === 'en' ? 'Phone Number' : 'فون نمبر'}
+                required
+                type="tel"
+                placeholder="03001234567"
+                value={form.phone}
+                onChange={e => updateField('phone', e.target.value)}
+                error={errors.phone}
+              />
             </div>
-            <div>
-              <h2 className="text-2xl font-black tracking-tight">{currentMeta.title}</h2>
-              <p className="text-white/40 text-xs font-medium">{currentMeta.subtitle}</p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField
+                label={lang === 'en' ? 'City' : 'شہر'}
+                required
+                placeholder={lang === 'en' ? 'E.g., Haroonabad' : 'مثال: ہارون آباد'}
+                value={form.city}
+                onChange={e => updateField('city', e.target.value)}
+                error={errors.city}
+              />
+
+              <div className="space-y-2">
+                <label className="block text-white/50 text-[11px] font-black tracking-[0.12em] uppercase">
+                  {lang === 'en' ? 'Province' : 'صوبہ'} <span className="text-[#8AD65A]">*</span>
+                </label>
+                <select
+                  value={form.province}
+                  onChange={e => updateField('province', e.target.value)}
+                  className="w-full px-5 py-4 rounded-2xl text-white text-sm bg-white/5 border border-white/10 outline-none focus:border-[#76C945] transition-all appearance-none cursor-pointer"
+                >
+                  {PROVINCES.map(p => (
+                    <option key={p} value={p} style={{ background: '#020d06', color: 'white' }}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <FormField
+              label={lang === 'en' ? 'Postal Code (Optional)' : 'پوسٹل کوڈ (اختیاری)'}
+              placeholder="63100"
+              type="tel"
+              value={form.postal}
+              onChange={e => updateField('postal', e.target.value)}
+            />
+
+            <div className="space-y-2">
+              <label className="block text-white/50 text-[11px] font-black tracking-[0.12em] uppercase">
+                {lang === 'en' ? 'Complete Delivery Address' : 'مکمل ڈیلیوری کا پتہ'} <span className="text-[#8AD65A]">*</span>
+              </label>
+              <textarea
+                rows={3}
+                placeholder={lang === 'en' ? 'House number, Gali/Street, Mohalla, Near landmark...' : 'گھر کا نمبر، گلی/روڈ، محلہ، قریبی مشہور جگہ...'}
+                value={form.address}
+                onChange={e => updateField('address', e.target.value)}
+                className={`w-full px-5 py-4 rounded-2xl text-white text-sm bg-white/5 border outline-none resize-none placeholder:text-white/20 transition-all ${
+                  errors.address ? 'border-red-500/40 focus:border-red-400' : 'border-white/10 focus:border-[#76C945]'
+                }`}
+              />
+              {errors.address && <p className="text-red-400 text-[11px] font-bold">⚠ {errors.address}</p>}
+            </div>
+
+            <FormField
+              label={lang === 'en' ? 'Delivery Instructions (Optional)' : 'خصوصی ہدایات (اختیاری)'}
+              placeholder={lang === 'en' ? 'E.g., Call before arrival, deliver after 2 PM' : 'مثال: پہنچنے سے پہلے کال کریں، دوپہر کے بعد پہنچائیں'}
+              value={form.instructions}
+              onChange={e => updateField('instructions', e.target.value)}
+            />
+
+            <div className="pt-4">
+              <PaymentMethodGrid
+                selected={payment}
+                onSelect={setPayment}
+              />
             </div>
           </div>
 
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={step}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-6"
-            >
-              {/* STEP 0: CART */}
-              {step === 0 && (
+          {/* RIGHT COLUMN: Order Summary & Placement */}
+          <div className="lg:col-span-5 space-y-6">
+            <div className="bg-white/[0.02] border border-white/5 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b border-white/5">
+                <div className="w-8 h-8 rounded-lg bg-[#76C945]/10 flex items-center justify-center text-[#8AD65A]">
+                  <ShoppingBag size={16} />
+                </div>
+                <h2 className="text-lg font-black tracking-tight uppercase">
+                  {lang === 'en' ? 'Order Summary' : 'آرڈر کا خلاصہ'}
+                </h2>
+              </div>
+
+              {/* Items Display */}
+              {product ? (
+                /* Single Product Checkout */
                 <div className="space-y-6">
-                  {product ? (
-                    <>
-                      {/* Product Details Card */}
-                      <div className="flex flex-col sm:flex-row items-center gap-6 p-6 rounded-2xl bg-white/5 border border-white/10">
-                        <img 
-                          src={product?.image} 
-                          alt={product?.name}
-                          className="w-24 h-24 object-contain filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.4)]"
-                        />
-                        <div className="flex-1 text-center sm:text-left">
-                          <span className="text-[10px] font-black text-[#8AD65A] tracking-wider uppercase block mb-1">
-                            {product?.category}
-                          </span>
-                          <h3 className="text-xl font-black tracking-tight">{product?.name}</h3>
-                          <p className="text-white/40 text-xs font-mono mt-0.5">{product?.formula}</p>
-                          <p className="text-[#8AD65A] text-sm font-black mt-2 font-mono">
-                            PKR {product?.price?.toLocaleString()} / unit
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Size Selector */}
-                      <div className="space-y-3">
-                        <label className="block text-white/50 text-[10px] font-black uppercase tracking-widest">
-                          Select Package Size
-                        </label>
-                        <div className="flex gap-2 flex-wrap">
-                          {product?.sizes?.map((size) => (
-                            <button
-                              key={size}
-                              onClick={() => setSize(size)}
-                              className={`px-5 py-3 rounded-xl text-xs font-black border transition-all ${
-                                selectedSize === size
-                                  ? 'bg-[#2d6a2d] border-[#76C945] text-white shadow-[0_0_12px_rgba(92,184,92,0.2)]'
-                                  : 'bg-white/5 border-white/10 text-white/50 hover:text-white'
-                              }`}
-                            >
-                              {size}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Quantity Selector */}
-                      <div className="flex items-center justify-between p-4.5 rounded-2xl bg-white/5 border border-white/10">
-                        <span className="text-sm font-bold text-white/70">Quantity</span>
-                        <div className="flex items-center gap-4.5">
-                          <button 
-                            onClick={() => setQty(q => Math.max(1, q - 1))}
-                            className="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center text-lg font-bold hover:bg-white/20 active:scale-90 transition-all"
-                          >
-                            −
-                          </button>
-                          <span className="text-white font-black text-lg w-6 text-center font-mono">
-                            {quantity}
-                          </span>
-                          <button 
-                            onClick={() => setQty(q => q + 1)}
-                            className="w-10 h-10 rounded-full bg-[#2d6a2d] text-white flex items-center justify-center text-lg font-bold hover:bg-[#3d8c3d] active:scale-90 transition-all"
-                          >
-                            +
-                          </button>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 scrollbar-hide">
-                      {cart.map((item) => (
-                        <div key={item.cartId} className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10">
-                          <div className="w-14 h-14 rounded-lg bg-white/5 p-2 flex items-center justify-center shrink-0">
-                            <img 
-                              src={item.pngUrl || item.imageUrl} 
-                              alt={item.name[lang] || item.name}
-                              className="max-h-full max-w-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.3)]"
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-extrabold truncate">{item.name[lang] || item.name}</h4>
-                            <p className="text-[10px] text-[#8AD65A] font-black uppercase mt-0.5 tracking-wider">{item.size.size}</p>
-                            <p className="text-white/40 text-xs mt-1">Qty: {item.quantity} × PKR {Number(item.size.price || item.size.rate || 0).toLocaleString()}</p>
-                          </div>
-                          <span className="text-sm font-black font-mono shrink-0">
-                            PKR {(Number(item.size.price || item.size.rate || 0) * item.quantity).toLocaleString()}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* STEP 1: PERSONAL DETAILS */}
-              {step === 1 && (
-                <div className="grid grid-cols-1 gap-6">
-                  <FormField
-                    label="Full Name"
-                    required
-                    placeholder="Muhammad Ali"
-                    value={form.fullName}
-                    onChange={e => update('fullName', e.target.value)}
-                    error={errors.fullName}
-                  />
-
-                  <FormField
-                    label="Phone Number"
-                    required
-                    type="tel"
-                    placeholder="03001234567"
-                    value={form.phone}
-                    onChange={e => update('phone', e.target.value)}
-                    error={errors.phone}
-                  />
-
-                  <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-white/50 text-[11px] leading-relaxed">
-                    ℹ **Note:** Ensure your phone number is correct. Our customer support team will contact you via this number or WhatsApp to confirm shipment.
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 2: SHIPPING ADDRESS */}
-              {step === 2 && (
-                <div className="grid grid-cols-1 gap-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
-                      label="City"
-                      required
-                      placeholder="Haroonabad"
-                      value={form.city}
-                      onChange={e => update('city', e.target.value)}
-                      error={errors.city}
+                  <div className="flex gap-4 items-center p-4 rounded-2xl bg-white/5 border border-white/10">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-16 h-16 object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.3)]"
+                      onError={e => {
+                        e.target.src = '/logo.png';
+                      }}
                     />
-
-                    <div className="space-y-2">
-                      <label className="block text-white/50 text-[11px] font-black tracking-[0.12em] uppercase">
-                        Province <span className="text-[#8AD65A]">*</span>
-                      </label>
-                      <select
-                        value={form.province}
-                        onChange={e => update('province', e.target.value)}
-                        className="w-full px-5 py-4 rounded-2xl text-white text-sm bg-white/5 border border-white/10 outline-none focus:border-[#76C945] transition-all appearance-none cursor-pointer"
-                      >
-                        {PROVINCES.map(p => (
-                          <option key={p} value={p} style={{ background: '#02110a', color: 'white' }}>
-                            {p}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <FormField
-                    label="Postal Code (Optional)"
-                    placeholder="63100"
-                    type="tel"
-                    value={form.postal}
-                    onChange={e => update('postal', e.target.value)}
-                  />
-
-                  <div className="space-y-2">
-                    <label className="block text-white/50 text-[11px] font-black tracking-[0.12em] uppercase">
-                      Complete Delivery Address <span className="text-[#8AD65A]">*</span>
-                    </label>
-                    <textarea
-                      rows={3}
-                      placeholder="Gali/Street, Mohalla, Near landmarks, House Number..."
-                      value={form.address}
-                      onChange={e => update('address', e.target.value)}
-                      className={`w-full px-5 py-4 rounded-2xl text-white text-sm bg-white/5 border outline-none resize-none placeholder:text-white/20 transition-all ${
-                        errors.address ? 'border-red-500/40 focus:border-red-400' : 'border-white/10 focus:border-[#76C945]'
-                      }`}
-                    />
-                    {errors.address && <p className="text-red-400 text-[11px] font-bold">⚠ {errors.address}</p>}
-                  </div>
-
-                  <FormField
-                    label="Delivery Instructions (Optional)"
-                    placeholder="E.g. Deliver after 5 PM, Call before arriving"
-                    value={form.instructions}
-                    onChange={e => update('instructions', e.target.value)}
-                  />
-                </div>
-              )}
-
-              {/* STEP 3: PAYMENT METHOD */}
-              {step === 3 && (
-                <PaymentMethodGrid
-                  selected={payment}
-                  onSelect={setPayment}
-                />
-              )}
-
-              {/* STEP 4: REVIEW & CONFIRM */}
-              {step === 4 && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Shipment Details */}
-                    <div className="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-3">
-                      <p className="text-white/40 text-[9px] font-black tracking-widest uppercase">Delivery Address</p>
-                      <p className="text-sm font-bold">{form.fullName}</p>
-                      <p className="text-xs text-white/70 font-mono">{form.phone}</p>
-                      <p className="text-xs text-white/70 leading-relaxed">
-                        {form.address}, {form.city}, {form.province} {form.postal && `(${form.postal})`}
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[9px] font-black text-[#8AD65A] tracking-wider uppercase block">
+                        {product.category}
+                      </span>
+                      <h3 className="text-sm sm:text-base font-extrabold truncate">{product.name}</h3>
+                      <p className="text-white/40 text-[10px] sm:text-xs font-mono truncate">{product.formula}</p>
+                      <p className="text-[#8AD65A] text-xs sm:text-sm font-black font-mono mt-1">
+                        PKR {product.price.toLocaleString()}
                       </p>
                     </div>
+                  </div>
 
-                    {/* Cost Breakdown */}
-                    <div className="space-y-2 p-4 rounded-2xl bg-white/3 border border-white/8">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-white/50">Subtotal</span>
-                        <span className="text-white">PKR {subtotal.toLocaleString()}</span>
-                      </div>
-
-                      <div className="flex justify-between text-sm">
-                        <span className="text-white/50">Delivery</span>
-                        {delivery === 0 ? (
-                          <span className="text-[#5cb85c] font-bold">FREE 🎁</span>
-                        ) : (
-                          <span className="text-white">PKR {delivery}</span>
-                        )}
-                      </div>
-
-                      {delivery > 0 && (
-                        <p className="text-yellow-400/60 text-[10px]">
-                          💡 Switch to JazzCash/Easypaisa for FREE delivery
-                        </p>
-                      )}
-
-                      <div className="h-px bg-white/10" />
-
-                      <div className="flex justify-between items-center">
-                        <span className="text-[#5cb85c] font-bold">Grand Total</span>
-                        <motion.span
-                          key={grandTotal}
-                          className="text-[#5cb85c] font-bold text-xl"
-                          initial={{ scale: 1.1 }}
-                          animate={{ scale: 1 }}
+                  {/* Size Selector */}
+                  <div className="space-y-2.5">
+                    <span className="block text-white/50 text-[10px] font-black uppercase tracking-widest">
+                      {lang === 'en' ? 'Select Package Size' : 'پیکنگ کا سائز منتخب کریں'}
+                    </span>
+                    <div className="flex gap-2 flex-wrap">
+                      {product.sizes?.map((size) => (
+                        <button
+                          key={size}
+                          onClick={() => setSize(size)}
+                          className={`px-4 py-2.5 rounded-xl text-xs font-black border transition-all ${
+                            selectedSize === size
+                              ? 'bg-[#2d6a2d] border-[#76C945] text-white shadow-[0_0_10px_rgba(92,184,92,0.15)]'
+                              : 'bg-white/5 border-white/10 text-white/50 hover:text-white'
+                          }`}
                         >
-                          PKR {grandTotal.toLocaleString()}
-                        </motion.span>
-                      </div>
+                          {size}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
-                  {rewardMessage && (
-                    <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-xs text-center">
-                      {rewardMessage}
-                    </div>
-                  )}
-
-                  <div className="p-4 rounded-2xl bg-white/3 border border-white/5 text-white/30 text-[10px] leading-relaxed text-center">
-                    By completing order, you verify that you agree to receive dispatch notifications on WhatsApp. Delivery takes 2-4 working days.
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 5: SUCCESS */}
-              {step === 5 && (
-                <div className="text-center py-6 space-y-6">
-                  <div className="w-16 h-16 rounded-full bg-[#76C945]/10 border-2 border-[#76C945] flex items-center justify-center text-[#8AD65A] mx-auto text-3xl animate-bounce">
-                    ✓
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-black tracking-tight text-[#8AD65A]">Order Placed Successfully!</h3>
-                    <p className="text-white/50 text-xs mt-2 max-w-md mx-auto">
-                      Thank you for choosing Vital Agro. Your order has been registered under ID: <strong className="text-white font-mono">{orderId}</strong>.
-                    </p>
-                  </div>
-
-                  <div className="p-5.5 rounded-3xl bg-white/5 border border-white/10 max-w-md mx-auto space-y-3.5">
-                    <p className="text-xs text-white/70">
-                      We have sent a pre-filled confirmation message to WhatsApp. Please send it to ensure priority dispatch.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                      <a 
-                        href={`/track/${orderId}`} 
-                        className="px-5 py-3 rounded-2xl bg-white/10 border border-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all"
+                  {/* Quantity Selector */}
+                  <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10">
+                    <span className="text-xs sm:text-sm font-bold text-white/70">
+                      {lang === 'en' ? 'Quantity' : 'مقدار'}
+                    </span>
+                    <div className="flex items-center gap-3.5">
+                      <button
+                        onClick={() => setQty(q => Math.max(1, q - 1))}
+                        className="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center text-sm font-bold hover:bg-white/20 active:scale-90 transition-all"
                       >
-                        <Clock size={14} />
-                        <span>Track Order Status</span>
-                      </a>
-                      <button 
-                        onClick={onClose}
-                        className="px-5 py-3 rounded-2xl bg-[#76C945] text-[#0A2E1F] font-black text-xs flex items-center justify-center gap-2 hover:shadow-[0_0_15px_rgba(118,201,69,0.3)] transition-all"
+                        −
+                      </button>
+                      <span className="text-white font-black text-sm sm:text-base w-6 text-center font-mono">
+                        {quantity}
+                      </span>
+                      <button
+                        onClick={() => setQty(q => q + 1)}
+                        className="w-8 h-8 rounded-full bg-[#2d6a2d] text-white flex items-center justify-center text-sm font-bold hover:bg-[#3d8c3d] active:scale-90 transition-all"
                       >
-                        <Home size={14} />
-                        <span>Continue Shopping</span>
+                        +
                       </button>
                     </div>
                   </div>
                 </div>
-              )}
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Step Actions Footer Buttons */}
-          {step < 5 && (
-            <div className="flex gap-4.5 pt-8 mt-8 border-t border-white/5 justify-between">
-              {step > 0 ? (
-                <button
-                  onClick={handleBack}
-                  className="px-6 py-4 rounded-full border border-white/15 bg-white/5 text-white/70 font-black text-xs uppercase tracking-wider hover:bg-white/10 hover:text-white transition-all flex items-center gap-2"
-                >
-                  <ChevronLeft size={14} />
-                  <span>Back</span>
-                </button>
               ) : (
-                <div />
+                /* Cart Checkout */
+                <div className="space-y-3 max-h-[320px] overflow-y-auto pr-2 scrollbar-hide">
+                  {cart.map((item) => (
+                    <div key={item.cartId} className="flex items-center gap-4 p-3.5 rounded-xl bg-white/5 border border-white/10">
+                      <img
+                        src={item.pngUrl || item.imageUrl}
+                        alt={item.name[lang] || item.name}
+                        className="w-12 h-12 object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.3)] shrink-0"
+                        onError={e => {
+                          e.target.src = '/logo.png';
+                        }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-xs sm:text-sm font-extrabold truncate">{item.name[lang] || item.name}</h4>
+                        <p className="text-[9px] text-[#8AD65A] font-black uppercase tracking-wider">{item.size.size}</p>
+                        <p className="text-white/40 text-[10px] mt-0.5">
+                          Qty: {item.quantity} × PKR {Number(item.size.price || item.size.rate || 0).toLocaleString()}
+                        </p>
+                      </div>
+                      <span className="text-xs sm:text-sm font-black font-mono shrink-0">
+                        PKR {(Number(item.size.price || item.size.rate || 0) * item.quantity).toLocaleString()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               )}
 
-              {step < 4 ? (
-                <button
-                  onClick={handleNext}
-                  className="px-8 py-4 rounded-full bg-gradient-to-r from-[#76C945] to-[#5cb85c] text-[#0A2E1F] font-black text-xs uppercase tracking-wider hover:shadow-[0_0_20px_rgba(118,201,69,0.3)] transition-all flex items-center gap-2"
-                >
-                  <span>Continue</span>
-                  <ChevronRight size={14} />
-                </button>
-              ) : (
-                <OrderConfirmButton
-                  onConfirm={handleComplete}
-                  disabled={isOrdering}
-                />
+              {/* Price Breakdown */}
+              <div className="space-y-3 p-4.5 rounded-2xl bg-white/3 border border-white/8 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-white/50">{lang === 'en' ? 'Subtotal' : 'سب ٹوٹل'}</span>
+                  <span className="text-white font-mono">PKR {subtotal.toLocaleString()}</span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-white/50">{lang === 'en' ? 'Delivery Fee' : 'ڈیلیوری چارجز'}</span>
+                  {delivery === 0 ? (
+                    <span className="text-[#5cb85c] font-black uppercase text-xs tracking-wider">
+                      {lang === 'en' ? 'FREE Delivery' : 'مفت ڈیلیوری'}
+                    </span>
+                  ) : (
+                    <span className="text-white font-mono">PKR {delivery}</span>
+                  )}
+                </div>
+
+                {delivery > 0 && (
+                  <p className="text-[#76C945] text-[10px] leading-relaxed">
+                    💡 {lang === 'en' ? 'Select JazzCash, Easypaisa, or Bank Transfer to unlock FREE Delivery.' : 'مفت ڈیلیوری حاصل کرنے کے لیے ایزی پیسہ، جیز کیش یا بینک ٹرانسفر منتخب کریں۔'}
+                  </p>
+                )}
+
+                <div className="h-px bg-white/10" />
+
+                <div className="flex justify-between items-center pt-1">
+                  <span className="text-[#5cb85c] font-extrabold">{lang === 'en' ? 'Grand Total' : 'ٹوٹل رقم'}</span>
+                  <span className="text-[#5cb85c] font-black text-xl font-mono">
+                    PKR {grandTotal.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              {rewardMessage && (
+                <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-[#5cb85c] font-bold text-xs text-center">
+                  {rewardMessage}
+                </div>
               )}
+
+              {/* COMPLETE ORDER BUTTON */}
+              <motion.button
+                onClick={handleComplete}
+                disabled={isOrdering}
+                whileTap={{ scale: 0.98 }}
+                className="w-full py-4.5 rounded-2xl font-black text-sm text-[#0A2E1F] flex items-center justify-center gap-2 shadow-2xl transition-all cursor-pointer select-none"
+                style={{
+                  background: 'linear-gradient(135deg, #76C945, #5cb85c)',
+                  boxShadow: '0 10px 30px rgba(92, 184, 92, 0.25)',
+                }}
+              >
+                <Truck size={16} />
+                <span>
+                  {payment === 'cod'
+                    ? (lang === 'en' ? 'Complete Order (COD)' : 'آرڈر کنفرم کریں (COD)')
+                    : (lang === 'en' ? 'Complete Order & Pay' : 'آرڈر کنفرم کریں اور ادائیگی کریں')}
+                </span>
+              </motion.button>
+
+              <div className="flex items-center gap-2.5 justify-center text-[10px] text-white/20 select-none">
+                <ShieldCheck size={14} className="text-[#76C945]" />
+                <span>Secure SSL Checkout & WhatsApp Verification</span>
+              </div>
             </div>
-          )}
+          </div>
         </div>
-      </main>
-
-      {/* Footer Branding Banner */}
-      {step < 5 && (
-        <footer className="relative z-10 px-6 py-4 border-t border-white/5 bg-black/20 text-center text-[10px] text-white/20">
-          Vital Agro Chemical Industries (Pvt.) Ltd. · Secured SSL Encryption · 24/7 Priority Helpline 063-2253137
-        </footer>
-      )}
-    </motion.div>
+      </div>
+    </div>
   );
 }

@@ -3,12 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trash2, Plus, Minus, ShoppingBag, CreditCard, Lock, MessageCircle, Truck } from 'lucide-react';
 import { useCart } from '@/lib/CartContext';
 import { useLanguage } from '@/lib/LanguageContext';
-import CheckoutPage from '@/pages/Checkout';
+import { useNavigate } from 'react-router-dom';
 
 export default function CartDrawer() {
   const { cart, isCartOpen, setIsCartOpen, updateQuantity, removeFromCart, cartSubtotal } = useCart();
   const { lang } = useLanguage();
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const navigate = useNavigate();
 
   const formatPrice = (val) => {
     return `PKR ${Math.round(val).toLocaleString()}`;
@@ -197,7 +197,10 @@ export default function CartDrawer() {
                     
                     <div className="flex gap-3">
                       <button
-                        onClick={() => setIsCheckoutOpen(true)}
+                        onClick={() => {
+                          setIsCartOpen(false);
+                          navigate('/checkout');
+                        }}
                         className="flex-1 py-3.5 btn-premium-primary rounded-full text-sm font-extrabold shadow-xl text-center flex items-center justify-center gap-2"
                       >
                         <CreditCard className="w-4 h-4" />
@@ -211,17 +214,6 @@ export default function CartDrawer() {
             </motion.div>
           </div>
         </div>
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {isCheckoutOpen && (
-          <CheckoutPage
-            onClose={() => {
-              setIsCheckoutOpen(false);
-              setIsCartOpen(false);
-            }}
-          />
-        )}
       </AnimatePresence>
     </>
   );

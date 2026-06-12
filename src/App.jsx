@@ -11,7 +11,9 @@ import { CartProvider } from '@/lib/CartContext';
 import CartDrawer from '@/components/cart/CartDrawer';
 
 import AppLayout from './components/layout/AppLayout';
-import Loader from '@/components/layout/Loader';
+import { WelcomeScreen } from '@/components/WelcomeScreen';
+import { TruckPreloader } from '@/components/Preloader/TruckPreloader';
+import { PageLoader } from '@/components/PageLoader';
 import SmoothScroll from '@/components/layout/SmoothScroll';
 import { useAuthState } from '@/lib/api';
 import { auth } from '@/lib/api';
@@ -35,20 +37,9 @@ const AdminLogin = React.lazy(() => import('./pages/admin/AdminLogin'));
 const AIScannerPage = React.lazy(() => import('./pages/AIScannerPage'));
 const OrderTimeline = React.lazy(() => import('./pages/OrderTimeline'));
 const OrderSuccess = React.lazy(() => import('./pages/OrderSuccess'));
+const CheckoutPage = React.lazy(() => import('./pages/Checkout'));
 
-const PageLoader = () => (
-  <div className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-[#020d06]">
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(92,184,92,0.08)_0%,transparent_70%)] pointer-events-none" />
-    <div className="relative w-16 h-16 flex items-center justify-center">
-      <div className="absolute inset-0 rounded-full border-2 border-white/5" />
-      <div className="absolute inset-0 rounded-full border-t-2 border-[#5cb85c] animate-spin" style={{ animationDuration: '1s' }} />
-      <div className="w-8 h-8 rounded-full bg-[#5cb85c]/10 animate-pulse" />
-    </div>
-    <p className="mt-4 text-[10px] font-mono text-white/40 tracking-[0.2em] uppercase animate-pulse">
-      Loading Page...
-    </p>
-  </div>
-);
+// Branded PageLoader imported from components
 
 const AdminLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-[#080f08]">
@@ -78,6 +69,7 @@ const AuthenticatedApp = () => {
         <Route path="/" element={<ErrorBoundary><Home /></ErrorBoundary>} />
         <Route path="/products" element={<ErrorBoundary><Products /></ErrorBoundary>} />
         <Route path="/products/:id" element={<ErrorBoundary><ProductDetail /></ErrorBoundary>} />
+        <Route path="/checkout" element={<ErrorBoundary><CheckoutPage /></ErrorBoundary>} />
         <Route path="/about" element={<ErrorBoundary><About /></ErrorBoundary>} />
         <Route path="/why-us" element={<ErrorBoundary><WhyUs /></ErrorBoundary>} />
         <Route path="/contact" element={<ErrorBoundary><Contact /></ErrorBoundary>} />
@@ -91,7 +83,9 @@ const AuthenticatedApp = () => {
 };
 
 function App() {
-  const [isAppLoading, setIsAppLoading] = useState(true);
+  const hasVisited = sessionStorage.getItem('va_visited');
+  const initialState = hasVisited ? 'loading' : 'welcome';
+  const [state, setState] = useState(initialState);
 
   return (
     <HelmetProvider>
@@ -99,30 +93,48 @@ function App() {
         <QueryClientProvider client={queryClientInstance}>
           <CartProvider>
             <LanguageProvider>
+              
+              {/* 1. WELCOME SCREEN (first visit only) */}
               <AnimatePresence mode="wait">
-                {isAppLoading && (
-                  <Loader onFinish={() => setIsAppLoading(false)} />
+                {state === 'welcome' && (
+                  <WelcomeScreen
+                    onComplete={() => {
+                      sessionStorage.setItem('va_visited', '1');
+                      setState('loading');
+                    }}
+                  />
                 )}
               </AnimatePresence>
 
-              <SmoothScroll>
-                <Router>
-                  <ScrollToTop />
-                  {!isAppLoading && (
+              {/* 2. TRUCK PRELOADER */}
+              <AnimatePresence mode="wait">
+                {state === 'loading' && (
+                  <TruckPreloader
+                    onComplete={() => setState('ready')}
+                  />
+                )}
+              </AnimatePresence>
+
+              {/* 3. MAIN APP */}
+              {state === 'ready' && (
+                <SmoothScroll>
+                  <Router>
+                    <ScrollToTop />
                     <React.Suspense fallback={<PageLoader />}>
                       <AuthenticatedApp />
                     </React.Suspense>
-                  )}
-                </Router>
-              </SmoothScroll>
-              <CartDrawer />
+                    <CartDrawer />
+                  </Router>
+                </SmoothScroll>
+              )}
+
               <Toaster />
             </LanguageProvider>
           </CartProvider>
         </QueryClientProvider>
       </AuthProvider>
     </HelmetProvider>
-  )
+  );
 }
 
-export default App
+export default App;
