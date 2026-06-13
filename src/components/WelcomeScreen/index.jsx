@@ -27,14 +27,15 @@ export const WelcomeScreen = ({ onComplete }) => {
     window.addEventListener('resize', resize)
 
     // Generate glowing orbs of different sizes
-    orbRef.current = Array.from({ length: 120 }, (_, i) => ({
+    const count = window.innerWidth < 640 ? 50 : 120
+    orbRef.current = Array.from({ length: count }, (_, i) => ({
       x:     Math.random() * canvas.width,
       y:     Math.random() * canvas.height,
       r:     0.5 + Math.random() * 2.5,
       vx:    (Math.random() - 0.5) * 0.25,
       vy:    -0.12 - Math.random() * 0.35,
       alpha: 0.05 + Math.random() * 0.35,
-      size:  i < 20 ? 3 + Math.random() * 4 : 0.8 + Math.random() * 1.8,
+      size:  i < (window.innerWidth < 640 ? 8 : 20) ? 3 + Math.random() * 4 : 0.8 + Math.random() * 1.8,
     }))
 
     let t = 0
@@ -78,13 +79,13 @@ export const WelcomeScreen = ({ onComplete }) => {
     return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize) }
   }, [])
 
-  // Phase timeline
+  // Phase timeline — FASTER TIMING (total 2.3s instead of 3.5s)
   useEffect(() => {
     const timers = [
-      setTimeout(() => setPhase(1), 200),
-      setTimeout(() => setPhase(2), 1500),
-      setTimeout(() => setPhase(3), 2900),
-      setTimeout(onComplete, 3500),
+      setTimeout(() => setPhase(1), 100),   // Text reveal starts
+      setTimeout(() => setPhase(2), 900),   // Logo burst opens
+      setTimeout(() => setPhase(3), 1900),  // Exit begins
+      setTimeout(onComplete, 2300),         // Finished
     ]
     return () => timers.forEach(clearTimeout)
   }, [onComplete])
@@ -127,7 +128,7 @@ export const WelcomeScreen = ({ onComplete }) => {
         className="absolute inset-0 z-[2] pointer-events-none flex items-center justify-center"
         initial={{ opacity: 0 }}
         animate={{ opacity: phase >= 1 ? 1 : 0 }}
-        transition={{ duration: 1.2 }}
+        transition={{ duration: 0.8 }}
       >
         <div
           style={{
@@ -162,65 +163,66 @@ export const WelcomeScreen = ({ onComplete }) => {
 
         {/* WELCOME TO */}
         <motion.p
-          className="text-white/35 tracking-[0.6em] uppercase mb-4"
-          style={{ fontSize: 'clamp(0.6rem, 2vw, 0.85rem)' }}
+          className="text-white/35 tracking-[0.6em] uppercase mb-3 md:mb-4"
+          style={{ fontSize: 'clamp(0.55rem, 1.8vw, 0.85rem)' }}
           initial={{ opacity: 0, y: 8, filter: 'blur(6px)' }}
           animate={phase >= 1 ? { opacity: 1, y: 0, filter: 'blur(0px)' } : {}}
-          transition={{ duration: 0.7, ease: [0.16,1,0.3,1] }}
+          transition={{ duration: 0.5, ease: [0.16,1,0.3,1] }}
         >
           Welcome to
         </motion.p>
 
         {/* VITAL AGRO — SPLIT REVEAL */}
-        <div className="flex items-baseline gap-4 md:gap-6 overflow-hidden mb-3">
-          {'VITAL'.split('').map((char, i) => (
-            <motion.span key={i}
-              className="font-black text-white inline-block"
-              style={{
-                fontSize: 'clamp(3rem, 11vw, 8.5rem)',
-                letterSpacing: '-0.025em',
-                textShadow: '0 0 80px rgba(255,255,255,0.12)',
-              }}
-              initial={{ y: '115%', opacity: 0 }}
-              animate={phase >= 1 ? { y: 0, opacity: 1 } : {}}
-              transition={{
-                duration: 0.7,
-                delay: 0.05 + i * 0.06,
-                ease: [0.16,1,0.3,1],
-              }}
-            >
-              {char}
-            </motion.span>
-          ))}
+        <div className="flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1 md:gap-x-6 overflow-hidden mb-3 max-w-full">
+          <div className="flex items-baseline gap-1 md:gap-3">
+            {'VITAL'.split('').map((char, i) => (
+              <motion.span key={i}
+                className="font-black text-white inline-block"
+                style={{
+                  fontSize: 'clamp(2.5rem, 10vw, 8.5rem)',
+                  letterSpacing: '-0.025em',
+                  textShadow: '0 0 80px rgba(255,255,255,0.12)',
+                }}
+                initial={{ y: '115%', opacity: 0 }}
+                animate={phase >= 1 ? { y: 0, opacity: 1 } : {}}
+                transition={{
+                  duration: 0.5,
+                  delay: 0.02 + i * 0.03,
+                  ease: [0.16,1,0.3,1],
+                }}
+              >
+                {char}
+              </motion.span>
+            ))}
+          </div>
 
-          {/* Space */}
-          <span style={{ fontSize: 'clamp(3rem, 11vw, 8.5rem)' }}>&nbsp;</span>
-
-          {'AGRO'.split('').map((char, i) => (
-            <motion.span key={i}
-              className="font-black inline-block relative"
-              style={{
-                fontSize: 'clamp(3rem, 11vw, 8.5rem)',
-                letterSpacing: '-0.025em',
-                color: '#5cb85c',
-                textShadow: '0 0 50px rgba(92,184,92,0.7), 0 0 100px rgba(92,184,92,0.25)',
-              }}
-              initial={{ y: '115%', opacity: 0 }}
-              animate={phase >= 1 ? { y: 0, opacity: 1 } : {}}
-              transition={{
-                duration: 0.7,
-                delay: 0.28 + i * 0.06,
-                ease: [0.16,1,0.3,1],
-              }}
-            >
-              {char}
-            </motion.span>
-          ))}
+          <div className="flex items-baseline gap-1 md:gap-3">
+            {'AGRO'.split('').map((char, i) => (
+              <motion.span key={i}
+                className="font-black inline-block relative"
+                style={{
+                  fontSize: 'clamp(2.5rem, 10vw, 8.5rem)',
+                  letterSpacing: '-0.025em',
+                  color: '#5cb85c',
+                  textShadow: '0 0 50px rgba(92,184,92,0.7), 0 0 100px rgba(92,184,92,0.25)',
+                }}
+                initial={{ y: '115%', opacity: 0 }}
+                animate={phase >= 1 ? { y: 0, opacity: 1 } : {}}
+                transition={{
+                  duration: 0.5,
+                  delay: 0.15 + i * 0.03,
+                  ease: [0.16,1,0.3,1],
+                }}
+              >
+                {char}
+              </motion.span>
+            ))}
+          </div>
         </div>
 
         {/* Green underline bar */}
         <motion.div
-          className="mb-3"
+          className="mb-4"
           style={{
             height: 2,
             borderRadius: 99,
@@ -228,17 +230,17 @@ export const WelcomeScreen = ({ onComplete }) => {
             boxShadow: '0 0 12px rgba(92,184,92,0.6)',
           }}
           initial={{ width: 0 }}
-          animate={phase >= 1 ? { width: 'min(480px, 70vw)' } : {}}
-          transition={{ duration: 0.8, delay: 0.6, ease: [0.16,1,0.3,1] }}
+          animate={phase >= 1 ? { width: 'min(380px, 75vw)' } : {}}
+          transition={{ duration: 0.6, delay: 0.35, ease: [0.16,1,0.3,1] }}
         />
 
         {/* CHEMICAL INDUSTRIES */}
         <motion.p
-          className="text-white/45 tracking-[0.35em] uppercase mb-12 md:mb-16"
-          style={{ fontSize: 'clamp(0.65rem, 2.2vw, 1rem)' }}
-          initial={{ opacity: 0, x: -24, filter: 'blur(4px)' }}
+          className="text-white/45 tracking-[0.3em] uppercase mb-8 md:mb-16"
+          style={{ fontSize: 'clamp(0.6rem, 2vw, 1rem)' }}
+          initial={{ opacity: 0, x: -16, filter: 'blur(4px)' }}
           animate={phase >= 1 ? { opacity: 1, x: 0, filter: 'blur(0px)' } : {}}
-          transition={{ delay: 0.5, duration: 0.7, ease: [0.16,1,0.3,1] }}
+          transition={{ delay: 0.3, duration: 0.5, ease: [0.16,1,0.3,1] }}
         >
           Chemical Industries
         </motion.p>
@@ -255,9 +257,9 @@ export const WelcomeScreen = ({ onComplete }) => {
                     border: `1px solid rgba(92,184,92,${0.6 - i * 0.1})`,
                     boxShadow: `0 0 ${6 + i * 4}px rgba(92,184,92,0.3)`,
                   }}
-                  initial={{ width: 80, height: 80, opacity: 1 }}
-                  animate={{ width: 80 + i * 100, height: 80 + i * 100, opacity: 0 }}
-                  transition={{ duration: 1.0, delay: i * 0.1, ease: 'easeOut' }}
+                  initial={{ width: 60, height: 60, opacity: 1 }}
+                  animate={{ width: 60 + i * 80, height: 60 + i * 80, opacity: 0 }}
+                  transition={{ duration: 0.8, delay: i * 0.08, ease: 'easeOut' }}
                 />
               ))}
 
@@ -267,17 +269,17 @@ export const WelcomeScreen = ({ onComplete }) => {
                 style={{
                   background: '#5cb85c',
                   boxShadow: '0 0 8px rgba(92,184,92,1)',
-                  top: '-40px',
+                  top: '-30px',
                   left: '50%',
-                  transformOrigin: '50% 80px'
+                  transformOrigin: '50% 66px'
                 }}
                 animate={{ rotate: 360 }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: 'linear' }}
               />
 
               {/* Logo card */}
               <motion.div
-                className="relative z-10 p-5 md:p-6 rounded-[28px]"
+                className="relative z-10 p-4 md:p-6 rounded-[20px] md:rounded-[28px]"
                 style={{
                   background: 'linear-gradient(135deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03))',
                   backdropFilter: 'blur(28px) saturate(180%)',
@@ -295,10 +297,10 @@ export const WelcomeScreen = ({ onComplete }) => {
               >
                 <motion.img
                   src="/logo.png" alt="Vital Agro"
-                  className="h-16 md:h-20 w-auto"
+                  className="h-12 md:h-20 w-auto"
                   style={{ filter: 'drop-shadow(0 0 18px rgba(92,184,92,0.4))' }}
-                  animate={{ y: [0, -6, 0] }}
-                  transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+                  animate={{ y: [0, -4, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                 />
               </motion.div>
             </motion.div>
@@ -307,10 +309,10 @@ export const WelcomeScreen = ({ onComplete }) => {
 
         {/* Tagline */}
         <motion.p
-          className="text-white/25 text-xs tracking-[0.35em]"
+          className="text-white/25 text-[10px] md:text-xs tracking-[0.3em] px-2"
           initial={{ opacity: 0 }}
           animate={phase >= 2 ? { opacity: 1 } : {}}
-          transition={{ delay: 0.5, duration: 0.8 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
         >
           🇵🇰 Premium Agricultural Solutions · Pakistan
         </motion.p>

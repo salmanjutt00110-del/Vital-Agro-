@@ -1,13 +1,18 @@
 /* Touch improvements & prevent layout issues */
 *, *::before, *::after {
   box-sizing: border-box;
+}
+
+/* Apply tap styling and touch action optimizations to interactive elements only */
+a, button, input, select, textarea, [role="button"], .touch-target {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 
 html, body {
   overflow-x: hidden;
-  overscroll-behavior: none;
+  overscroll-behavior-y: auto;
+  overscroll-behavior-x: none;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -79,13 +84,10 @@ input, select, textarea, button {
   margin: 12px auto 8px;
 }
 
-/* Touch Targets (Minimum standard tap size) */
-button, a, [role="button"], .touch-target {
+/* Touch Targets (Minimum standard tap size for interactive control elements) */
+button, [role="button"], .touch-target {
   min-height: 44px;
   min-width: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* Card Swipe - Disable Selection during drag */
