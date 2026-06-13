@@ -1,55 +1,120 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+'use client'
+import React, { useEffect, useRef } from 'react'
+import { motion } from 'framer-motion'
 
-export const PageLoader = () => (
-  <div
-    className="fixed inset-0 z-[900] flex flex-col items-center justify-center select-none"
-    style={{
-      background: 'rgba(6,20,6,0.96)',
-      backdropFilter: 'blur(8px)',
-    }}
-  >
-    {/* Animated logo mark */}
-    <div className="relative mb-6 flex items-center justify-center">
-      {/* Rotating ring */}
-      <motion.div
-        className="w-20 h-20 rounded-full border-2 border-transparent"
-        style={{
-          background: 'conic-gradient(rgba(92,184,92,0.8) 0deg, transparent 120deg, transparent 360deg)',
-          borderRadius: '50%',
-        }}
-        animate={{ rotate: 360 }}
-        transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
+export const PageLoader = () => {
+  const canvasRef = useRef(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    canvas.width = 80; canvas.height = 120
+
+    let t = 0
+    let raf
+    const NODES = 12
+
+    const draw = () => {
+      ctx.clearRect(0, 0, 80, 120)
+      t += 0.06
+
+      for (let i = 0; i < NODES; i++) {
+        const y     = (i / NODES) * 100 + 10
+        const phase = (i / NODES) * Math.PI * 2 + t
+
+        // Strand A
+        const xA = 40 + Math.cos(phase) * 22
+        // Strand B
+        const xB = 40 + Math.cos(phase + Math.PI) * 22
+
+        const depthA = (Math.cos(phase) + 1) / 2
+        const depthB = (Math.cos(phase + Math.PI) + 1) / 2
+
+        const sA = 2.5 + depthA * 2
+        const sB = 2.5 + depthB * 2
+        const aA = 0.2 + depthA * 0.8
+        const aB = 0.2 + depthB * 0.8
+
+        // Cross bridge
+        if (i % 2 === 0) {
+          const ba = Math.min(aA, aB) * 0.3
+          ctx.beginPath()
+          ctx.moveTo(xA, y)
+          ctx.lineTo(xB, y)
+          ctx.strokeStyle = `rgba(92,184,92,${ba})`
+          ctx.lineWidth = 0.8
+          ctx.stroke()
+        }
+
+        // Strand dots A
+        if (depthA > 0.3) {
+          const ga = ctx.createRadialGradient(xA, y, 0, xA, y, sA * 2.5)
+          ga.addColorStop(0, `rgba(92,184,92,${aA * 0.4})`)
+          ga.addColorStop(1, 'rgba(92,184,92,0)')
+          ctx.beginPath(); ctx.arc(xA, y, sA * 2.5, 0, Math.PI*2)
+          ctx.fillStyle = ga; ctx.fill()
+        }
+        ctx.beginPath()
+        ctx.arc(xA, y, Math.max(0.5, sA * 0.7), 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(92,184,92,${aA})`
+        ctx.fill()
+
+        // Strand dots B
+        if (depthB > 0.3) {
+          const gb = ctx.createRadialGradient(xB, y, 0, xB, y, sB * 2.5)
+          gb.addColorStop(0, `rgba(92,184,92,${aB * 0.4})`)
+          gb.addColorStop(1, 'rgba(92,184,92,0)')
+          ctx.beginPath(); ctx.arc(xB, y, sB * 2.5, 0, Math.PI*2)
+          ctx.fillStyle = gb; ctx.fill()
+        }
+        ctx.beginPath()
+        ctx.arc(xB, y, Math.max(0.5, sB * 0.7), 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(92,184,92,${aB})`
+        ctx.fill()
+      }
+
+      raf = requestAnimationFrame(draw)
+    }
+    draw()
+    return () => cancelAnimationFrame(raf)
+  }, [])
+
+  return (
+    <div
+      className="fixed inset-0 z-[900] flex flex-col items-center justify-center"
+      style={{ background: 'rgba(4,13,4,0.97)', backdropFilter: 'blur(12px)' }}
+    >
+      {/* Ambient glow */}
+      <div
+        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+      >
+        <div style={{
+          width: 200, height: 200,
+          background: 'radial-gradient(circle, rgba(45,106,45,0.1) 0%, transparent 70%)',
+          filter: 'blur(40px)',
+        }} />
+      </div>
+
+      {/* DNA canvas */}
+      <motion.canvas
+        ref={canvasRef}
+        style={{ width: 80, height: 120 }}
+        className="relative z-10"
+        initial={{ opacity: 0, scale: 0.6 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
       />
 
-      {/* Inner brand mark */}
-      <div
-        className="absolute inset-3 rounded-full flex items-center justify-center"
-        style={{
-          background: 'rgba(6,20,6,0.9)',
-          border: '1px solid rgba(92,184,92,0.2)',
-        }}
+      {/* Brand text */}
+      <motion.p
+        className="mt-4 text-white/30 text-[10px] tracking-[0.4em] uppercase"
+        animate={{ opacity: [0.3, 0.6, 0.3] }}
+        transition={{ duration: 2, repeat: Infinity }}
       >
-        <img
-          src="/logo-mark.png"
-          alt=""
-          className="w-8 h-8 object-contain"
-          onError={(e) => {
-            e.target.style.display = 'none';
-          }}
-        />
-        {/* Fallback: "V" letter mark */}
-        <span className="text-[#5cb85c] font-black text-lg absolute font-mono">V</span>
-      </div>
+        Vital Agro
+      </motion.p>
     </div>
-
-    {/* Brand text */}
-    <motion.p
-      className="text-white/30 text-[10px] tracking-[0.4em] uppercase font-bold"
-      animate={{ opacity: [0.3, 0.7, 0.3] }}
-      transition={{ duration: 1.5, repeat: Infinity }}
-    >
-      Vital Agro
-    </motion.p>
-  </div>
-);
+  )
+}

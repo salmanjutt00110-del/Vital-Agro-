@@ -5,14 +5,14 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createOrder } from '@/lib/firestore/orders';
 import { buildOrderMessage } from '@/lib/whatsapp';
-import { getDeliveryFee, PAYMENT_METHODS } from '@/lib/payment/config';
+import { getDeliveryFee } from '@/lib/payment/config';
 import { PaymentMethodGrid } from '@/components/checkout/PaymentMethodGrid';
 import { useCart } from '@/lib/CartContext';
 import { useLanguage } from '@/lib/LanguageContext';
 import { PRODUCTS_DATA } from '@/data/productsData';
-import { TruckPreloader } from '@/components/Preloader/TruckPreloader';
+import { OrbPreloader } from '@/components/Preloader/OrbPreloader';
 import toast from 'react-hot-toast';
-import { ShoppingBag, User, MapPin, CreditCard, Gift, ShieldCheck, Truck } from 'lucide-react';
+import { ShoppingBag, MapPin, ShieldCheck, Truck } from 'lucide-react';
 
 const PROVINCES = [
   'Punjab',
@@ -295,7 +295,7 @@ export default function CheckoutPage() {
       {/* Preloader full-screen overlay during order completion */}
       <AnimatePresence>
         {isOrdering && (
-          <TruckPreloader onComplete={() => setPreloaderDone(true)} />
+          <OrbPreloader onComplete={() => setPreloaderDone(true)} />
         )}
       </AnimatePresence>
 

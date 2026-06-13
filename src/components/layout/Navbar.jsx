@@ -29,12 +29,10 @@ export default function Navbar() {
   }, [pathname]);
 
   const NAV_LINKS = [
-    { label: lang === 'ur' ? t.nav.home : 'Home', path: '/' },
     { label: lang === 'ur' ? t.nav.about : 'About Us', path: '/about' },
     { label: lang === 'ur' ? t.nav.products : 'Products', path: '/products' },
     { label: lang === 'ur' ? t.nav.whyUs : 'Why Vital', path: '/why-us' },
     { label: lang === 'ur' ? t.nav.contact : 'Contact', path: '/contact' },
-    { label: lang === 'ur' ? t.nav.aiScanner : 'AI Scanner', path: '/ai-scanner' },
   ];
 
   return (

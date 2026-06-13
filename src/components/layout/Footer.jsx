@@ -65,7 +65,6 @@ export default function Footer() {
   };
 
   const QUICK_LINKS = [
-    { label: t.nav.home, path: '/' },
     { label: t.nav.about, path: '/about' },
     { label: t.nav.products, path: '/products' },
     { label: t.nav.whyUs, path: '/why-us' },

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trash2, Plus, Minus, ShoppingBag, CreditCard, Lock, MessageCircle, Truck } from 'lucide-react';
 import { useCart } from '@/lib/CartContext';

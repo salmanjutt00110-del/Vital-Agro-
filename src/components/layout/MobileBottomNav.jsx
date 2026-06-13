@@ -3,9 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 const TABS = [
-  { label: 'Home',     path: '/' },
   { label: 'Products', path: '/products' },
-  { label: 'Scanner',  path: '/ai-scanner' },
   { label: 'Contact',  path: '/contact' },
 ];
 

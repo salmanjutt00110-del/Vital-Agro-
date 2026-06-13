@@ -1,31 +1,42 @@
-/* Touch improvements */
+/* Touch improvements & prevent layout issues */
 *, *::before, *::after {
+  box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
-/* Smooth scroll on iOS */
+html, body {
+  overflow-x: hidden;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
 html {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
 }
 
-body {
-  /* Allow default mobile momentum bounce and overscroll behaviors */
+/* Body and Root - avoid white flash */
+html, body, #root {
+  background-color: #061406 !important;
+  min-height: 100svh;
 }
 
-/* Prevent zoom on input focus (iOS) */
-input, select, textarea {
-  font-size: 16px !important;
+/* iOS Safe Area Padding */
+.safe-top    { padding-top:    env(safe-area-inset-top, 0px);    }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
+
+/* Prevent input zoom on focus (iOS) */
+input, select, textarea, button {
+  font-size: 16px;
+}
+@media (max-width: 640px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
 }
 
-input[type="text"],
-input[type="tel"],
-input[type="email"],
-select, textarea {
-  font-size: 16px !important;
-  transform: scale(1);
-}
-
+/* Hardware GPU Acceleration */
 .animate-gpu {
   will-change: transform;
   transform: translateZ(0);
@@ -37,15 +48,18 @@ select, textarea {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Safe area padding (iPhone notch/home bar) */
-.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 20px); }
-.safe-top    { padding-top:    env(safe-area-inset-top, 0px);    }
+/* Scrollbar Hide utilities */
+.no-scrollbar::-webkit-scrollbar,
+.no-scroll::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar,
+.no-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
-/* Scrollbar hide */
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-/* Floating action buttons */
+/* Floating Action Button (FAB) Mobile Alignments */
 .fab-group {
   position: fixed;
   right: 16px;
@@ -56,25 +70,41 @@ select, textarea {
   gap: 10px;
 }
 
-/* Bottom sheet handle */
+/* Bottom Sheet Handle */
 .sheet-handle {
-  width: 40px; height: 4px;
+  width: 40px;
+  height: 4px;
   background: rgba(255,255,255,0.2);
   border-radius: 99px;
   margin: 12px auto 8px;
 }
 
-/* Minimum touch target */
-.touch-target {
-  min-width: 44px;
+/* Touch Targets (Minimum standard tap size) */
+button, a, [role="button"], .touch-target {
   min-height: 44px;
-  display: flex;
+  min-width: 44px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-/* Card swipe — no text selection during drag */
+/* Card Swipe - Disable Selection during drag */
 .swipe-card {
   user-select: none;
   -webkit-user-select: none;
+}
+
+/* Mobile loading screen fixes */
+@media (max-width: 640px) {
+  /* Truck preloader scene on mobile */
+  .truck-scene {
+    transform: scale(0.85);
+    transform-origin: center bottom;
+  }
+
+  /* Progress bar container sizing */
+  .progress-bar-container {
+    width: calc(100vw - 48px) !important;
+    max-width: 320px;
+  }
 }

@@ -9,7 +9,6 @@ import { useCart } from '@/lib/CartContext';
 import SEOHead from '@/lib/seo/SEOHead';
 import ProductSwipe3D from '@/components/sections/ProductSwipe3D';
 import { useNavigate } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
 
 // Psychological Pricing Helper: Rounds up price to end with 99
 const formatPsychologicalPrice = (price) => {

@@ -27,9 +27,11 @@ export default function SwipeCard3D({ product, isActive, isPeek, isDragging, ope
         WebkitBackdropFilter: typeof window !== 'undefined' && window.innerWidth < 768 ? 'none' : 'blur(30px) saturate(180%)',
         border: '1px solid rgba(255,255,255,0.08)',
         boxShadow: isActive
-          ? isHovered
-            ? '0 50px 120px rgba(0,0,0,0.65), 0 0 100px rgba(92,184,92,0.2), inset 0 1px 0 rgba(255,255,255,0.12)'
-            : '0 40px 100px rgba(0,0,0,0.55), 0 0 80px rgba(92,184,92,0.1), inset 0 1px 0 rgba(255,255,255,0.1)'
+          ? typeof window !== 'undefined' && window.innerWidth < 768
+            ? '0 12px 30px rgba(0,0,0,0.5)'
+            : isHovered
+              ? '0 50px 120px rgba(0,0,0,0.65), 0 0 100px rgba(92,184,92,0.2), inset 0 1px 0 rgba(255,255,255,0.12)'
+              : '0 40px 100px rgba(0,0,0,0.55), 0 0 80px rgba(92,184,92,0.1), inset 0 1px 0 rgba(255,255,255,0.1)'
           : 'none',
         minHeight: '520px',
         transformStyle: 'preserve-3d',

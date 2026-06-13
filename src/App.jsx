@@ -12,7 +12,7 @@ import CartDrawer from '@/components/cart/CartDrawer';
 
 import AppLayout from './components/layout/AppLayout';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
-import { TruckPreloader } from '@/components/Preloader/TruckPreloader';
+import { OrbPreloader } from '@/components/Preloader/OrbPreloader';
 import { PageLoader } from '@/components/PageLoader';
 import SmoothScroll from '@/components/layout/SmoothScroll';
 import { useAuthState } from '@/lib/api';
@@ -106,10 +106,10 @@ function App() {
                 )}
               </AnimatePresence>
 
-              {/* 2. TRUCK PRELOADER */}
+              {/* 2. ORB PRELOADER */}
               <AnimatePresence mode="wait">
                 {state === 'loading' && (
-                  <TruckPreloader
+                  <OrbPreloader
                     onComplete={() => setState('ready')}
                   />
                 )}
