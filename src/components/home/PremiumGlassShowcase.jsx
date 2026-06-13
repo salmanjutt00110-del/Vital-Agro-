@@ -608,25 +608,25 @@ Thank You.`;
           </div>
 
           {/* Right Panel: Cinematic Awwwards 3-Card Carousel Arena */}
-          <div className="lg:col-span-7 flex flex-col items-center justify-center h-[380px] sm:h-[480px] relative overflow-hidden">
+          <div className="lg:col-span-7 flex flex-col items-center justify-center h-[380px] sm:h-[480px] lg:h-[500px] xl:h-[550px] relative overflow-hidden">
             
             {/* Canvas Particle Overlay (leaves/dust) */}
             <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none z-10" />
 
             <div 
               ref={cardsContainerRef}
-              className="relative w-full max-w-lg h-full flex items-center justify-center"
+              className="relative w-full max-w-lg lg:max-w-xl xl:max-w-2xl h-full flex items-center justify-center"
             >
               {/* Left card peak (peaking from left boundary) */}
               {leftCardProduct && (
                 <div 
                   onClick={handlePrev}
-                  className="absolute left-[-15%] sm:left-[-10%] z-10 w-[160px] sm:w-[200px] h-[260px] sm:h-[320px] rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-md p-4 flex flex-col justify-between items-center opacity-30 filter blur-[3px] scale-80 cursor-pointer hover:opacity-50 transition-all duration-500 hidden sm:flex"
+                  className="absolute left-[-12%] sm:left-[-8%] lg:left-[-10%] xl:left-[-12%] z-10 w-[160px] sm:w-[180px] lg:w-[200px] xl:w-[220px] h-[260px] sm:h-[300px] lg:h-[320px] xl:h-[360px] rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-md p-4 flex flex-col justify-between items-center opacity-30 filter blur-[3px] scale-80 cursor-pointer hover:opacity-50 transition-all duration-500 hidden sm:flex"
                 >
                   <img 
                     src={leftCardProduct.pngUrl} 
                     alt={leftCardProduct.name.en} 
-                    className="max-h-36 w-auto object-contain drop-shadow-[0_8px_15px_rgba(0,0,0,0.5)]"
+                    className="max-h-24 sm:max-h-32 lg:max-h-36 w-auto object-contain drop-shadow-[0_8px_15px_rgba(0,0,0,0.5)]"
                   />
                   <span className="text-[10px] font-black text-white/30 truncate block max-w-full">
                     {leftCardProduct.name[lang]?.split(' ')[0]}
@@ -636,12 +636,12 @@ Thank You.`;
 
               {/* Active Center Hero Card (Pinterest glass card showcase style) */}
               <div 
-                className="relative z-20 w-[240px] sm:w-[280px] h-[340px] sm:h-[400px] flex items-center justify-center"
+                className="relative z-20 w-[230px] xs:w-[250px] sm:w-[280px] lg:w-[300px] xl:w-[340px] h-[320px] xs:h-[350px] sm:h-[400px] lg:h-[420px] xl:h-[460px] flex items-center justify-center"
                 onMouseMove={handleCardMouseMove}
                 onMouseLeave={handleCardMouseLeave}
               >
                 {/* Glowing Refraction Glass platform at bottom */}
-                <div className="absolute bottom-[-10px] w-64 h-6 bg-white/5 border border-white/10 rounded-full filter blur-[2px] backdrop-blur-md z-0 scale-x-110 shadow-[0_15px_30px_rgba(118,201,69,0.25)]" />
+                <div className="absolute bottom-[-10px] w-[80%] h-6 bg-white/5 border border-white/10 rounded-full filter blur-[2px] backdrop-blur-md z-0 scale-x-110 shadow-[0_15px_30px_rgba(118,201,69,0.25)]" />
 
                 {/* Glassmorphic card frame */}
                 <motion.div
@@ -680,7 +680,7 @@ Thank You.`;
                         animate={{ opacity: 1, scale: 1.05, y: 0 }}
                         exit={{ opacity: 0, scale: 0.85, y: -15 }}
                         transition={{ duration: 0.5, ease: "easeOut" }}
-                        className="max-h-[220px] sm:max-h-[260px] w-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.65)] hover:scale-110 transition-transform duration-500"
+                        className="max-h-[200px] xs:max-h-[220px] sm:max-h-[260px] lg:max-h-[280px] xl:max-h-[300px] w-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.65)] hover:scale-110 transition-transform duration-500"
                       />
                     </AnimatePresence>
                   </div>
@@ -702,12 +702,12 @@ Thank You.`;
               {rightCardProduct && (
                 <div 
                   onClick={handleNext}
-                  className="absolute right-[-15%] sm:right-[-10%] z-10 w-[160px] sm:w-[200px] h-[260px] sm:h-[320px] rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-md p-4 flex flex-col justify-between items-center opacity-30 filter blur-[3px] scale-80 cursor-pointer hover:opacity-50 transition-all duration-500 hidden sm:flex"
+                  className="absolute right-[-12%] sm:right-[-8%] lg:right-[-10%] xl:right-[-12%] z-10 w-[160px] sm:w-[180px] lg:w-[200px] xl:w-[220px] h-[260px] sm:h-[300px] lg:h-[320px] xl:h-[360px] rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-md p-4 flex flex-col justify-between items-center opacity-30 filter blur-[3px] scale-80 cursor-pointer hover:opacity-50 transition-all duration-500 hidden sm:flex"
                 >
                   <img 
                     src={rightCardProduct.pngUrl} 
                     alt={rightCardProduct.name.en} 
-                    className="max-h-36 w-auto object-contain drop-shadow-[0_8px_15px_rgba(0,0,0,0.5)]"
+                    className="max-h-24 sm:max-h-32 lg:max-h-36 w-auto object-contain drop-shadow-[0_8px_15px_rgba(0,0,0,0.5)]"
                   />
                   <span className="text-[10px] font-black text-white/30 truncate block max-w-full">
                     {rightCardProduct.name[lang]?.split(' ')[0]}
