@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/lib/LanguageContext';
 import { PRODUCTS_DATA } from '@/data/productsData';
 
-const AUTO_MS = 5000;
+const AUTO_MS = 7000;
 
 const PRODUCT_THEMES = {
   'conference-gold': {
@@ -127,8 +127,28 @@ export const ProductShowcase3D = () => {
   const [dir, setDir] = useState(1); // 1=forward, -1=backward
   const [paused, setPaused] = useState(false);
   const timerRef = useRef();
+  const sectionRef = useRef(null);
+  const [inView, setInView] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const navigate = useNavigate();
   const { lang } = useLanguage();
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      setInView(entry.isIntersecting);
+    }, { threshold: 0.05 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   const prod = PRODUCTS[idx];
 
@@ -148,9 +168,13 @@ export const ProductShowcase3D = () => {
   }, [idx]);
 
   useEffect(() => {
-    if (!paused) startTimer();
+    if (!paused && inView) {
+      startTimer();
+    } else {
+      clearInterval(timerRef.current);
+    }
     return () => clearInterval(timerRef.current);
-  }, [idx, paused, startTimer]);
+  }, [idx, paused, inView, startTimer]);
 
   // Product enter/exit variants
   const productVariants = {
@@ -206,6 +230,7 @@ export const ProductShowcase3D = () => {
 
   return (
     <section
+      ref={sectionRef}
       className="relative w-full overflow-hidden flex flex-col justify-center"
       style={{ minHeight: '100svh' }}
       onMouseEnter={() => setPaused(true)}
@@ -396,14 +421,17 @@ export const ProductShowcase3D = () => {
                 className="relative flex items-center justify-center w-72 h-80 md:w-80 md:h-[400px] rounded-[40px]"
                 style={{
                   background: `linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%)`,
-                  backdropFilter: 'blur(24px)',
+                  backdropFilter: isMobile ? 'none' : 'blur(24px)',
+                  WebkitBackdropFilter: isMobile ? 'none' : 'blur(24px)',
                   border: `1px solid ${prod.theme}25`,
-                  boxShadow: `0 40px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.10)`,
+                  boxShadow: isMobile 
+                    ? '0 15px 35px rgba(0,0,0,0.4)'
+                    : `0 40px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.10)`,
                 }}
-                animate={{
+                animate={inView && !isMobile ? {
                   rotateX: [0, 1, 0, -1, 0],
                   rotateY: [0, 2, 0, -2, 0],
-                }}
+                } : {}}
                 transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
               >
                 {/* Bottom glow inside glass */}
@@ -418,7 +446,7 @@ export const ProductShowcase3D = () => {
                 <motion.div
                   className="absolute bottom-8 w-40 h-8 rounded-full blur-2xl"
                   style={{ background: prod.theme }}
-                  animate={{ scaleX: [1, 1.25, 1], opacity: [0.3, 0.55, 0.3] }}
+                  animate={inView && !isMobile ? { scaleX: [1, 1.25, 1], opacity: [0.3, 0.55, 0.3] } : {}}
                   transition={{ duration: 3.5, repeat: Infinity }}
                 />
 
@@ -429,13 +457,15 @@ export const ProductShowcase3D = () => {
                   className="relative z-10 object-contain"
                   style={{
                     height: '76%',
-                    filter: `drop-shadow(0 32px 64px rgba(0,0,0,0.6)) drop-shadow(0 0 48px ${prod.theme}20)`,
+                    filter: isMobile 
+                      ? 'none' 
+                      : `drop-shadow(0 32px 64px rgba(0,0,0,0.6)) drop-shadow(0 0 48px ${prod.theme}20)`,
                   }}
-                  animate={{
+                  animate={inView && !isMobile ? {
                     y: [0, -18, 0],
                     rotateY: [0, 6, 0, -6, 0],
                     rotateX: [0, 2, 0],
-                  }}
+                  } : {}}
                   transition={{
                     y: { duration: 4.2, repeat: Infinity, ease: 'easeInOut' },
                     rotateY: { duration: 9, repeat: Infinity, ease: 'easeInOut' },

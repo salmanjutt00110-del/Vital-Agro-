@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Target, Eye, Award, Microscope, HeartHandshake, Globe } from 'lucide-react';
 import useVideoAutoplay from '@/hooks/useVideoAutoplay';
@@ -14,9 +14,15 @@ import vitalCImg from '@/assets/Vital-C.webp';
 
 export default function About() {
   const videoRef1 = useRef(null);
-  const videoRef2 = useRef(null);
   useVideoAutoplay(videoRef1);
-  useVideoAutoplay(videoRef2);
+
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   return (
     <div className="min-h-screen pt-24">
@@ -27,20 +33,29 @@ export default function About() {
       />
       {/* Header */}
       <section className="bg-[#0A2E1F] py-20 relative overflow-hidden">
-        <video
-          ref={videoRef1}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata"
-          poster={vitalBgPoster}
-          className="absolute inset-0 w-full h-full object-cover opacity-20"
-          style={{ transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
-        >
-          <source src={vitalBgWebm} type="video/webm" />
-          <source src={vitalBg} type="video/mp4" />
-        </video>
+        {!isMobile ? (
+          <video
+            ref={videoRef1}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="metadata"
+            poster={vitalBgPoster}
+            className="absolute inset-0 w-full h-full object-cover opacity-20"
+            style={{ transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
+          >
+            <source src={vitalBgWebm} type="video/webm" />
+            <source src={vitalBg} type="video/mp4" />
+          </video>
+        ) : (
+          <img
+            src={vitalBgPoster}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover opacity-20"
+            style={{ objectFit: 'cover' }}
+          />
+        )}
         <div className="absolute inset-0 bg-[#0A2E1F]/90" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>

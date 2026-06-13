@@ -11,11 +11,26 @@ import './styles.css';
  * Enterprise horizontal momentum product slider with 3D perspective depth,
  * snap momentum, keyboard arrows support, trackpad/wheel support, and auto-centering.
  */
-export default function ProductSwipe3D({ products: rawProducts, openCheckout }) {
+export default function ProductSwipe3D({ products: rawProducts, openCheckout, autoplay = false }) {
   const { lang } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(0);
   const trackRef = useRef(null);
   const lastWheelTime = useRef(0);
+  
+  const [paused, setPaused] = useState(false);
+  const timerRef = useRef(null);
+  const sectionRef = useRef(null);
+  const [inView, setInView] = useState(true);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      setInView(entry.isIntersecting);
+    }, { threshold: 0.05 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   // Map products
   const products = useMemo(() => {
@@ -67,6 +82,17 @@ export default function ProductSwipe3D({ products: rawProducts, openCheckout }) 
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [total]);
 
+  // Autoplay functionality
+  useEffect(() => {
+    if (!autoplay || paused || !inView || total <= 1) return;
+
+    timerRef.current = setInterval(() => {
+      goNext();
+    }, 7000);
+
+    return () => clearInterval(timerRef.current);
+  }, [autoplay, paused, inView, currentIndex, total]);
+
   // Trackpad/mousewheel scroll handler
   const handleWheel = (e) => {
     const now = Date.now();
@@ -102,7 +128,10 @@ export default function ProductSwipe3D({ products: rawProducts, openCheckout }) 
 
   return (
     <section 
+      ref={sectionRef}
       onWheel={handleWheel}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
       className="product-swipe-section relative overflow-hidden bg-[#02140c] py-24 px-4 min-h-[95vh] flex flex-col items-center justify-center select-none"
     >
       {/* Ambient background glow */}

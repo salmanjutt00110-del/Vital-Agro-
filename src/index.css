@@ -382,7 +382,6 @@ html.lenis body {
 /* Global touch gesture improvements */
 * {
   -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
 }
 
 button, a {

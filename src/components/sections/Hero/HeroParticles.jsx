@@ -16,7 +16,9 @@ export default function HeroParticles() {
 
     let animationFrameId;
     let particles = [];
-    const particleCount = 50;
+    
+    const isMobile = window.innerWidth < 768;
+    const particleCount = isMobile ? 15 : 50;
 
     const resizeCanvas = () => {
       if (!canvas) return;
@@ -73,11 +75,40 @@ export default function HeroParticles() {
       animationFrameId = requestAnimationFrame(animate);
     };
 
-    animate();
+    let isVisible = true;
+    let isRunning = false;
+
+    const startLoop = () => {
+      if (!isRunning) {
+        isRunning = true;
+        animate();
+      }
+    };
+
+    const stopLoop = () => {
+      if (isRunning) {
+        cancelAnimationFrame(animationFrameId);
+        isRunning = false;
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        if (isVisible) {
+          startLoop();
+        } else {
+          stopLoop();
+        }
+      },
+      { threshold: 0.01 }
+    );
+    observer.observe(canvas);
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      stopLoop();
       window.removeEventListener('resize', resizeCanvas);
+      observer.disconnect();
     };
   }, []);
 

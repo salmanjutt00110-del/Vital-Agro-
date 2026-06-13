@@ -190,14 +190,12 @@ export default function ProductDetail() {
   // Selected pack size index
   const [selectedSizeIdx, setSelectedSizeIdx] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [showStickyBar, setShowStickyBar] = useState(false);
-
+  const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
-    const handleScroll = () => {
-      setShowStickyBar(window.scrollY > 550);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   const videoRef = useRef(null);
@@ -407,20 +405,29 @@ Thank you.`;
       
       {/* 1. Large Product Hero Section with Background Video and Glass Cards */}
       <section className="relative min-h-[70vh] flex items-center overflow-hidden py-6 lg:py-12 px-4 sm:px-6 lg:px-8 bg-[#0A2E1F]">
-        <video
-          ref={videoRef}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata"
-          poster={vitalBgPoster}
-          className="absolute inset-0 w-full h-full object-cover opacity-25 mix-blend-overlay"
-          style={{ transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
-        >
-          <source src={vitalBgWebm} type="video/webm" />
-          <source src={vitalBg} type="video/mp4" />
-        </video>
+        {!isMobile ? (
+          <video
+            ref={videoRef}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="metadata"
+            poster={vitalBgPoster}
+            className="absolute inset-0 w-full h-full object-cover opacity-25 mix-blend-overlay"
+            style={{ transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
+          >
+            <source src={vitalBgWebm} type="video/webm" />
+            <source src={vitalBg} type="video/mp4" />
+          </video>
+        ) : (
+          <img
+            src={vitalBgPoster}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover opacity-25 mix-blend-overlay"
+            style={{ objectFit: 'cover' }}
+          />
+        )}
         
         <div className="absolute inset-0 bg-gradient-to-tr from-[#061E14] via-[#0A2E1F]/95 to-[#0A2E1F]/50" />
 

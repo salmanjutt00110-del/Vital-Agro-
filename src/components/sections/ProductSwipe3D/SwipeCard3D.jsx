@@ -23,8 +23,8 @@ export default function SwipeCard3D({ product, isActive, isPeek, isDragging, ope
       `}
       style={{
         background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%)',
-        backdropFilter: typeof window !== 'undefined' && window.innerWidth < 768 ? 'blur(10px) saturate(140%)' : 'blur(30px) saturate(180%)',
-        WebkitBackdropFilter: typeof window !== 'undefined' && window.innerWidth < 768 ? 'blur(10px) saturate(140%)' : 'blur(30px) saturate(180%)',
+        backdropFilter: typeof window !== 'undefined' && window.innerWidth < 768 ? 'none' : 'blur(30px) saturate(180%)',
+        WebkitBackdropFilter: typeof window !== 'undefined' && window.innerWidth < 768 ? 'none' : 'blur(30px) saturate(180%)',
         border: '1px solid rgba(255,255,255,0.08)',
         boxShadow: isActive
           ? isHovered
@@ -44,7 +44,7 @@ export default function SwipeCard3D({ product, isActive, isPeek, isDragging, ope
               background: 'conic-gradient(from 0deg, transparent 35%, rgba(92, 184, 92, 0.45) 50%, transparent 65%)',
               filter: 'blur(3px)',
             }}
-            animate={{ rotate: 360 }}
+            animate={typeof window !== 'undefined' && window.innerWidth < 768 ? {} : { rotate: 360 }}
             transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
           />
           <div className="absolute inset-[1.5px] bg-[#02140c]/95 rounded-[30.5px] -z-10" />
