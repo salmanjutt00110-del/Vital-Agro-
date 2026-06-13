@@ -152,7 +152,7 @@ export default function Contact() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <span className="text-sm font-black tracking-widest uppercase text-[#76C945]">{cTrans.badge}</span>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mt-4 mb-4">
+            <h1 className="text-3xl xs:text-4xl sm:text-5xl lg:text-6xl font-black text-white mt-4 mb-4">
               {cTrans.title}
             </h1>
             <p className="text-white/60 text-lg max-w-2xl mx-auto">

@@ -82,11 +82,11 @@ export default function HeroContent() {
           <h1 className="mb-4 lg:mb-6 tracking-tight">
             <AnimatedText
               text={t.hero.heading1}
-              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white leading-tight block"
+              className="text-3xl xs:text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white leading-tight block"
             />
             <AnimatedText
               text={t.hero.heading2}
-              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold leading-tight block text-transparent bg-clip-text bg-gradient-to-r from-[#76C945] to-[#C5A059]"
+              className="text-3xl xs:text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold leading-tight block text-transparent bg-clip-text bg-gradient-to-r from-[#76C945] to-[#C5A059]"
               delay={0.2}
             />
           </h1>
@@ -94,7 +94,7 @@ export default function HeroContent() {
           {/* Subheading */}
           <motion.p
             variants={itemReveal}
-            className="text-base sm:text-lg lg:text-xl text-white/70 max-w-lg mb-6 lg:mb-10 leading-relaxed mx-auto lg:mx-0"
+            className="text-base sm:text-lg lg:text-xl text-white/70 max-w-lg mb-6 lg:mb-10 leading-relaxed mx-auto lg:mx-0 font-medium"
           >
             {t.hero.sub}
           </motion.p>
@@ -118,7 +118,7 @@ export default function HeroContent() {
           {/* Staggered Stats Counters */}
           <motion.div
             variants={itemReveal}
-            className="flex gap-6 mt-8 pt-6 lg:mt-12 lg:pt-8 border-t border-white/10 w-full justify-center lg:justify-start"
+            className="flex flex-wrap gap-4 sm:gap-6 mt-8 pt-6 lg:mt-12 lg:pt-8 border-t border-white/10 w-full justify-center lg:justify-start"
           >
             {[
               { to: 15, suffix: '+', label: t.hero.years },

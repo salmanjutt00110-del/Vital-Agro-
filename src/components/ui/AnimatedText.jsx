@@ -36,13 +36,13 @@ export default function AnimatedText({
   return (
     <motion.span
       ref={ref}
-      className={`inline-flex flex-wrap overflow-hidden py-1 ${className}`}
+      className={`inline-flex flex-wrap gap-x-[0.25em] gap-y-[0.05em] overflow-hidden py-1 ${className}`}
       variants={container}
       initial="hidden"
       animate={inView ? "visible" : "hidden"}
     >
       {words.map((word, idx) => (
-        <span key={idx} className="overflow-hidden inline-block mr-[0.22em] h-fit">
+        <span key={idx} className="overflow-hidden inline-block h-fit">
           <motion.span variants={child} className="inline-block">
             {word === '' ? '\u00A0' : word}
           </motion.span>

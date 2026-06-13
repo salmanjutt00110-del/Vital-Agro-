@@ -498,7 +498,7 @@ Thank you.`;
             </motion.div>
 
             {/* Thumbnail Gallery */}
-            <div className="flex gap-3 mt-6">
+            <div className="flex flex-wrap gap-2.5 sm:gap-3 mt-6 justify-center lg:justify-start">
               {galleryImages.map((img, i) => (
                 <button
                   key={i}
@@ -540,7 +540,7 @@ Thank you.`;
             </div>
 
             {/* Product Name */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none mb-3">
+            <h1 className="text-3xl xs:text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none mb-3">
               {product.name[lang]} — {product.genericName[lang] || product.genericName.en || ''} {lang === 'en' ? 'Pakistan' : 'پاکستان'}
             </h1>
             {product.formulation && (
