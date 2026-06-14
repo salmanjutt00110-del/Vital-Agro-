@@ -27,6 +27,7 @@ const getCategoryLabel = (category) => {
     case 'fungicide': return 'FUNGICIDE';
     case 'plant_nutrition': return 'PLANT NUTRITION';
     case 'growth_promoter': return 'GROWTH PROMOTER';
+    case 'soil_conditioner': return 'SOIL CONDITIONER';
     default: return 'SPECIAL PRODUCT';
   }
 };
@@ -43,7 +44,13 @@ const PRODUCT_COLOR_THEMES = {
   "output": { glow: "rgba(192, 132, 252, 0.4)", particle: "#c084fc", themeName: "Amethyst Violet" },
   "sector": { glow: "rgba(163, 230, 53, 0.4)", particle: "#a3e635", themeName: "Lime Volt" },
   "farbasin": { glow: "rgba(167, 139, 250, 0.4)", particle: "#a78bfa", themeName: "Periwinkle" },
-  "super-4g": { glow: "rgba(244, 63, 94, 0.4)", particle: "#f43f5e", themeName: "Rose Spark" }
+  "super-4g": { glow: "rgba(244, 63, 94, 0.4)", particle: "#f43f5e", themeName: "Rose Spark" },
+  "vac-sop": { glow: "rgba(13, 74, 138, 0.4)", particle: "#0d4a8a", themeName: "Deep Ocean" },
+  "vac-map": { glow: "rgba(26, 58, 154, 0.4)", particle: "#1a3a9a", themeName: "Royal Cobalt" },
+  "defeater-soil-conditioner": { glow: "rgba(26, 90, 26, 0.4)", particle: "#1a5a1a", themeName: "Forest Exfet" },
+  "sonehri-potash-30": { glow: "rgba(13, 90, 138, 0.4)", particle: "#0d5a8a", themeName: "Golden Aurum" },
+  "defeater-potassium-humate": { glow: "rgba(42, 26, 90, 0.4)", particle: "#2a1a5a", themeName: "Violet Humate" },
+  "setting-npk": { glow: "rgba(42, 74, 26, 0.4)", particle: "#2a4a1a", themeName: "Emerald Balanced" }
 };
 
 // 60FPS High Performance Rolling Number Price Counter
@@ -123,26 +130,18 @@ const SlideToCart = ({ onSlideSuccess, lang }) => {
 };
 
 // ProductGridCard — upgraded glassmorphic dark catalog card
-const ProductGridCard = ({ product, openCheckout, lang }) => {
+const ProductGridCard = React.memo(({ product, openCheckout, lang }) => {
   const [qty, setQty] = useState(1);
 
   return (
-    <motion.div
-      className="group relative rounded-2xl overflow-hidden flex flex-col h-full"
+    <div
+      className="group relative rounded-2xl overflow-hidden flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
       style={{
         background: 'rgba(255,255,255,0.04)',
         backdropFilter: 'blur(20px)',
         border: '1px solid rgba(255,255,255,0.08)',
         boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
       }}
-      whileHover={{
-        y: -4,
-        boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(92,184,92,0.15)',
-      }}
-      transition={{ duration: 0.3 }}
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
     >
       {/* Top badges row */}
       <div className="flex justify-between items-center px-3 pt-3 pb-0">
@@ -157,23 +156,22 @@ const ProductGridCard = ({ product, openCheckout, lang }) => {
 
       {/* Product Image — larger, better centered */}
       <div className="relative flex items-center justify-center py-5 px-4 h-40">
-        <motion.div
+        <div
           className="absolute inset-0 opacity-0 group-hover:opacity-100
             transition-opacity duration-500"
           style={{
             background: 'radial-gradient(circle at 50% 70%, rgba(92,184,92,0.08) 0%, transparent 70%)',
           }}
         />
-        <motion.img
+        <img
           src={product.image}
           alt={`${product.name} - ${product.category}`}
-          className="h-32 w-full object-contain relative z-10"
+          className="h-32 w-full object-contain relative z-10 transition-transform duration-300 group-hover:scale-108"
           style={{
             filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.4))',
           }}
-          whileHover={{ scale: 1.08, y: -4 }}
-          transition={{ duration: 0.4 }}
           loading="lazy"
+          decoding="async"
           width="200"
           height="128"
         />
@@ -214,14 +212,14 @@ const ProductGridCard = ({ product, openCheckout, lang }) => {
             <div className="flex items-center gap-1.5 bg-white/5 rounded-full border border-white/10 p-0.5">
               <button 
                 onClick={() => setQty(q => Math.max(1, q - 1))}
-                className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 text-white/70 text-sm flex items-center justify-center transition-colors font-bold"
+                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-white/70 text-sm flex items-center justify-center transition-colors font-bold min-h-[32px] min-w-[32px]"
               >
                 −
               </button>
               <span className="text-white text-xs font-black w-4 text-center font-mono">{qty}</span>
               <button 
                 onClick={() => setQty(q => q + 1)}
-                className="w-6 h-6 rounded-full bg-[#2d6a2d] hover:bg-[#3d8c3d] text-white text-sm flex items-center justify-center transition-colors font-bold"
+                className="w-8 h-8 rounded-full bg-[#2d6a2d] hover:bg-[#3d8c3d] text-white text-sm flex items-center justify-center transition-colors font-bold min-h-[32px] min-w-[32px]"
               >
                 +
               </button>
@@ -229,21 +227,21 @@ const ProductGridCard = ({ product, openCheckout, lang }) => {
           </div>
 
           {/* BUY NOW COD Button */}
-          <motion.button
+          <button
             onClick={() => openCheckout({ ...product, defaultQty: qty })}
-            whileTap={{ scale: 0.97 }}
             className="w-full py-2.5 rounded-xl font-black text-xs text-white uppercase tracking-wider
               bg-gradient-to-r from-[#1e5c1e] to-[#2d6a2d]
               border border-[rgba(92,184,92,0.3)]
-              hover:shadow-[0_0_20px_rgba(92,184,92,0.25)] transition-all duration-300"
+              hover:shadow-[0_0_20px_rgba(92,184,92,0.25)] transition-all duration-300
+              active:scale-97 transform min-h-[44px] flex items-center justify-center"
           >
             🛒 {lang === 'en' ? 'BUY NOW (COD)' : 'ابھی خریدیں (COD)'}
-          </motion.button>
+          </button>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
-};
+});
 
 // Main Products Explorer View
 export default function Products() {
@@ -303,6 +301,7 @@ export default function Products() {
     fungicide: t.categories.fungicide,
     plant_nutrition: t.categories.plant_nutrition,
     growth_promoter: t.categories.growth_promoter,
+    soil_conditioner: t.categories.soil_conditioner,
     special_product: t.categories.special_product,
   };
 
@@ -342,7 +341,7 @@ export default function Products() {
   // Filter products matching active criteria
   const filtered = useMemo(() => {
     return mappedProducts.filter(p => {
-      const matchCat = category === 'all' || p.category.toLowerCase().replace(' ', '_') === category;
+      const matchCat = category === 'all' || p.category.toLowerCase().replace(/\s+/g, '_') === category;
       
       const searchLower = search.toLowerCase();
       const matchSearch = !search || 
@@ -499,7 +498,7 @@ export default function Products() {
       <section className="py-10 relative z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fadeIn">
           {filtered.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-5 px-1 sm:px-6">
               {filtered.map((product) => (
                 <ProductGridCard
                   key={product.slug}

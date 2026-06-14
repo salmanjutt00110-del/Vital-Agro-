@@ -53,10 +53,10 @@ export const PRODUCTS_DATA = {
     seoTitle: "Fatty Bio-Stimulant & Plant Nutrition | Vital Agro",
     seoDescription: "Buy Fatty Bio-Stimulant online. Promotes crop growth, cell division, and drought tolerance using organic fatty acids. Available in multiple pack sizes.",
     sizes: [
-      { size: "250 ML", price: 999, oldPrice: 1299, stockStatus: "In Stock", sku: "VA-FAT-250", weight: "250g" },
-      { size: "500 ML", price: 1499, oldPrice: 1999, stockStatus: "In Stock", sku: "VA-FAT-500", weight: "500g" },
-      { size: "1 Litre", price: 2499, oldPrice: 3299, stockStatus: "In Stock", sku: "VA-FAT-1L", weight: "1kg" },
-      { size: "5 Litre", price: 9999, oldPrice: 12999, stockStatus: "Low Stock", sku: "VA-FAT-5L", weight: "5kg" }
+      { size: "500 ML", price: 899, oldPrice: 1199, stockStatus: "In Stock", sku: "VA-FAT-500", weight: "500g" },
+      { size: "2 KG", price: 1699, oldPrice: 2299, stockStatus: "In Stock", sku: "VA-FAT-2KG", weight: "2kg" },
+      { size: "8 KG", price: 1999, oldPrice: 2699, stockStatus: "In Stock", sku: "VA-FAT-8KG", weight: "8kg" },
+      { size: "20 KG", price: 4999, oldPrice: 6299, stockStatus: "In Stock", sku: "VA-FAT-20KG", weight: "20kg" }
     ],
     formulation: "10% SL",
     activeIngredient: "Organic Fatty Acids & Micronutrients",
@@ -1032,9 +1032,8 @@ export const PRODUCTS_DATA = {
     seoTitle: "Vac Zinc Highly Concentrated Supplement | Vital Agro",
     seoDescription: "Boost crop yield, enzymatic activity, and root health with Vac Zinc liquid supplement. Formulated for paddy rice, maize, and wheat. Shop local or buy online.",
     sizes: [
-      { size: "5 Litre", price: 4999, oldPrice: 6499, stockStatus: "In Stock", sku: "VA-VZ-5L", weight: "5kg" },
-      { size: "10 Litre", price: 8999, oldPrice: 11999, stockStatus: "In Stock", sku: "VA-VZ-10L", weight: "10kg" },
-      { size: "20 Litre", price: 16999, oldPrice: 21999, stockStatus: "Low Stock", sku: "VA-VZ-20L", weight: "20kg" }
+      { size: "3 Litre", price: 899, oldPrice: 1199, stockStatus: "In Stock", sku: "VA-VZ-3L", weight: "3kg" },
+      { size: "20 Litre", price: 4999, oldPrice: 6499, stockStatus: "In Stock", sku: "VA-VZ-20L", weight: "20kg" }
     ],
     formulation: "12% Powder",
     activeIngredient: "Chelated Zinc (Zn-EDTA 12%)",
@@ -1192,8 +1191,7 @@ export const PRODUCTS_DATA = {
     seoTitle: "Sector Soil Mineral Supplement | Vital Agro",
     seoDescription: "Improve soil texture, crop vigor, and nutrient uptake with Sector soil granules. Packed with rich chelated secondary and trace elements. 4KG and 8KG packs.",
     sizes: [
-      { size: "4 KG", price: 1499, oldPrice: 1999, stockStatus: "In Stock", sku: "VA-SEC-4K", weight: "4kg" },
-      { size: "8 KG", price: 2799, oldPrice: 3599, stockStatus: "In Stock", sku: "VA-SEC-8K", weight: "8kg" }
+      { size: "4 KG", price: 1299, oldPrice: 1699, stockStatus: "In Stock", sku: "VA-SEC-4K", weight: "4kg" }
     ],
     formulation: "16% WP",
     activeIngredient: "Acetochlor 14% + Bensulfuron Methyl 2%",
@@ -1342,9 +1340,8 @@ export const PRODUCTS_DATA = {
     seoTitle: "Output Humic Acid Soil Granules | Vital Agro",
     seoDescription: "Increase root volume and NPK absorption efficiency. Output organic humic acid stimulates soil microbes, unlocks phosphate, and builds crop resilience.",
     sizes: [
-      { size: "1 KG", price: 799, oldPrice: 999, stockStatus: "In Stock", sku: "VA-OUT-1K", weight: "1kg" },
-      { size: "8 KG", price: 4499, oldPrice: 5799, stockStatus: "In Stock", sku: "VA-OUT-8K", weight: "8kg" },
-      { size: "25 KG", price: 12999, oldPrice: 16999, stockStatus: "Out of Stock", sku: "VA-OUT-25K", weight: "25kg" }
+      { size: "1 KG", price: 899, oldPrice: 1199, stockStatus: "In Stock", sku: "VA-OUT-1K", weight: "1kg" },
+      { size: "25 KG", price: 17999, oldPrice: 21999, stockStatus: "In Stock", sku: "VA-OUT-25K", weight: "25kg" }
     ],
     formulation: "PK Liquid Concentrate",
     activeIngredient: "Phosphorus + Potassium + Boron",
@@ -1790,6 +1787,708 @@ export const PRODUCTS_DATA = {
       ]
     }
   },
+  
+  "vac-sop": {
+    id: "vac-sop",
+    genericName: {
+      en: "Sulphate of Potash (SOP)",
+      ur: "سلفیٹ آف پوٹاش (SOP)"
+    },
+    pricing: [
+      { size: "25 KG", rate: "3000", carton: "1" }
+    ],
+    slug: "vac-sop",
+    name: {
+      en: "VAC SOP",
+      ur: "ویک ایس او پی"
+    },
+    category: "plant_nutrition",
+    imageUrl: "",
+    pngUrl: "/products/vac-sop.png",
+    rating: 4.9,
+    importedFormulaBadge: true,
+    premiumProductBadge: true,
+    researchBasedBadge: true,
+    shortDesc: {
+      en: "VAC SOP is a premium 100% water soluble Sulphate of Potash fertilizer. With 50% K₂O content, it provides superior potassium nutrition without harmful chloride.",
+      ur: "ویک ایس او پی ایک بہترین 100٪ پانی میں حل پذیر سلفیٹ آف پوٹاش کھاد ہے۔ 50٪ پوٹاشیم (K2O) کے ساتھ، یہ نقصان دہ کلورائیڈ کے بغیر پوٹاشیم غذائیت فراہم کرتی ہے۔"
+    },
+    seoTitle: "VAC SOP Sulphate of Potash Fertilizer | Vital Agro",
+    seoDescription: "Buy VAC SOP Sulphate of Potash fertilizer. 100% water soluble and chloride-free potassium nutrition. Boost crop yield, fruit weight, and stress tolerance.",
+    sizes: [
+      { size: "25 KG", price: 3999, oldPrice: 4599, stockStatus: "In Stock", sku: "VA-SOP-25KG", weight: "25kg" }
+    ],
+    formulation: "Potash (K₂O) + Sulphur",
+    activeIngredient: "Potassium Sulphate (K2O 50% + S 17.5%)",
+    packaging: "25 KG Bag",
+    productCode: "VA-SOP-25KG",
+    status: {
+      en: "100% Water Soluble Imported SOP",
+      ur: "100٪ پانی میں حل پذیر درآمد شدہ"
+    },
+    description: {
+      en: "VAC SOP is a premium 100% water soluble Sulphate of Potash fertilizer. With 50% K₂O content, it provides superior potassium nutrition without harmful chloride. Ideal for potassium-sensitive crops and high-value agriculture.",
+      ur: "ویک ایس او پی ایک بہترین 100٪ پانی میں حل پذیر سلفیٹ آف پوٹاش کھاد ہے۔ 50٪ پوٹاشیم (K2O) کے ساتھ، یہ نقصان دہ کلورائیڈ کے بغیر بہترین پوٹاشیم غذائیت فراہم کرتی ہے۔ یہ پوٹاشیم کے لیے حساس اور قیمتی فصلوں کے لیے مثالی ہے۔"
+    },
+    features: {
+      en: [
+        "100% water soluble Sulphate of Potash",
+        "Free of harmful chloride elements",
+        "Rich in premium sulphur (17.5% S)",
+        "Quick absorption via drip & foliar",
+        "Improves overall crop resilience"
+      ],
+      ur: [
+        "100٪ پانی میں حل پذیر سلفیٹ آف پوٹاش",
+        "نقصان دہ کلورائیڈ سے بالکل پاک",
+        "عمدہ سلفر (17.5٪) سے بھرپور",
+        "ڈرپ اور اسپرے کے لیے انتہائی موزوں",
+        "فصلوں کی موسمی حالات کے خلاف مدافعت میں اضافہ"
+      ]
+    },
+    benefits: {
+      en: [
+        "Enhances fruit size, color and taste",
+        "Improves crop drought resistance",
+        "Provides essential sulphur for protein synthesis",
+        "Maximizes post-harvest shelf life",
+        "Significantly increases crop yield"
+      ],
+      ur: [
+        "پھل کا سائز، رنگ اور ذائقہ بہتر بناتا ہے",
+        "خشک سالی اور گرمی کے خلاف قوت مدافعت بڑھاتا ہے",
+        "پروٹین بنانے کے لیے ضروری سلفر فراہم کرتا ہے",
+        "پھلوں کی سٹوریج لائف (شیلف لائف) کو طول دیتا ہے",
+        "فصل کی مجموعی پیداوار میں نمایاں اضافہ کرتا ہے"
+      ]
+    },
+    crops: [
+      { name: { en: "Cotton", ur: "کپاس" }, icon: "🌱" },
+      { name: { en: "Sugarcane", ur: "کماد" }, icon: "🎋" },
+      { name: { en: "Vegetables", ur: "سبزیاں" }, icon: "🥦" },
+      { name: { en: "Fruits", ur: "پھل" }, icon: "🍊" },
+      { name: { en: "Rice", ur: "دھان" }, icon: "🌾" }
+    ],
+    application: {
+      en: "Foliar spray or drip irrigation fertigation. Apply during crop development stages.",
+      ur: "فولیر سپرے یا ڈرپ آبپاشی فرٹیگیشن۔ فصل کی بڑھوتری کے مراحل کے دوران استعمال کریں۔"
+    },
+    dosageTable: [
+      {
+        crop: { en: "All Crops", ur: "تمام فصلیں" },
+        dosage: { en: "5-10 KG / Acre", ur: "5-10 کلوگرام فی ایکڑ" },
+        water: { en: "Through Fertigation", ur: "بذریعہ فرٹیگیشن" },
+        timing: { en: "During reproductive and sizing stages", ur: "پھل بننے اور سائز بڑھنے کے مراحل پر" },
+        frequency: { en: "2-3 applications", ur: "2 سے 3 بار" }
+      }
+    ],
+    specs: {
+      type: { en: "Water Soluble SOP", ur: "پانی میں حل پذیر ایس او پی" },
+      formulation: { en: "Soluble Crystalline Powder", ur: "حل پذیر کرسٹلائن پاؤڈر" },
+      composition: { en: "Potash (K2O) 50% + Sulphur 17.5%", ur: "پوٹاش 50% + سلفر 17.5%" },
+      appearance: { en: "White crystalline powder", ur: "سفید کرسٹلائن پاؤڈر" },
+      storage: { en: "Store in cool, dry place away from humidity under 35°C", ur: "نمی سے محفوظ، ٹھنڈی اور خشک جگہ پر 35 ڈگری سے نیچے رکھیں" },
+      shelfLife: { en: "3 Years", ur: "3 سال" },
+      packing: { en: "25 KG Bag", ur: "25 کلوگرام بیگ" },
+      compatibility: { en: "Compatible with most water soluble fertilizers. Do not mix with calcium fertilizers.", ur: "زیادہ تر حل پذیر کھادوں کے ساتھ ملایا جا سکتا ہے۔ کیلشیم کھادوں کے ساتھ نہ ملائیں۔" }
+    },
+    safety: {
+      en: [
+        "Avoid inhalation of dust.",
+        "Wear gloves when applying manually.",
+        "Wash hands after handling."
+      ],
+      ur: [
+        "دھول کو سانس کے ذریعے اندر لے جانے سے بچیں۔",
+        "ہاتھ سے ڈالتے وقت دستانے پہنیں۔",
+        "استعمال کے بعد ہاتھ اچھی طرح دھوئیں۔"
+      ]
+    },
+    faqs: {
+      en: [
+        { q: "What is the primary benefit of VAC SOP?", a: "It provides high purity potassium and sulfur without any harmful chloride, improving yields and fruit quality." }
+      ],
+      ur: [
+        { q: "ویک ایس او پی کا بنیادی فائدہ کیا ہے؟", a: "یہ بغیر کسی نقصان دہ کلورائیڈ کے خالص پوٹاشیم اور سلفر فراہم کرتی ہے، جس سے پیداوار اور پھل کا معیار بہتر ہوتا ہے۔" }
+      ]
+    }
+  },
+  "vac-map": {
+    id: "vac-map",
+    genericName: {
+      en: "Mono Ammonium Phosphate (MAP)",
+      ur: "مونو امونیم فاسفیٹ (MAP)"
+    },
+    pricing: [
+      { size: "25 KG", rate: "2200", carton: "1" }
+    ],
+    slug: "vac-map",
+    name: {
+      en: "VAC MAP",
+      ur: "ویک میپ"
+    },
+    category: "plant_nutrition",
+    imageUrl: "",
+    pngUrl: "/products/vac-map.png",
+    rating: 4.8,
+    importedFormulaBadge: true,
+    premiumProductBadge: true,
+    researchBasedBadge: true,
+    shortDesc: {
+      en: "VAC MAP is a high-grade Mono Ammonium Phosphate fertilizer with 81% phosphorus content. Imported Technical Grade quality ensures maximum solubility.",
+      ur: "ویک میپ ایک اعلیٰ درجے کی مونو امونیم فاسفیٹ کھاد ہے جس میں 81٪ فاسفورس ہوتا ہے۔ درآمد شدہ ٹیکنیکل گریڈ کوالٹی مکمل حل پذیری کا ضامن ہے۔"
+    },
+    seoTitle: "VAC MAP Mono Ammonium Phosphate | Vital Agro",
+    seoDescription: "Buy VAC MAP premium fertilizer. 12% Nitrogen and 81% Phosphorus (P2O5). Technical Grade imported from China for maximum root growth and crop yield.",
+    sizes: [
+      { size: "25 KG", price: 2999, oldPrice: 3499, stockStatus: "In Stock", sku: "VA-MAP-25KG", weight: "25kg" }
+    ],
+    formulation: "Mono Ammonium Phosphate (MAP)",
+    activeIngredient: "Nitrogen (N) 12% + Phosphorus (P₂O₅) 81%",
+    packaging: "25 KG Bag",
+    productCode: "VA-MAP-25KG",
+    status: {
+      en: "Technical Grade Imported MAP",
+      ur: "درآمد شدہ ٹیکنیکل گریڈ کھاد"
+    },
+    description: {
+      en: "VAC MAP is a high-grade Mono Ammonium Phosphate fertilizer with 81% phosphorus content. Imported from China, Technical Grade quality ensures maximum solubility and crop uptake efficiency. Ideal for phosphorus-deficient soils.",
+      ur: "ویک میپ ایک اعلیٰ درجے کی مونو امونیم فاسفیٹ کھاد ہے جس میں 81٪ فاسفورس ہوتا ہے۔ چین سے درآمد شدہ، ٹیکنیکل گریڈ کوالٹی مکمل حل پذیری اور فصل کی تیز ترین جذب کرنے کی صلاحیت کو یقینی بناتی ہے۔ یہ فاسفورس کی کمی والی زمینوں کے لیے بہترین ہے۔"
+    },
+    features: {
+      en: [
+        "Ultra-high phosphorus content (81% P₂O₅)",
+        "Promotes vigorous root development",
+        "Enhances early crop establishment",
+        "Fully water soluble — fertigable",
+        "Low pH helps in alkaline soil conditions"
+      ],
+      ur: [
+        "انتہائی زیادہ فاسفورس مقدار (81% P₂O₅)",
+        "جڑوں کی تیز اور بھرپور نشوونما کو فروغ دینا",
+        "فصل کی ابتدائی بڑھوتری کو بہتر بنانا",
+        "پانی میں 100٪ حل پذیر - فلڈ یا سپرے کے لیے موزوں",
+        "کم پی ایچ (pH) کلراٹھی مٹی میں جڑوں کی مدد کرتا ہے"
+      ]
+    },
+    benefits: {
+      en: [
+        "Triggers strong root structure and tillering",
+        "Improves crop flowering and seed set",
+        "Helps plants establish quickly after transplanting",
+        "Highly efficient in alkaline Pakistani soils",
+        "Technical Grade purity ensures zero residue"
+      ],
+      ur: [
+        "مضبوط جڑیں اور زیادہ شاخیں نکالنے میں مدد کرتا ہے",
+        "پھول آنے اور بیج بننے کے عمل کو بہتر بناتا ہے",
+        "منتقلی کے بعد پودوں کو تیزی سے جڑ پکڑنے میں مدد دیتا ہے",
+        "پاکستانی الکلائن مٹی کے لیے انتہائی موثر ہے",
+        "ٹیکنیکل گریڈ خالصیت کی وجہ سے کوئی باقیات نہیں چھوڑتا"
+      ]
+    },
+    crops: [
+      { name: { en: "All Crops", ur: "تمام فصلیں" }, icon: "🌱" },
+      { name: { en: "Wheat", ur: "گندم" }, icon: "🌾" },
+      { name: { en: "Cotton", ur: "کپاس" }, icon: "🌱" },
+      { name: { en: "Sugarcane", ur: "کماد" }, icon: "🎋" },
+      { name: { en: "Vegetables", ur: "سبزیاں" }, icon: "🥦" }
+    ],
+    application: {
+      en: "Foliar application or fertigation through drip system. Best applied during early growth and root establishment stages.",
+      ur: "فولیر سپرے یا ڈرپ سسٹم کے ذریعے فرٹیگیشن۔ ابتدائی بڑھوتری اور جڑیں بننے کے مرحلے پر بہترین نتائج دیتا ہے۔"
+    },
+    specs: {
+      type: { en: "Technical Grade Fertilizer", ur: "ٹیکنیکل گریڈ کھاد" },
+      formulation: { en: "Soluble Crystals", ur: "حل پذیر کرسٹلز" },
+      composition: { en: "Nitrogen 12% + P2O5 81%", ur: "نائٹروجن 12% + فاسفورس 81%" },
+      appearance: { en: "White crystals", ur: "سفید کرسٹلز" },
+      storage: { en: "Store in cool dry warehouse away from moisture", ur: "ٹھنڈے اور خشک گودام میں نمی سے بچا کر رکھیں" },
+      shelfLife: { en: "3 Years", ur: "3 سال" },
+      packing: { en: "25 KG Bag", ur: "25 کلوگرام بیگ" }
+    },
+    safety: {
+      en: [
+        "Avoid eye contact.",
+        "Use safety masks when mixing.",
+        "Keep away from children."
+      ],
+      ur: [
+        "آنکھوں کے رابطے سے بچیں۔",
+        "مکسنگ کے دوران حفاظتی ماسک کا استعمال کریں۔",
+        "بچوں کی پہنچ سے دور رکھیں۔"
+      ]
+    },
+    faqs: {
+      en: [
+        { q: "Can VAC MAP be mixed with other fertilizers?", a: "Yes, it is highly compatible with other water soluble fertilizers except those containing calcium." }
+      ],
+      ur: [
+        { q: "کیا ویک میپ کو دوسری کھادوں کے ساتھ ملایا جا سکتا ہے؟", a: "جی ہاں، یہ کیلشیم پر مبنی کھادوں کے علاوہ دیگر تمام حل پذیر کھادوں کے ساتھ ملایا جا سکتا ہے۔" }
+      ]
+    }
+  },
+  "defeater-soil-conditioner": {
+    id: "defeater-soil-conditioner",
+    genericName: {
+      en: "Potassium Humate Liquid",
+      ur: "پوٹاشیم ہیومیٹ مائع"
+    },
+    pricing: [
+      { size: "20 LTR", rate: "3480", carton: "1" },
+      { size: "200 LTR", rate: "32200", carton: "1" }
+    ],
+    slug: "defeater-soil-conditioner",
+    name: {
+      en: "Defeater Soil",
+      ur: "ڈیفیٹر سوائل"
+    },
+    category: "soil_conditioner",
+    imageUrl: "",
+    pngUrl: "/products/defeater-soil.png",
+    rating: 4.7,
+    importedFormulaBadge: false,
+    premiumProductBadge: true,
+    researchBasedBadge: true,
+    shortDesc: {
+      en: "Defeater Soil Conditioner uses advanced Exfet Technology to improve soil structure, increase microbial activity and enhance nutrient availability.",
+      ur: "ڈیفیٹر سوائل کنڈیشنر مٹی کی ساخت کو بہتر بنانے، مائکروبیل سرگرمی کو بڑھانے اور غذائی اجزاء کی دستیابی کے لیے ایکسفیٹ ٹیکنالوجی کا استعمال کرتا ہے۔"
+    },
+    seoTitle: "Defeater Soil Conditioner | Vital Agro",
+    seoDescription: "Buy Defeater Soil Conditioner with Exfet Technology. Formulated with Potassium Humate to optimize soil structure, water retention, and microbial activity.",
+    sizes: [
+      { size: "20 LTR", price: 3999, oldPrice: 4599, stockStatus: "In Stock", sku: "VA-DEF-SC-20L", weight: "20kg" },
+      { size: "200 LTR", price: 34999, oldPrice: 38999, stockStatus: "In Stock", sku: "VA-DEF-SC-200L", weight: "200kg" }
+    ],
+    formulation: "Potassium Humate Liquid",
+    activeIngredient: "Potassium (K₂O) 3.1% + Humic Acid 30%",
+    packaging: "20 LTR, 200 LTR Cans",
+    productCode: "VA-DEF-SC",
+    status: {
+      en: "Exfet Technology Soil Conditioner",
+      ur: "ایکسفیٹ ٹیکنالوجی مٹی کنڈیشنر"
+    },
+    description: {
+      en: "Defeater Soil Conditioner uses advanced Exfet Technology to improve soil structure, increase microbial activity and enhance nutrient availability. Potassium Humate complex revitalizes depleted soils for maximum crop performance.",
+      ur: "ڈیفیٹر سوائل کنڈیشنر جدید ایکسفیٹ ٹیکنالوجی کے ذریعے زمین کی ساخت کو بہتر بناتا ہے، مفید جراثیم بڑھاتا ہے اور زمین میں موجود غذائی عناصر کو پودے کے لیے دستیاب کرتا ہے۔ یہ کمزور زمینوں کو دوبارہ زندہ کرتا ہے۔"
+    },
+    features: {
+      en: [
+        "Improves soil water retention capacity",
+        "Increases cation exchange capacity (CEC)",
+        "Stimulates beneficial soil microorganisms",
+        "Enhances nutrient uptake efficiency",
+        "Reduces soil compaction"
+      ],
+      ur: [
+        "زمین کی پانی جذب رکھنے کی صلاحیت کو بہتر بنانا",
+        "مٹی کی کیٹ آئن ایکسچینج کی صلاحیت (CEC) میں اضافہ",
+        "زمین کے مفید بیکٹیریا اور جراثیم کو تیز کرنا",
+        "کھادوں کے جذب ہونے کی کارکردگی کو بڑھانا",
+        "زمین کی سختی اور چکناہٹ کو ختم کرنا"
+      ]
+    },
+    benefits: {
+      en: [
+        "Increases fertilizer efficiency, reducing wastage",
+        "Promotes massive white root development",
+        "Helps crops stand healthy during drought",
+        "Improves yield quality and weight",
+        "Maintains soil health for future crops"
+      ],
+      ur: [
+        "کھادوں کے ضیاع کو روکتا ہے اور ان کی کارکردگی بڑھاتا ہے",
+        "جڑوں کے پھیلاؤ اور باریک سفید جڑیں بنانے میں مددگار",
+        "خشک سالی کے دوران فصل کو سوکے سے بچاتا ہے",
+        "اناج کے معیار اور وزن کو بہتر بناتا ہے",
+        "آئندہ فصلوں کے لیے زمین کی زرخیزی کو بحال رکھتا ہے"
+      ]
+    },
+    crops: [
+      { name: { en: "Cotton", ur: "کپاس" }, icon: "🌱" },
+      { name: { en: "Sugarcane", ur: "کماد" }, icon: "🎋" },
+      { name: { en: "Potato", ur: "آلو" }, icon: "🥔" },
+      { name: { en: "Vegetables", ur: "سبزیاں" }, icon: "🥦" },
+      { name: { en: "Fruits", ur: "پھل" }, icon: "🍊" }
+    ],
+    application: {
+      en: "Flood irrigation fertigation. Mix the recommended dose with irrigation water at the root zone.",
+      ur: "آبپاشی کے پانی کے ساتھ فلڈ کریں۔ تجویز کردہ خوراک کو جڑوں تک پہنچائیں۔"
+    },
+    specs: {
+      type: { en: "Soil Biological Conditioner", ur: "زمین کا نامیاتی کنڈیشنر" },
+      formulation: { en: "Liquid Slurry Concentrate", ur: "گاڑھا مائع فارمولا" },
+      composition: { en: "Potassium (K2O) 3.1% w/w + Humic Acid 30% w/w", ur: "پوٹاشیم 3.1% + ہیومک ایسڈ 30%" },
+      appearance: { en: "Viscous dark brown liquid", ur: "گاڑھا گہرا بھورا مائع" },
+      storage: { en: "Store in cool place under 35°C", ur: "35 ڈگری سے نیچے ٹھنڈی جگہ پر رکھیں" },
+      shelfLife: { en: "3 Years", ur: "3 سال" }
+    },
+    safety: {
+      en: [
+        "Wash hands with soap after flooding.",
+        "Avoid contact with eyes.",
+        "Keep container sealed when not in use."
+      ],
+      ur: [
+        "فلڈ کرنے کے بعد ہاتھ صابن سے دھوئیں۔",
+        "آنکھوں میں جانے سے بچائیں۔",
+        "استعمال نہ ہونے پر کین کو بند رکھیں۔"
+      ]
+    },
+    faqs: {
+      en: [
+        { q: "How does Exfet Technology help?", a: "Exfet Technology enhances the penetration of humate active molecules deep into the soil profile, ensuring fast action." }
+      ],
+      ur: [
+        { q: "ایکسفیٹ ٹیکنالوجی کیسے مدد کرتی ہے؟", a: "ایکسفیٹ ٹیکنالوجی ہیومیٹ کے فعال مالیکیولز کو مٹی کی گہرائی تک پہنچاتی ہے جس سے جڑوں کو فوری فائدہ ہوتا ہے۔" }
+      ]
+    }
+  },
+  "sonehri-potash-30": {
+    id: "sonehri-potash-30",
+    genericName: {
+      en: "Potash 30% Liquid",
+      ur: "پوٹاش 30 فیصد مائع"
+    },
+    pricing: [
+      { size: "1 LTR", rate: "940", carton: "1" },
+      { size: "3 LTR", rate: "1900", carton: "1" },
+      { size: "20 LTR", rate: "11930", carton: "1" }
+    ],
+    slug: "sonehri-potash-30",
+    name: {
+      en: "Sonehri Potash",
+      ur: "سنہری پوٹاش"
+    },
+    category: "plant_nutrition",
+    imageUrl: "",
+    pngUrl: "/products/sonehri-potash.png",
+    rating: 4.8,
+    importedFormulaBadge: false,
+    premiumProductBadge: true,
+    researchBasedBadge: true,
+    shortDesc: {
+      en: "Sonehri Potash 30% is a premium crop supplement that provides high potassium concentration. Advanced Exfet Technology ensures rapid absorption.",
+      ur: "سنہری پوٹاش 30٪ ایک بہترین فصل کا سپلیمنٹ ہے جو پوٹاشیم کی زیادہ مقدار فراہم کرتا ہے۔ جدید ایکسفیٹ ٹیکنالوجی اس کے فوری جذب کو یقینی بناتی ہے۔"
+    },
+    seoTitle: "Sonehri Potash 30% Crop Supplement | Vital Agro",
+    seoDescription: "Buy Sonehri Potash 30% online. High efficiency liquid potassium supplement enriched with microelements. Enhances fruit size, weight, and shelf life.",
+    sizes: [
+      { size: "1 LTR", price: 999, oldPrice: 1199, stockStatus: "In Stock", sku: "VA-SNH-30-1L", weight: "1kg" },
+      { size: "3 LTR", price: 1999, oldPrice: 2299, stockStatus: "In Stock", sku: "VA-SNH-30-3L", weight: "3kg" },
+      { size: "20 LTR", price: 11999, oldPrice: 13999, stockStatus: "In Stock", sku: "VA-SNH-30-20L", weight: "20kg" }
+    ],
+    formulation: "Liquid Fertilizer Soluble Concentrate",
+    activeIngredient: "Potash (K₂O) 30% + Micro Elements",
+    packaging: "1 LTR, 3 LTR, 20 LTR Cans",
+    productCode: "VA-SNH-30",
+    status: {
+      en: "Premium Potash 30% Supplement",
+      ur: "پریمیئم مائع پوٹاشیم 30٪"
+    },
+    description: {
+      en: "Sonehri Potash 30% is a premium crop supplement that provides high potassium concentration for enhanced crop quality. Advanced Exfet Technology ensures rapid absorption and maximum yield improvement. Ideal for fertigation and foliar application.",
+      ur: "سنہری پوٹاش 30٪ ایک اعلیٰ کوالٹی کا مائع پوٹاشیم سپلیمنٹ ہے جو فصل کے آخری مراحل میں پوٹاش کی ضرورت کو پورا کرتا ہے۔ جدید ایکسفیٹ ٹیکنالوجی پتوں اور جڑوں کے ذریعے فوری جذب کو یقینی بناتی ہے جس سے پھل کا سائز اور وزن بڑھتا ہے۔"
+    },
+    features: {
+      en: [
+        "30% Potash for strong fruit development",
+        "Improves sugar content and quality",
+        "Reduces flower and fruit drop",
+        "Suitable for all fertigation systems",
+        "Exfet Technology for rapid absorption"
+      ],
+      ur: [
+        "بہترین پھل بننے کے لیے 30٪ پوٹاشیم",
+        "پھلوں میں مٹھاس اور چمک کو بہتر بنانا",
+        "پھول اور پھل گرنے سے روکنا",
+        "تمام آبپاشی اور سپرے کے سسٹمز کے لیے موزوں",
+        "فوری اثر کے لیے ایکسفیٹ ٹیکنالوجی"
+      ]
+    },
+    benefits: {
+      en: [
+        "Accelerates grain filling in wheat & rice",
+        "Produces uniform, bright colored fruits",
+        "Improves crop defense against frost and heat",
+        "Increases crop market value and grade",
+        "Fully soluble, leaves no nozzle clogs"
+      ],
+      ur: [
+        "گندم اور دھان میں دانے کی بھرائی کو تیز کرتا ہے",
+        "یکساں اور چمکدار رنگ کے پھل پیدا کرتا ہے",
+        "سردی اور گرمی کی لہر کے خلاف قوت مدافعت دیتا ہے",
+        "کاشتکار کو منڈی میں اچھا ریٹ اور درجہ ملتا ہے",
+        "پانی میں مکمل حل پذیر، نوزل بند نہیں کرتا"
+      ]
+    },
+    crops: [
+      { name: { en: "Cotton", ur: "کپاس" }, icon: "🌱" },
+      { name: { en: "Sugarcane", ur: "کماد" }, icon: "🎋" },
+      { name: { en: "Potato", ur: "آلو" }, icon: "🥔" },
+      { name: { en: "Chilli", ur: "مرچ" }, icon: "🌶️" },
+      { name: { en: "Vegetables", ur: "سبزیاں" }, icon: "🥦" }
+    ],
+    application: {
+      en: "Foliar spray or fertigation. Best applied during fruit development and ripening stages.",
+      ur: "فولیر سپرے یا پانی کے ساتھ فلڈ کریں۔ پھل بننے اور پکنے کے مراحل پر سپرے کریں۔"
+    },
+    specs: {
+      type: { en: "Foliar & Fertigation Potash", ur: "فولیر اور فرٹیگیشن پوٹاش" },
+      formulation: { en: "Soluble Liquid", ur: "حل پذیر مائع" },
+      composition: { en: "Potash (K2O) 30% w/v + Trace elements", ur: "پوٹاش 30% + مائیکرو نیوٹرینٹس" },
+      appearance: { en: "Golden clear liquid", ur: "سنہری شفاف مائع" },
+      storage: { en: "Store below 30°C in original packaging", ur: "30 ڈگری سے نیچے اصل پیکنگ میں رکھیں" }
+    },
+    safety: {
+      en: [
+        "Do not spray during peak sun hours.",
+        "Keep away from direct heat."
+      ],
+      ur: [
+        "شدید دوپہر کے وقت سپرے سے گریز کریں۔",
+        "براہ راست تیز دھوپ اور گرمی سے دور رکھیں۔"
+      ]
+    },
+    faqs: {
+      en: [
+        { q: "When should we apply Sonehri Potash?", a: "Apply at grain filling in cereal crops, or fruit set stage in vegetable and fruit crops." }
+      ],
+      ur: [
+        { q: "سنہری پوٹاش کب استعمال کرنی چاہیے؟", a: "اناج کی فصلوں میں دانے بنتے وقت، اور سبزیوں و پھلوں میں پھل لگنے پر استعمال کریں۔" }
+      ]
+    }
+  },
+  "defeater-potassium-humate": {
+    id: "defeater-potassium-humate",
+    genericName: {
+      en: "Potassium Humate 13.5%",
+      ur: "پوٹاشیم ہیومیٹ 13.5٪"
+    },
+    pricing: [
+      { size: "4 LTR", rate: "680", carton: "1" },
+      { size: "20 LTR", rate: "3480", carton: "1" },
+      { size: "200 LTR", rate: "32200", carton: "1" }
+    ],
+    slug: "defeater-potassium-humate",
+    name: {
+      en: "Defeater Humate",
+      ur: "ڈیفیٹر ہیومیٹ"
+    },
+    category: "plant_nutrition",
+    imageUrl: "",
+    pngUrl: "/products/defeater-humate.png",
+    rating: 4.8,
+    importedFormulaBadge: false,
+    premiumProductBadge: true,
+    researchBasedBadge: true,
+    shortDesc: {
+      en: "Defeater Potassium Humate Liquid is an advanced soil biological activator. Rich in Humic and Fulvic acids, it improves soil structure.",
+      ur: "ڈیفیٹر پوٹاشیم ہیومیٹ مائع زمین کی حیاتیاتی زندگی کو بیدار کرتا ہے۔ ہیومک اور فلوک ایسڈ سے بھرپور، یہ زمین کی زرخیزی بڑھاتا ہے۔"
+    },
+    seoTitle: "Defeater Potassium Humate Liquid | Vital Agro",
+    seoDescription: "Shop Defeater Potassium Humate 13.5% liquid. Biological soil activator with Exfet Technology. Enhances root mass and nutrient availability.",
+    sizes: [
+      { size: "4 LTR", price: 899, oldPrice: 1099, stockStatus: "In Stock", sku: "VA-DEF-PHM-4L", weight: "4kg" },
+      { size: "20 LTR", price: 3999, oldPrice: 4599, stockStatus: "In Stock", sku: "VA-DEF-PHM-20L", weight: "20kg" },
+      { size: "200 LTR", price: 34999, oldPrice: 38999, stockStatus: "In Stock", sku: "VA-DEF-PHM-200L", weight: "200kg" }
+    ],
+    formulation: "13.5% SL Liquid Concentrate",
+    activeIngredient: "Potassium Humate + Fulvic Acid",
+    packaging: "4 LTR, 20 LTR, 200 LTR Cans",
+    productCode: "VA-DEF-PHM",
+    status: {
+      en: "Potassium Humate 13.5% SL",
+      ur: "پوٹاشیم ہیومیٹ 13.5٪ مائع"
+    },
+    description: {
+      en: "Defeater Potassium Humate Liquid is an advanced soil biological activator. Rich in Humic and Fulvic acids, it dramatically improves soil structure and nutrient availability. Exfet Technology ensures deep soil penetration for lasting results.",
+      ur: "ڈیفیٹر پوٹاشیم ہیومیٹ مائع ایک اعلیٰ معیار کا حیاتیاتی محرک ہے جو مٹی کی طبیعی ساخت کو نکھارتا ہے۔ یہ مٹی میں بند جپسم اور فاسفیٹ کو کھولتا ہے اور پودے کی جڑ کے بال (root hairs) کو خوراک چوسنے میں مدد دیتا ہے۔"
+    },
+    features: {
+      en: [
+        "High concentration Potassium Humate (13.5%)",
+        "Stimulates root growth and development",
+        "Improves soil water and nutrient retention",
+        "Activates beneficial soil microorganisms",
+        "Reduces soil pH in alkaline conditions"
+      ],
+      ur: [
+        "پوٹاشیم ہیومیٹ کی بہترین مقدار (13.5%)",
+        "جڑوں کی نشوونما اور پھیلاؤ کو تیز کرنا",
+        "مٹی میں پانی اور کھادیں روکنے کی صلاحیت بڑھانا",
+        "زمین کے فائدہ مند جراثیم کو متحرک کرنا",
+        "کلراٹھی اور سخت مٹی کی ساخت نرم کرنا"
+      ]
+    },
+    benefits: {
+      en: [
+        "Enhances plant survival under temperature shock",
+        "Unlocks fixed nutrients in soil (especially Phosphate)",
+        "Increases organic matter content in crop root zones",
+        "Highly compatible with NPK and urea mixtures",
+        "Safe and natural organic supplement"
+      ],
+      ur: [
+        "شدید گرمی اور کورا کے اثرات سے فصل کو محفوظ رکھتا ہے",
+        "زمین میں جمی کھادوں (فاسفورس) کو کھول کر جڑوں کو دیتا ہے",
+        "جڑ کے گرد نامیاتی مادے (آرگینک میٹر) میں اضافہ کرتا ہے",
+        "نائٹروجن اور این پی کے کھادوں کے ساتھ ملایا جا سکتا ہے",
+        "مکمل نامیاتی اور ماحول دوست دوا ہے"
+      ]
+    },
+    crops: [
+      { name: { en: "All Crops", ur: "تمام فصلیں" }, icon: "🌱" },
+      { name: { en: "Cotton", ur: "کپاس" }, icon: "🌱" },
+      { name: { en: "Wheat", ur: "گندم" }, icon: "🌾" },
+      { name: { en: "Rice", ur: "دھان" }, icon: "🌾" },
+      { name: { en: "Vegetables", ur: "سبزیاں" }, icon: "🥦" }
+    ],
+    application: {
+      en: "Flooding with first or second irrigation. Can also be applied via drip systems.",
+      ur: "پہلی یا دوسری آبپاشی کے پانی کے ساتھ فلڈ کریں۔ ڈرپ آبپاشی کے ذریعے بھی دیا جا سکتا ہے۔"
+    },
+    specs: {
+      type: { en: "Biological Soil Stimulant", ur: "نامیاتی مٹی کا محرک" },
+      composition: { en: "Potassium Humate 13.5% + Humic & Fulvic organic matter", ur: "پوٹاشیم ہیومیٹ 13.5%" },
+      appearance: { en: "Black fluid liquid", ur: "سیاہ مائع" },
+      storage: { en: "Keep container tightly closed in cool place", ur: "بوتل کو اچھی طرح بند کر کے ٹھنڈی جگہ پر رکھیں" }
+    },
+    safety: {
+      en: [
+        "Do not ingest.",
+        "Store away from food items.",
+        "Wash with clean water if splashed on eyes."
+      ],
+      ur: [
+        "نگلنے سے گریز کریں۔",
+        "کھانے پینے کی چیزوں سے دور رکھیں۔",
+        "آنکھوں پر چھینٹے پڑنے کی صورت میں صاف پانی سے دھوئیں۔"
+      ]
+    },
+    faqs: {
+      en: [
+        { q: "Is Defeater Humate compatible with copper fungicides?", a: "No, avoid mixing humic acids directly with highly acidic copper fungicides." }
+      ],
+      ur: [
+        { q: "کیا ڈیفیٹر ہیومیٹ کو کاپر ادویات کے ساتھ ملا سکتے ہیں؟", a: "نہیں۔ ہیومک ایسڈ کو تیزابی کاپر فنگس کش ادویات کے ساتھ براہ راست ملانے سے گریز کریں۔" }
+      ]
+    }
+  },
+  "setting-npk": {
+    id: "setting-npk",
+    genericName: {
+      en: "Balanced NPK 20:20:20",
+      ur: "متوازن این پی کے 20:20:20"
+    },
+    pricing: [
+      { size: "1 KG", rate: "699", carton: "1" },
+      { size: "25 KG", rate: "15230", carton: "1" }
+    ],
+    slug: "setting-npk",
+    name: {
+      en: "Setting NPK",
+      ur: "سیٹنگ این پی کے"
+    },
+    category: "plant_nutrition",
+    imageUrl: "",
+    pngUrl: "/products/setting.png",
+    rating: 4.9,
+    importedFormulaBadge: true,
+    premiumProductBadge: true,
+    researchBasedBadge: true,
+    shortDesc: {
+      en: "Setting NPK 20:20:20 is a perfectly balanced complete fertilizer. Equal NPK ratios support all critical growth stages.",
+      ur: "سیٹنگ این پی کے 20:20:20 ایک متوازن اور مکمل کھاد ہے۔ نائٹروجن، فاسفورس اور پوٹاش کی یکساں مقدار تمام مراحل پر فصل کو طاقت دیتی ہے۔"
+    },
+    seoTitle: "Setting NPK 20:20:20 Fertilizer | Vital Agro",
+    seoDescription: "Buy Setting NPK 20:20:20 balanced fertilizer. Fully water soluble. Promotes crop tillering, root growth, and grain filling. Order on WhatsApp or checkout.",
+    sizes: [
+      { size: "1 KG", price: 799, oldPrice: 999, stockStatus: "In Stock", sku: "VA-SET-NPK-1KG", weight: "1kg" },
+      { size: "25 KG", price: 15999, oldPrice: 17999, stockStatus: "In Stock", sku: "VA-SET-NPK-25KG", weight: "25kg" }
+    ],
+    formulation: "Balanced Water Soluble NPK 20-20-20",
+    activeIngredient: "Nitrogen (20%) + Phosphorus (20%) + Potash (20%)",
+    packaging: "1 KG Bag, 25 KG Bag",
+    productCode: "VA-SET-NPK",
+    status: {
+      en: "Complete Balanced NPK Nutrition",
+      ur: "متوازن این پی کے فارمولا"
+    },
+    description: {
+      en: "Setting NPK 20:20:20 is a perfectly balanced complete fertilizer that provides equal proportions of all three primary macronutrients. Ideal for critical growth stages and as a general-purpose foliar and fertigation nutrient.",
+      ur: "سیٹنگ این پی کے 20:20:20 ایک مکمل اور متوازن پانی میں حل پذیر کھاد ہے جو پودے کو نائٹروجن، فاسفورس اور پوٹاش کی برابر مقدار فراہم کرتی ہے۔ یہ فصل کے ہر نازک مرحلے (بڑھوتری، پھول اور پھل) پر پودے کی متوازن غذا کا ضامن ہے۔"
+    },
+    features: {
+      en: [
+        "Perfectly balanced 20:20:20 ratio",
+        "Supports all crop growth stages",
+        "Suitable for foliar spray and fertigation",
+        "Improves crop uniformity and yield",
+        "Premium imported formulation"
+      ],
+      ur: [
+        "مکمل متوازن 20:20:20 تناسب",
+        "فصل کی نشوونما کے تمام مراحل کے لیے مفید",
+        "اسپرے اور ڈرپ کے ذریعے استعمال کے لیے موزوں",
+        "یکساں فصل اور بہتر پیداوار کا ضامن",
+        "اعلیٰ معیار کی درآمدی فارمولیشن"
+      ]
+    },
+    benefits: {
+      en: [
+        "Triggers fast tillering and green canopy formation",
+        "Provides quick response within 24-48 hours of spray",
+        "Completely water soluble with no nozzle blockage",
+        "Optimizes early growth and builds robust crop cells",
+        "Delivers higher weight and shine in vegetables & fruits"
+      ],
+      ur: [
+        "تیزی سے شاخیں نکالنے اور لش گرین پتے بنانے میں مددگار",
+        "اسپرے کے 24 سے 48 گھنٹوں کے اندر فوری اثر دکھاتا ہے",
+        "پانی میں 100٪ حل پذیر، نوزل بند نہیں کرتا",
+        "ابتدائی نشوونما کو متوازن کرتا ہے اور سیلز کو طاقت دیتا ہے",
+        "سبزیوں اور پھلوں کے وزن اور چمک میں اضافہ کرتا ہے"
+      ]
+    },
+    crops: [
+      { name: { en: "All Crops", ur: "تمام فصلیں" }, icon: "🌱" },
+      { name: { en: "Fruits", ur: "پھل" }, icon: "🍊" },
+      { name: { en: "Vegetables", ur: "سبزیاں" }, icon: "🥦" },
+      { name: { en: "Cotton", ur: "کپاس" }, icon: "🌱" },
+      { name: { en: "Sugarcane", ur: "کماد" }, icon: "🎋" }
+    ],
+    application: {
+      en: "Foliar spray or drip irrigation fertigation. Apply at 10-15 day intervals during vegetative and flowering stages.",
+      ur: "بذریعہ فولیر سپرے یا ڈرپ آبپاشی۔ شاخیں نکلنے اور پھول بنتے وقت 10 سے 15 دن کے وقفے سے استعمال کریں۔"
+    },
+    specs: {
+      type: { en: "Balanced Soluble Feed", ur: "متوازن حل پذیر کھاد" },
+      formulation: { en: "Crystalline Powder", ur: "کرسٹلائن پاؤڈر" },
+      composition: { en: "N:20% + P2O5:20% + K2O:20% + Trace Elements", ur: "نائٹروجن 20% + فاسفورس 20% + پوٹاش 20%" },
+      appearance: { en: "White or colored powder", ur: "سفید یا رنگدار پاؤڈر" },
+      storage: { en: "Keep bag tightly closed, away from moisture", ur: "تھیلے کو بند کر کے نمی سے بچا کر رکھیں" }
+    },
+    safety: {
+      en: [
+        "Wear masks to avoid inhaling powder.",
+        "Store out of reach of children."
+      ],
+      ur: [
+        "پاؤڈر کی دھول سانس کے ذریعے اندر لے جانے سے بچنے کے لیے ماسک پہنیں۔",
+        "بچوں کی پہنچ سے دور رکھیں۔"
+      ]
+    },
+    faqs: {
+      en: [
+        { q: "Can we spray Setting NPK during flowering?", a: "Yes, it provides balanced nutrients which support healthy flower formation without shock." }
+      ],
+      ur: [
+        { q: "کیا ہم پھول آنے پر سیٹنگ این پی کے کا سپرے کر سکتے ہیں؟", a: "جی ہاں، یہ متوازن خوراک دیتا ہے جس سے پھول گرنے سے محفوظ رہتے ہیں اور صحت مند بنتے ہیں۔" }
+      ]
+    }
+  },
+
   "conference-gold-dummy": {}, // placeholder to support key fallback if needed
 };
 

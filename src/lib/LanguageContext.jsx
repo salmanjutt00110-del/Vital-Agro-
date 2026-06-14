@@ -111,6 +111,7 @@ export const translations = {
       plant_nutrition: 'Plant Nutrition',
       growth_promoter: 'Growth Promoter',
       special_product: 'Special Product',
+      soil_conditioner: 'Soil Conditioner',
     },
     pricing: {
       packSize: 'Pack Size',
@@ -228,6 +229,7 @@ export const translations = {
       plant_nutrition: 'پودوں کی غذائیت',
       growth_promoter: 'نمو بڑھانے والا',
       special_product: 'خاص مصنوع',
+      soil_conditioner: 'مٹی کا کنڈیشنر',
     },
     pricing: {
       packSize: 'پیکنگ سائز',

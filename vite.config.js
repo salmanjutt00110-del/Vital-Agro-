@@ -7,7 +7,18 @@ export default defineConfig({
   logLevel: 'error', // Suppress warnings, only show errors
   server: {
     watch: {
-      ignored: ['**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.svg', '**/*.mp4', '**/*.webm', '**/node_modules/**']
+      ignored: [
+        '**/*.png',
+        '**/*.jpg',
+        '**/*.jpeg',
+        '**/*.gif',
+        '**/*.svg',
+        '**/*.mp4',
+        '**/*.webm',
+        '**/node_modules/**',
+        '**/backend/**',
+        '**/.venv/**'
+      ]
     }
   },
   build: {

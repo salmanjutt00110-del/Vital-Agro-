@@ -77,6 +77,48 @@ const PRODUCT_THEMES = {
     themeBg: '#130a1c',
     tagline: 'Systemic Fungicide Powder',
     crops: ['Vegetables', 'Citrus', 'Mango']
+  },
+  'vac-sop': {
+    theme: '#0d4a8a',
+    themeBg: '#010c1a',
+    tagline: '100% Water Soluble Sulphate of Potash',
+    badge: 'NEW · IMPORTED',
+    crops: ['Cotton', 'Sugarcane', 'Vegetables', 'Fruits']
+  },
+  'vac-map': {
+    theme: '#1a3a9a',
+    themeBg: '#010618',
+    tagline: 'Technical Grade · 81% Phosphorus',
+    badge: 'NEW · IMPORTED',
+    crops: ['All Crops', 'Wheat', 'Cotton', 'Vegetables']
+  },
+  'defeater-soil-conditioner': {
+    theme: '#1a5a1a',
+    themeBg: '#010e01',
+    tagline: 'Advanced Soil Conditioning Formula',
+    badge: 'EXFET TECHNOLOGY',
+    crops: ['Cotton', 'Sugarcane', 'Potato', 'Vegetables', 'Fruits', 'Rice']
+  },
+  'sonehri-potash-30': {
+    theme: '#0d5a8a',
+    themeBg: '#010c18',
+    tagline: 'Premium Potash 30% — Crop Supplement+',
+    badge: 'EXFET TECHNOLOGY',
+    crops: ['Cotton', 'Sugarcane', 'Potato', 'Chilli', 'Fruits', 'Vegetables']
+  },
+  'defeater-potassium-humate': {
+    theme: '#2a1a5a',
+    themeBg: '#08050f',
+    tagline: 'Potassium Humate Liquid — Soil Conditioner+',
+    badge: 'EXFET TECHNOLOGY',
+    crops: ['All Crops', 'Cotton', 'Wheat', 'Rice', 'Vegetables', 'Fruits']
+  },
+  'setting-npk': {
+    theme: '#2a4a1a',
+    themeBg: '#050a03',
+    tagline: 'Complete Balanced NPK Nutrition',
+    badge: 'BEST QUALITY · IMPORTED',
+    crops: ['All Crops', 'Fruits', 'Vegetables', 'Cotton', 'Sugarcane']
   }
 };
 
@@ -107,7 +149,7 @@ const PRODUCTS = Object.values(PRODUCTS_DATA).map((p) => {
 
   const sizeInfo = p.sizes?.[0] || {};
   const price = sizeInfo.price || p.price || 999;
-  const image = `/products/${p.slug}.webp`;
+  const image = p.pngUrl || p.imageUrl || `/products/${p.slug}.webp`;
 
   return {
     id: p.slug,
