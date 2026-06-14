@@ -59,10 +59,7 @@ export const PRODUCTS_DATA = {
     seoTitle: "Fatty Bio-Stimulant & Plant Nutrition | Vital Agro",
     seoDescription: "Buy Fatty Bio-Stimulant online. Promotes crop growth, cell division, and drought tolerance using organic fatty acids. Available in multiple pack sizes.",
     sizes: [
-      { size: "500 ML", price: 899, oldPrice: 1199, stockStatus: "In Stock", sku: "VA-FAT-500", weight: "500g" },
-      { size: "2 KG", price: 1699, oldPrice: 2299, stockStatus: "In Stock", sku: "VA-FAT-2KG", weight: "2kg" },
-      { size: "8 KG", price: 1999, oldPrice: 2699, stockStatus: "In Stock", sku: "VA-FAT-8KG", weight: "8kg" },
-      { size: "20 KG", price: 4999, oldPrice: 6299, stockStatus: "In Stock", sku: "VA-FAT-20KG", weight: "20kg" }
+      { size: "500 ML", price: 750, oldPrice: 979, stockStatus: "In Stock", sku: "VA-FATT-500ML", weight: "0.5kg" }
     ],
     formulation: "10% SL",
     activeIngredient: "Organic Fatty Acids & Micronutrients",
@@ -231,9 +228,8 @@ export const PRODUCTS_DATA = {
     seoTitle: "Conference Gold Dual-Action Insecticide | Vital Agro",
     seoDescription: "Buy Conference Gold premium insecticide. Dual systemic and contact protection against aphid, thrips, jassid, and whiteflies. Order on WhatsApp or checkout.",
     sizes: [
-      { size: "100 ML", price: 799, oldPrice: 999, stockStatus: "In Stock", sku: "VA-CG-100", weight: "100g" },
-      { size: "250 ML", price: 1499, oldPrice: 1999, stockStatus: "In Stock", sku: "VA-CG-250", weight: "250g" },
-      { size: "500 ML", price: 2499, oldPrice: 3299, stockStatus: "In Stock", sku: "VA-CG-500", weight: "500g" }
+      { size: "50 ML", price: 399, oldPrice: 519, stockStatus: "In Stock", sku: "VA-CONF-50ML", weight: "0.05kg" },
+      { size: "100 ML", price: 740, oldPrice: 969, stockStatus: "In Stock", sku: "VA-CONF-100ML", weight: "0.1kg" }
     ],
     formulation: "15% SC",
     activeIngredient: "Imidacloprid 10% + Beta-Cyfluthrin 5%",
@@ -395,9 +391,9 @@ export const PRODUCTS_DATA = {
     seoTitle: "Easy Grow Growth Promoter & Humic Acid | Vital Agro",
     seoDescription: "Enrich crop soil with Easy Grow. Plant growth regulator containing highly active Gibberellic Acid and Potassium Humate for root expansion and grain filling.",
     sizes: [
-      { size: "200 ML", price: 999, oldPrice: 1299, stockStatus: "In Stock", sku: "VA-EG-200", weight: "200g" },
-      { size: "500 ML", price: 1499, oldPrice: 1999, stockStatus: "In Stock", sku: "VA-EG-500", weight: "500g" },
-      { size: "1 Litre", price: 2499, oldPrice: 3299, stockStatus: "In Stock", sku: "VA-EG-1L", weight: "1kg" }
+      { size: "100 ML", price: 245, oldPrice: 319, stockStatus: "In Stock", sku: "VA-EASY-100ML", weight: "0.1kg" },
+      { size: "120 G", price: 365, oldPrice: 479, stockStatus: "In Stock", sku: "VA-EASY-120G", weight: "120 g" },
+      { size: "200 ML", price: 370, oldPrice: 489, stockStatus: "In Stock", sku: "VA-EASY-200ML", weight: "0.2kg" }
     ],
     formulation: "Liquid SL",
     activeIngredient: "Gibberellic Acid + Humic Acid + Fulvic Acid",
@@ -555,9 +551,7 @@ export const PRODUCTS_DATA = {
     seoTitle: "Purifizin Extra Systemic Fungicide | Vital Agro",
     seoDescription: "Protect crops from potato blight, wheat rust, and powdery mildew using Purifizin Extra. Premium broad-spectrum systemic fungicide with diffenoconazole.",
     sizes: [
-      { size: "250 ML", price: 1299, oldPrice: 1699, stockStatus: "In Stock", sku: "VA-PE-250", weight: "250g" },
-      { size: "500 ML", price: 2199, oldPrice: 2899, stockStatus: "In Stock", sku: "VA-PE-500", weight: "500g" },
-      { size: "1 Litre", price: 3999, oldPrice: 4999, stockStatus: "Low Stock", sku: "VA-PE-1L", weight: "1kg" }
+      { size: "900 G", price: 1199, oldPrice: 1559, stockStatus: "In Stock", sku: "VA-PURI-900G", weight: "900 g" }
     ],
     formulation: "32.5% SC",
     activeIngredient: "Azoxystrobin 20% + Difenoconazole 12.5%",
@@ -716,9 +710,7 @@ export const PRODUCTS_DATA = {
     seoTitle: "Aaqaab Premium Acaricide & Mite Control | Vital Agro",
     seoDescription: "Eradicate red spider mites and thrips on cotton, wheat, and vegetables with Aaqaab. Highly concentrated liquid formula for quick knockdown and control.",
     sizes: [
-      { size: "250 ML", price: 1499, oldPrice: 1999, stockStatus: "In Stock", sku: "VA-AAQ-250", weight: "250g" },
-      { size: "500 ML", price: 2499, oldPrice: 3299, stockStatus: "In Stock", sku: "VA-AAQ-500", weight: "500g" },
-      { size: "1 Litre", price: 4499, oldPrice: 5999, stockStatus: "In Stock", sku: "VA-AAQ-1L", weight: "1kg" }
+      { size: "400 ML", price: 599, oldPrice: 779, stockStatus: "In Stock", sku: "VA-AAQA-400ML", weight: "0.4kg" }
     ],
     formulation: "45% WDG",
     activeIngredient: "Emamectin Benzoate 5% + Lufenuron 40%",
@@ -877,9 +869,9 @@ export const PRODUCTS_DATA = {
     seoTitle: "Dr. pp Lepidopteran Insecticide | Vital Agro",
     seoDescription: "Control fall armyworm and fruit borer infestation in field crops and vegetables with Dr. pp. Dual systemic contact action formula. Shop or request quote.",
     sizes: [
-      { size: "200 ML", price: 999, oldPrice: 1299, stockStatus: "In Stock", sku: "VA-DPP-200", weight: "200g" },
-      { size: "400 ML", price: 1899, oldPrice: 2499, stockStatus: "In Stock", sku: "VA-DPP-400", weight: "400g" },
-      { size: "1 Litre", price: 3999, oldPrice: 4999, stockStatus: "Low Stock", sku: "VA-DPP-1L", weight: "1kg" }
+      { size: "200 ML", price: 310, oldPrice: 409, stockStatus: "In Stock", sku: "VA-DRPP-200ML", weight: "0.2kg" },
+      { size: "400 ML", price: 499, oldPrice: 649, stockStatus: "In Stock", sku: "VA-DRPP-400ML", weight: "0.4kg" },
+      { size: "1 LITER", price: 1099, oldPrice: 1429, stockStatus: "In Stock", sku: "VA-DRPP-1LITER", weight: "1 liter" }
     ],
     formulation: "Chelated Liquid",
     activeIngredient: "Amino Acids + Multi-Chelated Trace Elements + Plant Hormones",
@@ -1038,8 +1030,8 @@ export const PRODUCTS_DATA = {
     seoTitle: "Vac Zinc Highly Concentrated Supplement | Vital Agro",
     seoDescription: "Boost crop yield, enzymatic activity, and root health with Vac Zinc liquid supplement. Formulated for paddy rice, maize, and wheat. Shop local or buy online.",
     sizes: [
-      { size: "3 Litre", price: 899, oldPrice: 1199, stockStatus: "In Stock", sku: "VA-VZ-3L", weight: "3kg" },
-      { size: "20 Litre", price: 4999, oldPrice: 6499, stockStatus: "In Stock", sku: "VA-VZ-20L", weight: "20kg" }
+      { size: "10 LITER", price: 6650, oldPrice: 8649, stockStatus: "In Stock", sku: "VA-VACZ-10LITER", weight: "10 liter" },
+      { size: "20 LITER", price: 12999, oldPrice: 16899, stockStatus: "In Stock", sku: "VA-VACZ-20LITER", weight: "20 liter" }
     ],
     formulation: "12% Powder",
     activeIngredient: "Chelated Zinc (Zn-EDTA 12%)",
@@ -1197,7 +1189,7 @@ export const PRODUCTS_DATA = {
     seoTitle: "Sector Soil Mineral Supplement | Vital Agro",
     seoDescription: "Improve soil texture, crop vigor, and nutrient uptake with Sector soil granules. Packed with rich chelated secondary and trace elements. 4KG and 8KG packs.",
     sizes: [
-      { size: "4 KG", price: 1299, oldPrice: 1699, stockStatus: "In Stock", sku: "VA-SEC-4K", weight: "4kg" }
+      { size: "4 KG", price: 1050, oldPrice: 1369, stockStatus: "In Stock", sku: "VA-SECT-4KG", weight: "4 kg" }
     ],
     formulation: "16% WP",
     activeIngredient: "Acetochlor 14% + Bensulfuron Methyl 2%",
@@ -1346,8 +1338,8 @@ export const PRODUCTS_DATA = {
     seoTitle: "Output Humic Acid Soil Granules | Vital Agro",
     seoDescription: "Increase root volume and NPK absorption efficiency. Output organic humic acid stimulates soil microbes, unlocks phosphate, and builds crop resilience.",
     sizes: [
-      { size: "1 KG", price: 899, oldPrice: 1199, stockStatus: "In Stock", sku: "VA-OUT-1K", weight: "1kg" },
-      { size: "25 KG", price: 17999, oldPrice: 21999, stockStatus: "In Stock", sku: "VA-OUT-25K", weight: "25kg" }
+      { size: "1 KG", price: 699, oldPrice: 909, stockStatus: "In Stock", sku: "VA-OUTP-1KG", weight: "1 kg" },
+      { size: "25 KG", price: 15230, oldPrice: 19799, stockStatus: "In Stock", sku: "VA-OUTP-25KG", weight: "25 kg" }
     ],
     formulation: "PK Liquid Concentrate",
     activeIngredient: "Phosphorus + Potassium + Boron",
@@ -1505,8 +1497,7 @@ export const PRODUCTS_DATA = {
     seoTitle: "Super 4G Granular Stem Borer Control | Vital Agro",
     seoDescription: "Stop stem borer attack and dead hearts in rice paddy and sugarcane. Super 4G granular systemic insecticide. Safe for earthworms. Broadcast with urea.",
     sizes: [
-      { size: "4 KG", price: 1999, oldPrice: 2499, stockStatus: "In Stock", sku: "VA-S4G-4K", weight: "4kg" },
-      { size: "8 KG", price: 3499, oldPrice: 4499, stockStatus: "In Stock", sku: "VA-S4G-8K", weight: "8kg" }
+      { size: "8 KG", price: 1250, oldPrice: 1629, stockStatus: "In Stock", sku: "VA-SUPE-8KG", weight: "8 kg" }
     ],
     formulation: "4% Granular",
     activeIngredient: "Cartap Hydrochloride 4%",
@@ -1662,9 +1653,8 @@ export const PRODUCTS_DATA = {
     seoTitle: "Farbasin Carbendazim Systemic Fungicide | Vital Agro",
     seoDescription: "Cure mango anthracnose, powdery mildew, and paddy rice blast. Farbasin 50% WP systemic fungicide powder dissolves completely. Highly cost effective.",
     sizes: [
-      { size: "250 G", price: 999, oldPrice: 1299, stockStatus: "In Stock", sku: "VA-FAR-250", weight: "250g" },
-      { size: "500 G", price: 1799, oldPrice: 2299, stockStatus: "In Stock", sku: "VA-FAR-500", weight: "500g" },
-      { size: "1 KG", price: 3299, oldPrice: 4299, stockStatus: "Low Stock", sku: "VA-FAR-1K", weight: "1kg" }
+      { size: "250 G", price: 850, oldPrice: 1109, stockStatus: "In Stock", sku: "VA-FARB-250G", weight: "250 g" },
+      { size: "25 KG", price: 71000, oldPrice: 92309, stockStatus: "In Stock", sku: "VA-FARB-25KG", weight: "25 kg" }
     ],
     formulation: "50% WP",
     activeIngredient: "Carbendazim 50%",
@@ -1822,7 +1812,7 @@ export const PRODUCTS_DATA = {
     seoTitle: "VAC SOP Sulphate of Potash Fertilizer | Vital Agro",
     seoDescription: "Buy VAC SOP Sulphate of Potash fertilizer. 100% water soluble and chloride-free potassium nutrition. Boost crop yield, fruit weight, and stress tolerance.",
     sizes: [
-      { size: "25 KG", price: 3999, oldPrice: 4599, stockStatus: "In Stock", sku: "VA-SOP-25KG", weight: "25kg" }
+      { size: "25 KG", price: 3000, oldPrice: 3909, stockStatus: "In Stock", sku: "VA-VACS-25KG", weight: "25 kg" }
     ],
     formulation: "Potash (K₂O) + Sulphur",
     activeIngredient: "Potassium Sulphate (K2O 50% + S 17.5%)",
@@ -1947,7 +1937,7 @@ export const PRODUCTS_DATA = {
     seoTitle: "VAC MAP Mono Ammonium Phosphate | Vital Agro",
     seoDescription: "Buy VAC MAP premium fertilizer. 12% Nitrogen and 81% Phosphorus (P2O5). Technical Grade imported from China for maximum root growth and crop yield.",
     sizes: [
-      { size: "25 KG", price: 2999, oldPrice: 3499, stockStatus: "In Stock", sku: "VA-MAP-25KG", weight: "25kg" }
+      { size: "25 KG", price: 2200, oldPrice: 2869, stockStatus: "In Stock", sku: "VA-VACM-25KG", weight: "25 kg" }
     ],
     formulation: "Mono Ammonium Phosphate (MAP)",
     activeIngredient: "Nitrogen (N) 12% + Phosphorus (P₂O₅) 81%",
@@ -2063,8 +2053,8 @@ export const PRODUCTS_DATA = {
     seoTitle: "Defeater Soil Conditioner | Vital Agro",
     seoDescription: "Buy Defeater Soil Conditioner with Exfet Technology. Formulated with Potassium Humate to optimize soil structure, water retention, and microbial activity.",
     sizes: [
-      { size: "20 LTR", price: 3999, oldPrice: 4599, stockStatus: "In Stock", sku: "VA-DEF-SC-20L", weight: "20kg" },
-      { size: "200 LTR", price: 34999, oldPrice: 38999, stockStatus: "In Stock", sku: "VA-DEF-SC-200L", weight: "200kg" }
+      { size: "20 LTR", price: 3480, oldPrice: 4529, stockStatus: "In Stock", sku: "VA-DEFE-20LTR", weight: "20kg" },
+      { size: "200 LTR", price: 32200, oldPrice: 41869, stockStatus: "In Stock", sku: "VA-DEFE-200LTR", weight: "200kg" }
     ],
     formulation: "Potassium Humate Liquid",
     activeIngredient: "Potassium (K₂O) 3.1% + Humic Acid 30%",
@@ -2180,9 +2170,9 @@ export const PRODUCTS_DATA = {
     seoTitle: "Sonehri Potash 30% Crop Supplement | Vital Agro",
     seoDescription: "Buy Sonehri Potash 30% online. High efficiency liquid potassium supplement enriched with microelements. Enhances fruit size, weight, and shelf life.",
     sizes: [
-      { size: "1 LTR", price: 999, oldPrice: 1199, stockStatus: "In Stock", sku: "VA-SNH-30-1L", weight: "1kg" },
-      { size: "3 LTR", price: 1999, oldPrice: 2299, stockStatus: "In Stock", sku: "VA-SNH-30-3L", weight: "3kg" },
-      { size: "20 LTR", price: 11999, oldPrice: 13999, stockStatus: "In Stock", sku: "VA-SNH-30-20L", weight: "20kg" }
+      { size: "1 LTR", price: 940, oldPrice: 1229, stockStatus: "In Stock", sku: "VA-SONE-1LTR", weight: "1kg" },
+      { size: "3 LTR", price: 1900, oldPrice: 2479, stockStatus: "In Stock", sku: "VA-SONE-3LTR", weight: "3kg" },
+      { size: "20 LTR", price: 11930, oldPrice: 15509, stockStatus: "In Stock", sku: "VA-SONE-20LTR", weight: "20kg" }
     ],
     formulation: "Liquid Fertilizer Soluble Concentrate",
     activeIngredient: "Potash (K₂O) 30% + Micro Elements",
@@ -2295,9 +2285,9 @@ export const PRODUCTS_DATA = {
     seoTitle: "Defeater Potassium Humate Liquid | Vital Agro",
     seoDescription: "Shop Defeater Potassium Humate 13.5% liquid. Biological soil activator with Exfet Technology. Enhances root mass and nutrient availability.",
     sizes: [
-      { size: "4 LTR", price: 899, oldPrice: 1099, stockStatus: "In Stock", sku: "VA-DEF-PHM-4L", weight: "4kg" },
-      { size: "20 LTR", price: 3999, oldPrice: 4599, stockStatus: "In Stock", sku: "VA-DEF-PHM-20L", weight: "20kg" },
-      { size: "200 LTR", price: 34999, oldPrice: 38999, stockStatus: "In Stock", sku: "VA-DEF-PHM-200L", weight: "200kg" }
+      { size: "4 LTR", price: 680, oldPrice: 889, stockStatus: "In Stock", sku: "VA-DEFE-4LTR", weight: "4kg" },
+      { size: "20 LTR", price: 3480, oldPrice: 4529, stockStatus: "In Stock", sku: "VA-DEFE-20LTR", weight: "20kg" },
+      { size: "200 LTR", price: 32200, oldPrice: 41869, stockStatus: "In Stock", sku: "VA-DEFE-200LTR", weight: "200kg" }
     ],
     formulation: "13.5% SL Liquid Concentrate",
     activeIngredient: "Potassium Humate + Fulvic Acid",
@@ -2410,8 +2400,8 @@ export const PRODUCTS_DATA = {
     seoTitle: "Setting NPK 20:20:20 Fertilizer | Vital Agro",
     seoDescription: "Buy Setting NPK 20:20:20 balanced fertilizer. Fully water soluble. Promotes crop tillering, root growth, and grain filling. Order on WhatsApp or checkout.",
     sizes: [
-      { size: "1 KG", price: 799, oldPrice: 999, stockStatus: "In Stock", sku: "VA-SET-NPK-1KG", weight: "1kg" },
-      { size: "25 KG", price: 15999, oldPrice: 17999, stockStatus: "In Stock", sku: "VA-SET-NPK-25KG", weight: "25kg" }
+      { size: "1 KG", price: 699, oldPrice: 909, stockStatus: "In Stock", sku: "VA-SETT-1KG", weight: "1 kg" },
+      { size: "25 KG", price: 15230, oldPrice: 19799, stockStatus: "In Stock", sku: "VA-SETT-25KG", weight: "25 kg" }
     ],
     formulation: "Balanced Water Soluble NPK 20-20-20",
     activeIngredient: "Nitrogen (20%) + Phosphorus (20%) + Potash (20%)",
