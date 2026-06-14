@@ -10,24 +10,24 @@ import sectorImg from '@/assets/sector.webp';
 import outputImg from '@/assets/output.webp';
 import super4gImg from '@/assets/super-4g.webp';
 import farbasinImg from '@/assets/FARBASIN.webp';
-// Premium PNG Images for Glass Showcase System
-import fattyPng from '@/vital product/Fatty.png';
-import conferencePng from '@/vital product/Conference Gold.png';
-import easyGrowPng from '@/vital product/Easy Grow.png';
-import purifizinPng from '@/vital product/Purifizin.png';
-import aaqaabPng from '@/vital product/Aaqaab.png';
-import drPpPng from '@/vital product/Dr.pp.png';
-import vacZincPng from '@/vital product/Vac Zinc.png';
-import sectorPng from '@/vital product/sECTOR.png';
-import outputPng from '@/vital product/Output.png';
-import super4gPng from '@/vital product/4g.png';
-import farbasinPng from '@/vital product/Farbasin.png';
-import vacSopPng from '@/vital product/vac-sop.png';
-import vacMapPng from '@/vital product/vac-map.png';
-import defeaterSoilPng from '@/vital product/defeater-soil.png';
-import sonehriPotashPng from '@/vital product/sonehri-potash.png';
-import defeaterHumatePng from '@/vital product/defeater-humate.png';
-import settingPng from '@/vital product/setting.png';
+// Premium PNG Images for Glass Showcase System (now converted to optimized WebP)
+import fattyPng from '@/vital product/Fatty.webp';
+import conferencePng from '@/vital product/Conference Gold.webp';
+import easyGrowPng from '@/vital product/Easy Grow.webp';
+import purifizinPng from '@/vital product/Purifizin.webp';
+import aaqaabPng from '@/vital product/Aaqaab.webp';
+import drPpPng from '@/vital product/Dr.pp.webp';
+import vacZincPng from '@/vital product/Vac Zinc.webp';
+import sectorPng from '@/vital product/sECTOR.webp';
+import outputPng from '@/vital product/Output.webp';
+import super4gPng from '@/vital product/4g.webp';
+import farbasinPng from '@/vital product/Farbasin.webp';
+import vacSopPng from '@/vital product/vac-sop.webp';
+import vacMapPng from '@/vital product/vac-map.webp';
+import defeaterSoilPng from '@/vital product/defeater-soil.webp';
+import sonehriPotashPng from '@/vital product/sonehri-potash.webp';
+import defeaterHumatePng from '@/vital product/defeater-humate.webp';
+import settingPng from '@/vital product/setting.webp';
 
 
 export const PRODUCTS_DATA = {

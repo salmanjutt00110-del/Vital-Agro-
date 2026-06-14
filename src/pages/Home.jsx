@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import SEOHead from '@/lib/seo/SEOHead';
 import HeroSection from '../components/home/HeroSection';
-import ProductsShowcase from '../components/home/ProductsShowcase';
+import PremiumProductRange from '../components/home/PremiumProductRange';
+import { prefetchPages } from '@/utils/prefetch';
 
 // Lazy load heavy home sections below the fold to split bundle size and optimize initial load
 const StatsSection = React.lazy(() => import('../components/home/StatsSection'));
@@ -23,6 +24,10 @@ const SectionPlaceholder = ({ height = '300px' }) => (
 );
 
 export default function Home() {
+  useEffect(() => {
+    prefetchPages();
+  }, []);
+
   return (
     <div>
       <SEOHead
@@ -48,7 +53,7 @@ export default function Home() {
         <AboutPreview />
       </React.Suspense>
 
-      <ProductsShowcase />
+      <PremiumProductRange />
 
       <React.Suspense fallback={<SectionPlaceholder height="550px" />}>
         <WhyChooseUs />

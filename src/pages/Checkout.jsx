@@ -11,6 +11,7 @@ import { useCart } from '@/lib/CartContext';
 import { useLanguage } from '@/lib/LanguageContext';
 import { PRODUCTS_DATA } from '@/data/productsData';
 import { OrbPreloader } from '@/components/Preloader/OrbPreloader';
+import useProductPricing from '@/hooks/useProductPricing';
 import toast from 'react-hot-toast';
 import { ShoppingBag, MapPin, ShieldCheck, Truck } from 'lucide-react';
 
@@ -57,12 +58,21 @@ export default function CheckoutPage() {
     return PRODUCTS_DATA[productSlug] || Object.values(PRODUCTS_DATA).find(p => p.slug === productSlug);
   }, [productSlug]);
 
-  const [selectedSize, setSize] = useState(sizeParam || '');
-  const [quantity, setQty] = useState(qtyParam ? parseInt(qtyParam, 10) : 1);
   const [payment, setPayment] = useState('cod');
   const [orderId, setOrderId] = useState(null);
   const [isOrdering, setIsOrdering] = useState(false);
   const [preloaderDone, setPreloaderDone] = useState(false);
+
+  const {
+    selectedSize,
+    setSelectedSize: setSize,
+    quantity,
+    setQuantity: setQty,
+    unitPrice,
+    subtotal: singleProductSubtotal,
+    deliveryFee: singleProductDelivery,
+    sizesList
+  } = useProductPricing(rawProduct, sizeParam || '', qtyParam ? parseInt(qtyParam, 10) : 1, payment);
 
   const [form, setForm] = useState({
     fullName: '',
@@ -75,48 +85,26 @@ export default function CheckoutPage() {
   });
   const [errors, setErrors] = useState({});
 
-  // Initialize selected size if product is loaded
-  useEffect(() => {
-    if (rawProduct) {
-      const sizesList = rawProduct.sizes
-        ? rawProduct.sizes.map(s => typeof s === 'object' ? s.size : s)
-        : [rawProduct.packaging || '100ML'];
-      if (!selectedSize && sizesList.length > 0) {
-        setSize(sizeParam || sizesList[0]);
-      }
-    }
-  }, [rawProduct, selectedSize, sizeParam]);
-
   // Compute selected product details
   const product = useMemo(() => {
     if (!rawProduct) return null;
-    const sizesList = rawProduct.sizes
+    const sizesListNames = rawProduct.sizes
       ? rawProduct.sizes.map(s => typeof s === 'object' ? s.size : s)
       : [rawProduct.packaging || '100ML'];
-
-    let price = rawProduct.price || 999;
-    if (rawProduct.sizes) {
-      const sizeObj = rawProduct.sizes.find(s => (typeof s === 'object' ? s.size : s) === selectedSize);
-      if (sizeObj && sizeObj.price) {
-        price = sizeObj.price;
-      } else if (sizeObj && sizeObj.rate && sizeObj.rate !== "Negotiable") {
-        price = Number(sizeObj.rate);
-      }
-    }
 
     return {
       ...rawProduct,
       name: typeof rawProduct.name === 'object' ? (rawProduct.name[lang] || rawProduct.name.en) : rawProduct.name,
       image: `/products/${rawProduct.slug}.webp`,
       formula: rawProduct.formula || rawProduct.activeIngredient || rawProduct.formulation || '',
-      sizes: sizesList,
-      price,
+      sizes: sizesListNames,
+      price: unitPrice,
     };
-  }, [rawProduct, selectedSize, lang]);
+  }, [rawProduct, lang, unitPrice]);
 
   // Calculate pricing breakdown
-  const subtotal = product ? (product.price * quantity) : cartSubtotal;
-  const delivery = getDeliveryFee(payment);
+  const subtotal = rawProduct ? singleProductSubtotal : cartSubtotal;
+  const delivery = rawProduct ? singleProductDelivery : getDeliveryFee(payment);
   const grandTotal = subtotal + delivery;
 
   const updateField = (key, value) => {
@@ -587,6 +575,40 @@ export default function CheckoutPage() {
                     : (lang === 'en' ? 'Complete Order & Pay' : 'آرڈر کنفرم کریں اور ادائیگی کریں')}
                 </span>
               </motion.button>
+
+              {/* Trust & Security Badge Section */}
+              <div className="mt-4 p-4.5 rounded-2xl bg-white/[0.03] border border-white/5 space-y-3">
+                <div className="flex items-center justify-between text-xs text-white/60">
+                  <div className="flex items-center gap-2 font-bold">
+                    <span className="text-[#76C945] text-sm">🔒</span>
+                    <span>{lang === 'en' ? 'SSL Secure 256-bit Connection' : 'محفوظ SSL کنکشن'}</span>
+                  </div>
+                  <span className="text-[#76C945] font-black text-[10px] tracking-wider uppercase bg-[#76C945]/10 px-2 py-0.5 rounded animate-pulse">
+                    ACTIVE
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-2 pt-1.5 border-t border-white/5 text-center">
+                  <div className="space-y-1">
+                    <span className="text-lg block">📦</span>
+                    <span className="text-[10px] font-extrabold text-white/40 block leading-tight">
+                      {lang === 'en' ? 'Open Parcel First' : 'پارسل کھولنے کی اجازت'}
+                    </span>
+                  </div>
+                  <div className="space-y-1 border-x border-white/5">
+                    <span className="text-lg block">⚡</span>
+                    <span className="text-[10px] font-extrabold text-white/40 block leading-tight">
+                      {lang === 'en' ? '24-48h Delivery' : 'تیز ترین ڈیلیوری'}
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-lg block">📞</span>
+                    <span className="text-[10px] font-extrabold text-white/40 block leading-tight">
+                      {lang === 'en' ? '24/7 Phone Help' : 'فون سپورٹ'}
+                    </span>
+                  </div>
+                </div>
+              </div>
 
               <div className="flex items-center gap-2.5 justify-center text-[10px] text-white/20 select-none">
                 <ShieldCheck size={14} className="text-[#76C945]" />

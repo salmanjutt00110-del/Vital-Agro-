@@ -20,6 +20,8 @@ import { auth } from '@/lib/api';
 import { HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from './components/layout/ErrorBoundary';
 import ScrollToTop from './components/ScrollToTop';
+import { useApp } from '@/contexts/AppContext';
+import { TopProgressBar } from '@/components/ui/TopProgressBar';
 
 // Route-based Code Splitting using React.lazy
 const Home = React.lazy(() => import('./pages/Home'));
@@ -83,9 +85,7 @@ const AuthenticatedApp = () => {
 };
 
 function App() {
-  const hasVisited = sessionStorage.getItem('va_visited');
-  const initialState = hasVisited ? 'loading' : 'welcome';
-  const [state, setState] = useState(initialState);
+  const { stage, setStage, isInitialLoadComplete } = useApp();
 
   return (
     <HelmetProvider>
@@ -96,11 +96,10 @@ function App() {
               
               {/* 1. WELCOME SCREEN (first visit only) */}
               <AnimatePresence mode="wait">
-                {state === 'welcome' && (
+                {!isInitialLoadComplete && stage === 'welcome' && (
                   <WelcomeScreen
                     onComplete={() => {
-                      sessionStorage.setItem('va_visited', '1');
-                      setState('loading');
+                      setStage('loading');
                     }}
                   />
                 )}
@@ -108,17 +107,18 @@ function App() {
 
               {/* 2. ORB PRELOADER */}
               <AnimatePresence mode="wait">
-                {state === 'loading' && (
+                {!isInitialLoadComplete && stage === 'loading' && (
                   <OrbPreloader
-                    onComplete={() => setState('ready')}
+                    onComplete={() => setStage('ready')}
                   />
                 )}
               </AnimatePresence>
 
               {/* 3. MAIN APP */}
-              {state === 'ready' && (
+              {(isInitialLoadComplete || stage === 'ready') && (
                 <SmoothScroll>
                   <Router>
+                    <TopProgressBar />
                     <ScrollToTop />
                     <React.Suspense fallback={<PageLoader />}>
                       <AuthenticatedApp />

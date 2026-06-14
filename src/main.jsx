@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from '@/App.jsx'
 import '@/index.css'
+import { AppProvider } from '@/contexts/AppContext'
 
 // Cleanly unregister any active service worker to prevent caching dynamic chunks and causing white screens
 if ('serviceWorker' in navigator) {
@@ -38,5 +39,8 @@ if (import.meta.env.DEV) {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <App />
+  <AppProvider>
+    <App />
+  </AppProvider>
 )
+

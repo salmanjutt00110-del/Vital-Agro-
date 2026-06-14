@@ -17,7 +17,8 @@ export default function ProductsShowcase() {
   }, []);
 
   const openCheckout = (product) => {
-    navigate(`/checkout?product=${product.slug || product.id}`);
+    const sizeParam = product.defaultSize ? `&size=${encodeURIComponent(product.defaultSize)}` : '';
+    navigate(`/checkout?product=${product.slug || product.id}${sizeParam}`);
   };
 
   const rawProducts = Object.values(PRODUCTS_DATA).filter(p => p.id || p.slug);

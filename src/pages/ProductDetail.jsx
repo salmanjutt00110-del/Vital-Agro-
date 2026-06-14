@@ -14,6 +14,7 @@ import CODWhatsAppButton from '@/components/CODWhatsApp/CODWhatsAppButton';
 import { useCart } from '@/lib/CartContext';
 import useVideoAutoplay from '@/hooks/useVideoAutoplay';
 import SEOHead from '@/lib/seo/SEOHead';
+import useProductPricing from '@/hooks/useProductPricing';
 
 // Import local assets via standard React pipeline
 import vitalBg from '@/assets/vital bg.mp4';
@@ -177,6 +178,10 @@ export default function ProductDetail() {
   const { lang } = useLanguage();
   const { toast } = useToast();
   const { addToCart, setIsCartOpen } = useCart();
+
+  // Load product from database
+  const product = getProductBySlug(id);
+
   const [activeTab, setActiveTab] = useState(0); // For product images gallery
   const [isZoomed, setIsZoomed] = useState(false); // Fullscreen view state
   const [openFaq, setOpenFaq] = useState(null); // Accordion state
@@ -187,9 +192,23 @@ export default function ProductDetail() {
   const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
   const [showLens, setShowLens] = useState(false);
 
-  // Selected pack size index
-  const [selectedSizeIdx, setSelectedSizeIdx] = useState(0);
-  const [quantity, setQuantity] = useState(1);
+  // Selected pack size and price calculations using the hook
+  const {
+    selectedSize,
+    setSelectedSize,
+    quantity,
+    setQuantity,
+    unitPrice,
+    originalPrice,
+    sku,
+    weight,
+    stockStatus,
+    sizesList
+  } = useProductPricing(product);
+
+  const selectedSizeIdx = sizesList.findIndex(
+    s => (typeof s === 'object' ? s.size : s) === selectedSize
+  );
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -214,17 +233,29 @@ export default function ProductDetail() {
   const videoRef = useRef(null);
   useVideoAutoplay(videoRef);
 
-  // Load product from database
-  const product = getProductBySlug(id);
-
   // Format WhatsApp message dynamic variables
-  const getWhatsAppLinkForProduct = (p, l, sizeIdx = 0, qty = 1) => {
+  const getWhatsAppLinkForProduct = (p, l, sizeInput = 0, qty = 1) => {
     const phone = "923011837160";
     const productName = p.name[l] || p.name.en || p.name;
     const catLabel = CATEGORY_LABELS[l]?.[p.category] || p.category;
     
     // Primary pricing details
-    const selectedOption = p.sizes?.[sizeIdx] || p.pricing?.[sizeIdx] || { size: p.packaging, price: 0, rate: "Negotiable", sku: p.productCode };
+    let selectedOption = null;
+    if (typeof sizeInput === 'number') {
+      selectedOption = p.sizes?.[sizeInput] || p.pricing?.[sizeInput];
+    } else {
+      if (p.sizes) {
+        selectedOption = p.sizes.find(s => (typeof s === 'object' ? s.size : s) === sizeInput);
+      }
+      if (!selectedOption && p.pricing) {
+        selectedOption = p.pricing.find(s => s.size === sizeInput);
+      }
+    }
+    
+    if (!selectedOption) {
+      selectedOption = { size: typeof sizeInput === 'string' ? sizeInput : p.packaging, price: p.price, rate: "Negotiable", sku: p.productCode };
+    }
+
     const size = selectedOption.size;
     const price = selectedOption.price ? `PKR ${selectedOption.price}` : (selectedOption.rate && selectedOption.rate !== "Negotiable" ? `PKR ${selectedOption.rate}` : "Negotiable");
     const code = selectedOption.sku || p.productCode;
@@ -243,8 +274,8 @@ Thank You.`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   };
 
-  const getWhatsAppQuoteLink = (p, l, sizeIdx = 0, qty = 1) => {
-    return getWhatsAppLinkForProduct(p, l, sizeIdx, qty);
+  const getWhatsAppQuoteLink = (p, l, sizeInput = 0, qty = 1) => {
+    return getWhatsAppLinkForProduct(p, l, sizeInput, qty);
   };
 
   const isRTL = lang === 'ur';
@@ -371,8 +402,14 @@ Thank you.`;
   };
 
   // Sizing pricing details helpers
-  const sizesList = product.sizes || [];
-  const currentSize = sizesList[selectedSizeIdx] || { size: product.packaging, price: 0, oldPrice: 0, stockStatus: 'In Stock', sku: product.productCode, weight: 'N/A' };
+  const currentSize = {
+    size: selectedSize,
+    price: unitPrice,
+    oldPrice: originalPrice,
+    stockStatus,
+    sku,
+    weight
+  };
   
   // Image zoom coordinate tracker
   const handleZoomMouseMove = (e) => {
@@ -579,19 +616,22 @@ Thank you.`;
                     {lang === 'en' ? 'Select Pack Size' : 'پیکنگ سائز منتخب کریں'}
                   </span>
                   <div className="flex flex-wrap gap-2">
-                    {sizesList.map((sz, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setSelectedSizeIdx(idx)}
-                        className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold border transition-all duration-300 ${
-                          selectedSizeIdx === idx
-                            ? 'bg-[#76C945]/20 text-[#8AD65A] border-[#76C945] scale-105'
-                            : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:border-white/20'
-                        }`}
-                      >
-                        {sz.size}
-                      </button>
-                    ))}
+                    {sizesList.map((sz, idx) => {
+                      const szName = typeof sz === 'object' ? sz.size : sz;
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => setSelectedSize(szName)}
+                          className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold border transition-all duration-300 ${
+                            selectedSize === szName
+                              ? 'bg-[#76C945]/20 text-[#8AD65A] border-[#76C945] scale-105'
+                              : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:border-white/20'
+                          }`}
+                        >
+                          {szName}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -599,19 +639,37 @@ Thank you.`;
               {/* Dynamic Price Display */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-white/5 pt-5">
                 <div className="space-y-1">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl sm:text-3xl font-black text-white">
-                      PKR {currentSize.price}
-                    </span>
-                    {currentSize.oldPrice && (
-                      <>
-                        <span className="line-through text-white/40 text-sm sm:text-base">
-                          PKR {currentSize.oldPrice}
-                        </span>
-                        <span className="px-1.5 py-0.5 bg-red-500/20 text-red-400 text-[10px] font-black rounded">
-                          Save {Math.round((1 - currentSize.price / currentSize.oldPrice) * 100)}%
-                        </span>
-                      </>
+                  <div className="flex items-baseline gap-2 overflow-hidden">
+                    <AnimatePresence mode="wait">
+                      <motion.span
+                        key={selectedSize}
+                        initial={{ y: 10, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: -10, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="text-2xl sm:text-3xl font-black text-white block"
+                      >
+                        PKR {unitPrice}
+                      </motion.span>
+                    </AnimatePresence>
+                    {originalPrice > 0 && (
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={selectedSize}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="flex items-center gap-2"
+                        >
+                          <span className="line-through text-white/40 text-sm sm:text-base">
+                            PKR {originalPrice}
+                          </span>
+                          <span className="px-1.5 py-0.5 bg-red-500/20 text-red-400 text-[10px] font-black rounded">
+                            Save {Math.round((1 - unitPrice / originalPrice) * 100)}%
+                          </span>
+                        </motion.div>
+                      </AnimatePresence>
                     )}
                   </div>
                   
@@ -895,29 +953,33 @@ Thank you.`;
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {sizesList.map((row, i) => (
-                      <tr key={i} className="hover:bg-muted/40 transition-colors">
-                        <td className="p-4 text-sm font-black text-center text-foreground">{row.size}</td>
-                        <td className="p-4 text-sm font-bold text-center text-[#C5A059]">
-                          {product.pricing?.[i]?.carton || '24'} {lang === 'en' ? 'Units / Carton' : 'بوتلیں فی کارٹن'}
-                        </td>
-                        <td className="p-4 text-sm font-black text-center text-[#0A2E1F]">
-                          PKR {row.price}
-                        </td>
-                        <td className="p-4 text-sm font-bold text-center">
-                          <button
-                            onClick={() => {
-                              setSelectedSizeIdx(i);
-                              handleAddToCart();
-                            }}
-                            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-black transition-all shadow-sm"
-                          >
-                            <ShoppingCart className="w-3.5 h-3.5" />
-                            <span>{lang === 'en' ? 'Checkout' : 'خریدیں'}</span>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {sizesList.map((row, i) => {
+                      const szName = typeof row === 'object' ? row.size : row;
+                      const szPrice = typeof row === 'object' ? row.price : row;
+                      return (
+                        <tr key={i} className="hover:bg-muted/40 transition-colors">
+                          <td className="p-4 text-sm font-black text-center text-foreground">{szName}</td>
+                          <td className="p-4 text-sm font-bold text-center text-[#C5A059]">
+                            {product.pricing?.[i]?.carton || '24'} {lang === 'en' ? 'Units / Carton' : 'بوتلیں فی کارٹن'}
+                          </td>
+                          <td className="p-4 text-sm font-black text-center text-[#0A2E1F]">
+                            PKR {szPrice}
+                          </td>
+                          <td className="p-4 text-sm font-bold text-center">
+                            <button
+                              onClick={() => {
+                                setSelectedSize(szName);
+                                handleAddToCart();
+                              }}
+                              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-black transition-all shadow-sm"
+                            >
+                              <ShoppingCart className="w-3.5 h-3.5" />
+                              <span>{lang === 'en' ? 'Checkout' : 'خریدیں'}</span>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

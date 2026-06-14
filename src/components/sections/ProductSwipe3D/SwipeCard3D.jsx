@@ -1,14 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import FloatingProduct from './FloatingProduct';
 import { useLanguage } from '@/lib/LanguageContext';
+
+const CURRENCY = 'PKR'; // Configurable global currency symbol
 
 export default function SwipeCard3D({ product, isActive, isPeek, isDragging, openCheckout }) {
   const { lang } = useLanguage();
   const [isHovered, setIsHovered] = useState(false);
   const imageSrc = product.pngUrl || product.imageUrl || product.image;
   const prodName = typeof product.name === 'object' ? (product.name.en || product.name || product.name[lang]) : product.name;
+
+  // Local size selection state inside card
+  const sizes = product.sizes || [];
+  const [selectedSize, setSelectedSize] = useState(
+    sizes.length > 0 ? (typeof sizes[0] === 'object' ? sizes[0].size : sizes[0]) : ''
+  );
+
+  // Compute pricing details dynamically based on selectedSize
+  const { price, originalPrice } = useMemo(() => {
+    if (sizes.length === 0) {
+      return {
+        price: product.price || 999,
+        originalPrice: product.originalPrice || null
+      };
+    }
+    const match = sizes.find(
+      s => (typeof s === 'object' ? s.size : s) === selectedSize
+    );
+    if (match && typeof match === 'object') {
+      return {
+        price: match.price,
+        originalPrice: match.oldPrice || null
+      };
+    }
+    const first = sizes[0];
+    return {
+      price: typeof first === 'object' ? first.price : product.price || 999,
+      originalPrice: typeof first === 'object' ? first.oldPrice : product.originalPrice || null
+    };
+  }, [selectedSize, sizes, product]);
 
   return (
     <motion.div
@@ -19,18 +51,19 @@ export default function SwipeCard3D({ product, isActive, isPeek, isDragging, ope
         w-full rounded-[32px] overflow-hidden
         flex flex-col items-center
         px-6 pt-8 pb-6
+        backdrop-blur-xl bg-neutral-900/40 border border-white/10 shadow-2xl
         transition-all duration-500
       `}
       style={{
-        background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%)',
-        backdropFilter: typeof window !== 'undefined' && window.innerWidth < 768 ? 'none' : 'blur(30px) saturate(180%)',
-        WebkitBackdropFilter: typeof window !== 'undefined' && window.innerWidth < 768 ? 'none' : 'blur(30px) saturate(180%)',
-        border: '1px solid rgba(255,255,255,0.08)',
+        background: 'rgba(23, 23, 23, 0.4)',
+        backdropFilter: 'blur(24px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
         boxShadow: isActive
           ? typeof window !== 'undefined' && window.innerWidth < 768
             ? '0 12px 30px rgba(0,0,0,0.5)'
             : isHovered
-              ? '0 50px 120px rgba(0,0,0,0.65), 0 0 100px rgba(92,184,92,0.2), inset 0 1px 0 rgba(255,255,255,0.12)'
+              ? '0 50px 120px rgba(0,0,0,0.7), 0 0 100px rgba(92,184,92,0.25), inset 0 1px 0 rgba(255,255,255,0.15)'
               : '0 40px 100px rgba(0,0,0,0.55), 0 0 80px rgba(92,184,92,0.1), inset 0 1px 0 rgba(255,255,255,0.1)'
           : 'none',
         minHeight: '520px',
@@ -64,18 +97,6 @@ export default function SwipeCard3D({ product, isActive, isPeek, isDragging, ope
         </span>
       </div>
 
-      {/* Top right: Discount badge */}
-      {product.discount && (
-        <div className="absolute top-5 right-5 z-10">
-          <span className="
-            px-2.5 py-1 rounded-lg text-[9px] font-black
-            bg-[#e63946] text-white shadow-md
-          ">
-            -{product.discount}%
-          </span>
-        </div>
-      )}
-
       {/* 3D Floating Product Image */}
       <div className="mt-10 mb-6 w-full flex justify-center z-10">
         <FloatingProduct
@@ -97,14 +118,41 @@ export default function SwipeCard3D({ product, isActive, isPeek, isDragging, ope
           {product.activeIngredient || product.formula || product.formulation}
         </p>
 
-        {/* Price */}
+        {/* Size Variant Selector inside Card */}
+        {sizes.length > 0 && (
+          <div className="flex gap-1.5 justify-center mb-5 flex-wrap z-20">
+            {sizes.map((sz) => {
+              const name = typeof sz === 'object' ? sz.size : sz;
+              return (
+                <button
+                  key={name}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Avoid card trigger navigation
+                    setSelectedSize(name);
+                  }}
+                  className={`
+                    px-2.5 py-1 rounded-lg text-[10px] font-black border transition-all duration-300
+                    ${selectedSize === name
+                      ? 'bg-[#5cb85c]/20 border-[#5cb85c] text-[#8AD65A] scale-105 shadow-[0_0_8px_rgba(92,184,92,0.15)]'
+                      : 'bg-white/5 border-white/10 text-white/50 hover:text-white hover:border-white/20'
+                    }
+                  `}
+                >
+                  {name}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Price Display */}
         <div className="flex items-center justify-center gap-3 mb-6">
           <span className="text-[#5cb85c] font-black text-2xl font-mono">
-            PKR {product.price?.toLocaleString()}
+            {CURRENCY} {price?.toLocaleString()}
           </span>
-          {product.originalPrice && (
+          {originalPrice && (
             <span className="text-white/30 text-xs line-through font-mono">
-              PKR {product.originalPrice.toLocaleString()}
+              {CURRENCY} {originalPrice.toLocaleString()}
             </span>
           )}
         </div>
@@ -114,7 +162,7 @@ export default function SwipeCard3D({ product, isActive, isPeek, isDragging, ope
       <div className="w-full flex flex-col gap-2.5 mt-auto z-10">
         {/* BUY NOW COD — opens checkout */}
         <motion.button
-          onClick={() => openCheckout && openCheckout(product)}
+          onClick={() => openCheckout && openCheckout({ ...product, defaultSize: selectedSize })}
           whileTap={{ scale: 0.97 }}
           className="w-full py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider text-white relative overflow-hidden"
           style={{
@@ -126,7 +174,7 @@ export default function SwipeCard3D({ product, isActive, isPeek, isDragging, ope
           {/* Shimmer */}
           <motion.div
             className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-            animate={{ x: ['-100%', '200%'] }}
+            animate={typeof window !== 'undefined' && window.innerWidth < 768 ? {} : { x: ['-100%', '200%'] }}
             transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1.5 }}
           />
           <span className="relative z-10 flex items-center justify-center gap-2">

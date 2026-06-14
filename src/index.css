@@ -460,3 +460,44 @@ html, body, #root {
     font-size: 16px !important;
   }
 }
+
+/* PRODUCT CARD GLASS */
+.glass-card {
+  background:           rgba(255, 255, 255, 0.04);
+  backdrop-filter:      blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border:               1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:           0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.glass-card:hover {
+  background:           rgba(255, 255, 255, 0.06);
+  border-color:         rgba(92, 184, 92, 0.18);
+  box-shadow:           0 16px 48px rgba(0, 0, 0, 0.5),
+                        0 0 0 1px rgba(92, 184, 92, 0.08);
+}
+
+/* PREMIUM GLASS (stronger blur for modals, sheets) */
+.glass-premium {
+  background:           rgba(6, 20, 6, 0.85);
+  backdrop-filter:      blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border:               1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* NAVBAR GLASS (on scroll) */
+.glass-navbar {
+  background:           rgba(6, 20, 6, 0.92);
+  backdrop-filter:      blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border-bottom:        1px solid rgba(255, 255, 255, 0.07);
+  box-shadow:           0 4px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Ensure backdrop-filter works in Safari */
+@supports (backdrop-filter: blur(20px)) {
+  .glass-card { backdrop-filter: blur(20px) saturate(160%); }
+}
+@supports not (backdrop-filter: blur(20px)) {
+  .glass-card { background: rgba(10, 30, 10, 0.9); }
+}

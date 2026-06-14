@@ -135,13 +135,7 @@ const ProductGridCard = React.memo(({ product, openCheckout, lang }) => {
 
   return (
     <div
-      className="group relative rounded-2xl overflow-hidden flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-      style={{
-        background: 'rgba(255,255,255,0.04)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
-      }}
+      className="group relative rounded-2xl overflow-hidden flex flex-col h-full glass-card transition-all duration-300"
     >
       {/* Top badges row */}
       <div className="flex justify-between items-center px-3 pt-3 pb-0">
@@ -311,7 +305,8 @@ export default function Products() {
 
   const navigate = useNavigate();
   const openCheckout = (product) => {
-    navigate(`/checkout?product=${product.slug || product.id}`);
+    const sizeParam = product.defaultSize ? `&size=${encodeURIComponent(product.defaultSize)}` : '';
+    navigate(`/checkout?product=${product.slug || product.id}${sizeParam}`);
   };
 
   const mappedProducts = useMemo(() => {
@@ -448,74 +443,20 @@ export default function Products() {
         </div>
       </section>
 
-      {/* 3D Swipe Showroom Hero (Top of Products Page) */}
-      <ProductSwipe3D products={mappedProducts} openCheckout={openCheckout} />
-
-      {/* Sticky Filtering Bar: Apple Store Navigation Pills */}
-      <section className="py-4 border-y border-white/5 sticky top-20 z-30 bg-black/60 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-            
-            {/* Category selection pills with horizontal scroll */}
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 w-full lg:w-auto flex-nowrap whitespace-nowrap select-none">
-              {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-                <button
-                  key={key}
-                  onClick={() => setCategory(key)}
-                  className={`px-4.5 py-2.5 rounded-full text-xs font-black transition-all flex-shrink-0 ${
-                    category === key
-                      ? 'bg-white text-black shadow-lg shadow-white/10 scale-102'
-                      : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white hover:scale-102'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {/* Keyword Search Input with Dynamic placeholder transition */}
-            <div className="relative w-full lg:w-80">
-              <Search className={`absolute ${isRTL ? 'right-3.5' : 'left-3.5'} top-1/2 -translate-y-1/2 w-4 h-4 text-white/40`} />
-              <Input
-                placeholder={PLACEHOLDERS[phIdx]}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className={`h-11 border-white/10 focus:border-[#76C945] rounded-full focus:ring-2 focus:ring-[#76C945]/20 bg-white/5 text-white placeholder-white/35 transition-all ${isRTL ? "pr-11 pl-4 text-right" : "pl-11 pr-4"}`}
-              />
-            </div>
+      {/* Exclusive 3D Showroom Hero, dynamically updated on filter changes */}
+      <section className="py-8 z-10 relative">
+        {filtered.length > 0 ? (
+          <ProductSwipe3D products={filtered} openCheckout={openCheckout} autoplay={false} />
+        ) : (
+          <div className="text-center py-24 bg-white/[0.02] rounded-3xl border border-white/10 p-8 max-w-xl mx-auto shadow-2xl backdrop-blur-md">
+            <span className="text-3xl block mb-4">🔎</span>
+            <p className="text-white/60 text-sm font-bold">
+              {lang === 'en' 
+                ? 'No premium products found matching your filters.' 
+                : 'آپ کے معیار کے مطابق کوئی مصنوعات نہیں ملیں۔'}
+            </p>
           </div>
-        </div>
-      </section>
-
-      {/* Crop Filter Selection inside premium glass container */}
-      <section className="py-4 z-20 relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white/[0.03] p-4.5 sm:p-5 rounded-3xl border border-white/10 backdrop-blur-md shadow-xl">
-          <CropFilter onCropSelect={setActiveCrop} activeCrop={activeCrop} />
-        </div>
-      </section>
-
-      {/* Catalog grid section */}
-      <section className="py-10 relative z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fadeIn">
-          {filtered.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-5 px-1 sm:px-6">
-              {filtered.map((product) => (
-                <ProductGridCard
-                  key={product.slug}
-                  product={product}
-                  openCheckout={openCheckout}
-                  lang={lang}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-20 bg-white/5 rounded-3xl border border-white/10 p-8 max-w-xl mx-auto shadow-2xl backdrop-blur-md">
-              <p className="text-white/60 text-sm font-bold">
-                {lang === 'en' ? 'No premium products found matching your filters.' : 'آپ کے معیار کے مطابق کوئی مصنوعات نہیں ملیں۔'}
-              </p>
-            </div>
-          )}
-        </div>
+        )}
       </section>
 
     </div>

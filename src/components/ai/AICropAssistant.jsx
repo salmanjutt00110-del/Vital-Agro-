@@ -10,6 +10,62 @@ const PRESETS = [
   { en: "Schedule leaf feeding for Rice crops", ur: "دھان کی فصل کے لیے سپرے کا شیڈول" }
 ];
 
+const CROP_KNOWLEDGE_BASE = {
+  whitefly: {
+    en: "🌾 **Cotton Whitefly Control:**\nWhitefly is a sucking pest that damages cotton leaves and transmits leaf curl virus.\n\n*Treatment:* Spray **Conference Gold** systemic insecticide (150-200 ml / Acre) dissolved in 120-150 Liters of clean water. Spray in early morning or late evening, targeting the undersides of leaves.\n\n*Support:* Contact us at +92-301-1837160 for further details.",
+    ur: "🌾 **کپاس کی سفید مکھی کا تدارک:**\nسفید مکھی پتوں سے رس چوستی ہے اور کپاس میں مروڑی پتا وائرس پھیلاتی ہے۔\n\n*علاج:* **کانفرنس گولڈ** سسٹمک کیڑے مار دوا (150 سے 200 ملی لیٹر فی ایکڑ) کو 120 سے 150 لیٹر صاف پانی میں حل کر کے صبح یا شام کے وقت سپرے کریں، خاص طور پر پتوں کے نچلے حصے پر۔\n\n*رابطہ:* مزید معلومات کے لیے +92-301-1837160 پر رابطہ کریں۔"
+  },
+  rust: {
+    en: "🌾 **Wheat Rust & Fungal Control:**\nWheat rust is a fungal disease causing yellow, orange, or black powdery spores on leaves and stems.\n\n*Treatment:* Apply **Purifizin Extra** broad-spectrum systemic fungicide (250-500 ml / Acre) immediately upon symptom detection to prevent crop loss.\n\n*Support:* Contact our agronomists at +92-301-1837160.",
+    ur: "🌾 **گندم کی کنگی کا تدارک:**\nگندم کی کنگی فنگس کی بیماری ہے جو پتوں اور تنے پر پیلے، نارنجی یا سیاہ رنگ کے دھبے پیدا کرتی ہے۔\n\n*علاج:* کنگی کے حملے کی صورت میں فوری طور پر **پیوریفیزن ایکسٹرا** سسٹمک فنگس کش دوا (250 سے 500 ملی لیٹر فی ایکڑ) کا سپرے کریں۔\n\n*رابطہ:* ہمارے زرعی ماہرین سے +92-301-1837160 پر مشورہ کریں۔"
+  },
+  aphids: {
+    en: "🌱 **Aphids / Sucking Pests:**\nAphids feed on young shoots and leaves, stunting crop growth.\n\n*Treatment:* Use **Conference Gold** systemic protection (150 ml / Acre) or **Easy Grow** depending on crop stage.\n\n*Support:* WhatsApp us at +92-301-1837160 for custom recommendations.",
+    ur: "🌱 **سست تیلا / چوسنے والے کیڑے:**\nتیلا نازک شاخوں اور پتوں سے رس چوس کر پودے کی نشوونما کو روکتا ہے۔\n\n*علاج:* فصل کے مرحلے کے مطابق **کانفرنس گولڈ** (150 ملی لیٹر فی ایکڑ) یا **ایزی گرو** کا استعمال کریں۔\n\n*رابطہ:* مزید رہنمائی کے لیے +92-301-1837160 پر واٹس ایپ کریں۔"
+  },
+  fertilizer: {
+    en: "🌱 **Fertilizers & Plant Nutrition:**\nImprove crop yield and vigor with high-quality organic micronutrients and growth stimulators.\n\n*Products:* **Fatty** (organic fatty acids and chelated micronutrients) or **Easy Grow** (containing GA3, Potassium Humate, and Fulvic Acid).\n\n*Support:* Consult our team at +92-301-1837160 for schedule details.",
+    ur: "🌱 **کھاد اور پلانٹ نیوٹریشن:**\nفصل کی پیداوار اور طاقت بڑھانے کے لیے اعلیٰ معیار کے نامیاتی مائیکرو نیوٹرینٹس اور گروتھ پروموٹرز استعمال کریں۔\n\n*مصنوعات:* **فیٹی** (نامیاتی فیٹی ایسڈز) یا **ایزی گرو** (ہیومک ایسڈ، فلوک ایسڈ اور جبرالک ایسڈ کا مرکب)۔\n\n*رابطہ:* سپرے کے شیڈول کے لیے ہمارے نمائندے سے +92-301-1837160 پر رابطہ کریں۔"
+  },
+  pricing: {
+    en: "💰 **Pricing & Delivery Info:**\n*Price range:* PKR 500 to PKR 5,000 depending on the pack size (e.g. 100ml, 250ml, 500ml, 1L, or bulk carton).\n\n*Delivery:* 2-4 business days across Pakistan. Free delivery for online payments (JazzCash, Easypaisa, Bank Transfer) or Cash on Delivery (COD) with PKR 299 fee.\n\n*Support:* +92-301-1837160.",
+    ur: "💰 **قیمت اور ڈیلیوری کی معلومات:**\n*قیمت کا پیمانہ:* مختلف پیکنگ سائزز کے مطابق 500 روپے سے 5000 روپے تک۔\n\n*ڈیلیوری:* پاکستان بھر میں 2 سے 4 کاروباری دنوں میں۔ آن لائن ادائیگی (جیز کیش، ایزی پیسہ، بینک ٹرانسفر) پر فری ڈیلیوری اور کیش آن ڈیلیوری (COD) پر 299 روپے چارجز۔\n\n*رابطہ:* +92-301-1837160۔"
+  },
+  order: {
+    en: "📦 **Order Status & Tracking:**\nYou can track your order in real-time. Simply head to the tracking section of the website `/track/:orderId` using your Order Number (e.g. VA-XXXXXX) to view status, history, and PDF invoice.\n\n*Support:* Contact +92-301-1837160 for instant help.",
+    ur: "📦 **آرڈر کا اسٹیٹس اور ٹریکنگ:**\nآپ اپنے آرڈر کی لائیو ٹریکنگ کر سکتے ہیں۔ ویب سائٹ کے ٹریکنگ پیج `/track/:orderId` پر جائیں اور اپنا آرڈر نمبر درج کر کے اسٹیٹس اور انوائس دیکھیں۔\n\n*رابطہ:* فوری مدد کے لیے +92-301-1837160 پر رابطہ کریں۔"
+  },
+  default: {
+    en: "Hello! Thank you for reaching out to Vital Agro.\nI specialize in crop protection, plant nutrition, and progressive farming in Pakistan.\n\nFor custom diagnostic advice or order assistance, please click the button below to chat with our agronomy team on WhatsApp (+92-301-1837160).",
+    ur: "خوش آمدید! وائٹل ایگرو سے رابطہ کرنے کا شکریہ۔\nمیں پاکستان میں فصلوں کی حفاظت، پودوں کی غذائیت، اور جدید زراعت کا ماہر ہوں۔\n\nتفصیلی زرعی مشورے یا آرڈر کے متعلق رہنمائی کے لیے نیچے دیے گئے بٹن پر کلک کر کے واٹس ایپ (+92-301-1837160) پر رابطہ کریں۔"
+  }
+};
+
+const getLocalAnswer = (query, lang) => {
+  const q = query.toLowerCase();
+  
+  if (q.includes('whitefly') || q.includes('مکھی') || q.includes('fly')) {
+    return CROP_KNOWLEDGE_BASE.whitefly[lang] || CROP_KNOWLEDGE_BASE.whitefly.en;
+  }
+  if (q.includes('rust') || q.includes('کنگی') || q.includes('blight') || q.includes('جھلساؤ') || q.includes('fung') || q.includes('fungs')) {
+    return CROP_KNOWLEDGE_BASE.rust[lang] || CROP_KNOWLEDGE_BASE.rust.en;
+  }
+  if (q.includes('aphid') || q.includes('تیلا') || q.includes('suck') || q.includes('chous')) {
+    return CROP_KNOWLEDGE_BASE.aphids[lang] || CROP_KNOWLEDGE_BASE.aphids.en;
+  }
+  if (q.includes('fertilizer') || q.includes('nutrition') || q.includes('کھاد') || q.includes('بڑھوتری') || q.includes('growth') || q.includes('fatty') || q.includes('easy grow') || q.includes('promoter')) {
+    return CROP_KNOWLEDGE_BASE.fertilizer[lang] || CROP_KNOWLEDGE_BASE.fertilizer.en;
+  }
+  if (q.includes('price') || q.includes('rate') || q.includes('cost') || q.includes('delivery') || q.includes('payment') || q.includes('ship') || q.includes('چارجز') || q.includes('قیمت') || q.includes('پیسے')) {
+    return CROP_KNOWLEDGE_BASE.pricing[lang] || CROP_KNOWLEDGE_BASE.pricing.en;
+  }
+  if (q.includes('order') || q.includes('track') || q.includes('status') || q.includes('آرڈر') || q.includes('ٹریک')) {
+    return CROP_KNOWLEDGE_BASE.order[lang] || CROP_KNOWLEDGE_BASE.order.en;
+  }
+  
+  return CROP_KNOWLEDGE_BASE.default[lang] || CROP_KNOWLEDGE_BASE.default.en;
+};
+
 export default function AICropAssistant() {
   const { lang } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
@@ -63,16 +119,9 @@ export default function AICropAssistant() {
       const reply = await askGemini(systemContext);
       setMessages(prev => [...prev, { role: 'model', text: reply }]);
     } catch (err) {
-      setMessages(prev => [
-        ...prev, 
-        { 
-          role: 'model', 
-          text: lang === 'en'
-            ? "Apologies, I encountered a temporary connection issue. Please verify your internet and try again or contact WhatsApp Live Support (+92-301-1837160)."
-            : "معذرت، رابطہ قائم کرنے میں عارضی مسئلہ پیش آیا ہے۔ براہ کرم انٹرنیٹ چیک کریں یا واٹس ایپ سپورٹ (+92-301-1837160) پر رابطہ کریں۔"
-        }
-      ]);
-      console.error(err);
+      console.warn("AI Advisor network/auth error, falling back to local database:", err);
+      const fallbackReply = getLocalAnswer(query, lang);
+      setMessages(prev => [...prev, { role: 'model', text: fallbackReply }]);
     } finally {
       setIsLoading(false);
     }

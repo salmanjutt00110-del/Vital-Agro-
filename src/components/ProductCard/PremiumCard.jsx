@@ -10,8 +10,9 @@ import PremiumButton from '@/components/ui/PremiumButton';
  *   - lang: current language code for text
  */
 export default function PremiumCard({ product, mousePosition = { x: 0, y: 0 }, lang }) {
-  const price = Math.round(product.pricing?.[0]?.price || 999);
-  const oldPrice = product.pricing?.[0]?.oldPrice ? Math.round(product.pricing[0].oldPrice) : null;
+  const firstSize = product.sizes?.[0];
+  const price = Math.round(firstSize?.price || product.price || Number(product.pricing?.[0]?.rate) || 999);
+  const oldPrice = firstSize?.oldPrice ? Math.round(firstSize.oldPrice) : null;
 
   const tiltStyle = {
     transform: `rotateX(${ -mousePosition.y * 15 }deg) rotateY(${ mousePosition.x * 15 }deg)`,
