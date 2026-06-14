@@ -87,6 +87,13 @@ const AuthenticatedApp = () => {
 function App() {
   const { stage, setStage, isInitialLoadComplete } = useApp();
 
+  // Constraint 3: Home Route Session Caching checks sessionStorage to render instantly
+  React.useEffect(() => {
+    if (sessionStorage.getItem('hasVisitedSession') === 'true' && stage !== 'ready') {
+      setStage('ready');
+    }
+  }, [stage, setStage]);
+
   return (
     <HelmetProvider>
       <AuthProvider>

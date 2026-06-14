@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   Home, 
@@ -17,18 +17,55 @@ import { useLanguage } from '@/lib/LanguageContext';
 
 export default function NaviKnobMenu({ isOpen, onClose }) {
   const { lang, t } = useLanguage();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [rotation, setRotation] = useState(0);
+  const [isClosing, setIsClosing] = useState(false);
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+
+  // Reset closing flag when menu opens
+  useEffect(() => {
+    if (isOpen) {
+      setIsClosing(false);
+    }
+  }, [isOpen]);
+
+  // Route-Change Auto-Close listener
+  useEffect(() => {
+    if (isOpen) {
+      setIsClosing(true);
+      const timer = setTimeout(() => {
+        onClose();
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [pathname, onClose]);
 
   // Auto rotate the outer system slowly to create depth
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || isClosing) return;
     const interval = setInterval(() => {
       setRotation((r) => (r + 0.1) % 360);
     }, 30);
     return () => clearInterval(interval);
-  }, [isOpen]);
+  }, [isOpen, isClosing]);
 
   if (!isOpen) return null;
+
+  const handleClose = () => {
+    setIsClosing(true);
+    const timer = setTimeout(() => {
+      onClose();
+    }, 350);
+  };
+
+  // Programmatic click handler for standard SPA routing
+  const handleNodeClick = (e, path) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent event bubbling to parent layers
+    handleClose();
+    navigate(path);
+  };
 
   // 7 Navigation Nodes configuration with specific angles
   const menuItems = [
@@ -66,7 +103,7 @@ export default function NaviKnobMenu({ isOpen, onClose }) {
     },
     { 
       label: lang === 'ur' ? 'اے آئی مشیر' : 'AI ADVISOR', 
-      path: '/products', // Deep link or direct filter for AI Assistant
+      path: '/products', 
       angle: 205.6,
       icon: Bot,
       highlight: true
@@ -96,14 +133,17 @@ export default function NaviKnobMenu({ isOpen, onClose }) {
   const R = getRadius();
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden">
-      {/* 1. Deep blurred hydroponic background context */}
+    // Constraint 1: Force master overlay to pointer-events-none
+    <div className={`fixed inset-0 z-[100] flex items-center justify-center overflow-hidden transition-all duration-350 pointer-events-none ${
+      isClosing ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+    }`}>
+      {/* 1. Deep blurred background - enables clicks via pointer-events-auto */}
       <motion.div 
-        className="absolute inset-0 bg-[#060a06]/90 backdrop-blur-2xl"
+        className="absolute inset-0 bg-[#060a06]/90 backdrop-blur-2xl pointer-events-auto"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={onClose}
+        onClick={handleClose}
       >
         {/* Hydroponic grid/drones vector representations */}
         <div className="absolute inset-0 opacity-10 pointer-events-none">
@@ -213,7 +253,8 @@ export default function NaviKnobMenu({ isOpen, onClose }) {
         </div>
 
         {/* 3. Orbiting Glass Data-Panels */}
-        <div className="absolute inset-0 flex items-center justify-center z-20">
+        {/* Constraint 1 & 2: pointer-events-auto and stopPropagation applied directly */}
+        <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
           {menuItems.map((item, index) => {
             const currentAngle = item.angle + rotation;
             const rad = (currentAngle * Math.PI) / 180;
@@ -225,17 +266,18 @@ export default function NaviKnobMenu({ isOpen, onClose }) {
             return (
               <motion.div
                 key={index}
-                className="absolute pointer-events-auto"
+                className="absolute pointer-events-auto cursor-pointer"
                 style={{
                   x,
                   y,
                   transform: 'translate(-50%, -50%)',
                 }}
                 whileHover={{ scale: 1.08 }}
+                onMouseEnter={() => setHoveredIndex(index)}
+                onMouseLeave={() => setHoveredIndex(null)}
+                onClick={(e) => handleNodeClick(e, item.path)}
               >
-                <Link
-                  to={item.path}
-                  onClick={onClose}
+                <div
                   className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border backdrop-blur-md shadow-2xl transition-all duration-300 ${
                     item.highlight 
                       ? 'bg-[#0A2E1F]/80 border-[#39ff14]/40 shadow-[#39ff14]/10' 
@@ -260,7 +302,7 @@ export default function NaviKnobMenu({ isOpen, onClose }) {
                       <IconComponent className="w-4 h-4" />
                     )}
                   </div>
-                  <div className="text-left">
+                  <div className="text-left select-none">
                     <p className={`text-xs font-black tracking-wide ${
                       item.highlight ? 'text-[#39ff14]' : 'text-white'
                     }`}>
@@ -270,15 +312,16 @@ export default function NaviKnobMenu({ isOpen, onClose }) {
                       {item.highlight ? 'SECURE_BOT' : item.quote ? 'REQ_QUOTE' : `SYS_NODE_0${index + 1}`}
                     </p>
                   </div>
-                </Link>
+                </div>
               </motion.div>
             );
           })}
         </div>
 
         {/* 4. Central Core Navi-Knob Component (Acts as Close Button) */}
+        {/* Constraint 4: spring-based indicator needle pointing at hovered menu item */}
         <motion.button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute w-24 h-24 rounded-full bg-gradient-to-br from-[#051c0c] to-[#0d0d0d] border-[3px] border-white/10 hover:border-[#39ff14]/60 transition-all duration-500 shadow-[0_0_35px_rgba(57,255,20,0.15)] flex flex-col items-center justify-center pointer-events-auto z-30 group"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -290,11 +333,22 @@ export default function NaviKnobMenu({ isOpen, onClose }) {
           {/* Tactical Cross/Notch */}
           <div className="absolute w-[2px] h-[75%] bg-white/10 group-hover:bg-[#39ff14]/40 transition-colors" />
           <div className="absolute h-[2px] w-[75%] bg-white/10 group-hover:bg-[#39ff14]/40 transition-colors" />
+
+          {/* Indicator Needle */}
+          <motion.div 
+            className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none"
+            animate={{ 
+              rotate: hoveredIndex !== null ? menuItems[hoveredIndex].angle + rotation : rotation 
+            }}
+            transition={{ type: "spring", stiffness: 180, damping: 14 }}
+          >
+            <div className="w-[3px] h-[35px] bg-gradient-to-t from-[#39ff14] to-white rounded-full -translate-y-[15px] shadow-[0_0_8px_#39ff14]" />
+          </motion.div>
           
           {/* Inner core display */}
-          <div className="relative z-10 flex flex-col items-center justify-center">
-            <X className="w-5 h-5 text-white/80 group-hover:text-[#39ff14] transition-colors" />
-            <span className="text-[7px] font-mono text-white/40 tracking-wider mt-0.5 group-hover:text-white transition-colors">
+          <div className="relative z-10 flex flex-col items-center justify-center bg-gradient-to-b from-black/80 to-black/40 w-16 h-16 rounded-full border border-white/5 shadow-inner">
+            <X className="w-4 h-4 text-white/80 group-hover:text-[#39ff14] transition-colors" />
+            <span className="text-[6px] font-mono text-white/40 tracking-wider mt-0.5 group-hover:text-white transition-colors">
               CLOSE
             </span>
           </div>
