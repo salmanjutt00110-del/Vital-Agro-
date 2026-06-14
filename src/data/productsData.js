@@ -22,6 +22,12 @@ import sectorPng from '@/vital product/sECTOR.png';
 import outputPng from '@/vital product/Output.png';
 import super4gPng from '@/vital product/4g.png';
 import farbasinPng from '@/vital product/Farbasin.png';
+import vacSopPng from '@/vital product/vac-sop.png';
+import vacMapPng from '@/vital product/vac-map.png';
+import defeaterSoilPng from '@/vital product/defeater-soil.png';
+import sonehriPotashPng from '@/vital product/sonehri-potash.png';
+import defeaterHumatePng from '@/vital product/defeater-humate.png';
+import settingPng from '@/vital product/setting.png';
 
 
 export const PRODUCTS_DATA = {
@@ -1803,8 +1809,8 @@ export const PRODUCTS_DATA = {
       ur: "ویک ایس او پی"
     },
     category: "plant_nutrition",
-    imageUrl: "",
-    pngUrl: "/products/vac-sop.png",
+    imageUrl: vacSopPng,
+    pngUrl: vacSopPng,
     rating: 4.9,
     importedFormulaBadge: true,
     premiumProductBadge: true,
@@ -1928,8 +1934,8 @@ export const PRODUCTS_DATA = {
       ur: "ویک میپ"
     },
     category: "plant_nutrition",
-    imageUrl: "",
-    pngUrl: "/products/vac-map.png",
+    imageUrl: vacMapPng,
+    pngUrl: vacMapPng,
     rating: 4.8,
     importedFormulaBadge: true,
     premiumProductBadge: true,
@@ -2044,8 +2050,8 @@ export const PRODUCTS_DATA = {
       ur: "ڈیفیٹر سوائل"
     },
     category: "soil_conditioner",
-    imageUrl: "",
-    pngUrl: "/products/defeater-soil.png",
+    imageUrl: defeaterSoilPng,
+    pngUrl: defeaterSoilPng,
     rating: 4.7,
     importedFormulaBadge: false,
     premiumProductBadge: true,
@@ -2161,8 +2167,8 @@ export const PRODUCTS_DATA = {
       ur: "سنہری پوٹاش"
     },
     category: "plant_nutrition",
-    imageUrl: "",
-    pngUrl: "/products/sonehri-potash.png",
+    imageUrl: sonehriPotashPng,
+    pngUrl: sonehriPotashPng,
     rating: 4.8,
     importedFormulaBadge: false,
     premiumProductBadge: true,
@@ -2276,8 +2282,8 @@ export const PRODUCTS_DATA = {
       ur: "ڈیفیٹر ہیومیٹ"
     },
     category: "plant_nutrition",
-    imageUrl: "",
-    pngUrl: "/products/defeater-humate.png",
+    imageUrl: defeaterHumatePng,
+    pngUrl: defeaterHumatePng,
     rating: 4.8,
     importedFormulaBadge: false,
     premiumProductBadge: true,
@@ -2391,8 +2397,8 @@ export const PRODUCTS_DATA = {
       ur: "سیٹنگ این پی کے"
     },
     category: "plant_nutrition",
-    imageUrl: "",
-    pngUrl: "/products/setting.png",
+    imageUrl: settingPng,
+    pngUrl: settingPng,
     rating: 4.9,
     importedFormulaBadge: true,
     premiumProductBadge: true,

@@ -198,6 +198,19 @@ export default function ProductDetail() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  const [showStickyBar, setShowStickyBar] = useState(false);
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 400) {
+        setShowStickyBar(true);
+      } else {
+        setShowStickyBar(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const videoRef = useRef(null);
   useVideoAutoplay(videoRef);
 
